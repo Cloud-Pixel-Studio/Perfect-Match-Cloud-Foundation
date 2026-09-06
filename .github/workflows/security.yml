@@ -36,7 +36,7 @@ jobs:
       - name: OpenGrep SAST
         run: opengrep scan --sarif --config security/opengrep/rules.yml --exclude security/tests/fixtures --output artifacts/opengrep.sarif .
       - name: Trivy filesystem
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: fs
           scan-ref: .
