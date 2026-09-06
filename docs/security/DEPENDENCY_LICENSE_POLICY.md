@@ -18,3 +18,11 @@ SeaweedFS Community Edition is approved for local S3-compatible object storage:
 - Necessity: proves storage portability without AWS resources or customer data
 
 The pulled image digest is recorded in checkpoint evidence. MinIO is prohibited.
+
+pnpm permits install scripts only for the explicitly listed `unrs-resolver`
+package, an MIT-licensed native resolver required transitively by the approved
+ESLint toolchain. Other dependency build scripts remain denied by default.
+
+The backend uses BSD-licensed `pg8000` for PostgreSQL connectivity. Optional
+Sharp/libvips Linux image binaries are excluded because the small local brand
+asset is served unoptimized and does not require that LGPL runtime surface.

@@ -1,0 +1,68 @@
+name: Foundation security
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.3.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: pnpm install --frozen-lockfile
+      - run: cd apps/api && uv sync --frozen
+      - run: mkdir -p artifacts
+      - name: Install OpenGrep
+        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -s -- -v v1.29.0
+      - name: OpenGrep rule fixtures
+        run: ./security/opengrep/test-rules.sh
+      - name: OpenGrep SAST
+        run: opengrep scan --sarif --config security/opengrep/rules.yml --exclude security/tests/fixtures --output artifacts/opengrep.sarif .
+      - name: Trivy filesystem
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          format: sarif
+          output: artifacts/trivy.sarif
+      - name: Install Gitleaks
+        run: |
+          metadata=$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/tags/v8.30.1)
+          url=$(printf '%s' "$metadata" | jq -r '.assets[] | select(.name | test("linux_x64.tar.gz$")) | .browser_download_url')
+          curl -fsSL "$url" | sudo tar -xz -C /usr/local/bin gitleaks
+      - name: Gitleaks worktree and history
+        run: |
+          gitleaks dir --config .gitleaks.toml --redact --no-banner .
+          gitleaks git --config .gitleaks.toml --redact --no-banner .
+      - name: Dependency audits
+        run: |
+          cd apps/api && uv run pip-audit
+          cd ../.. && pnpm audit --audit-level high
+      - name: License validation
+        run: ./scripts/check-licenses.sh
+      - name: Upload SARIF
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-security-sarif
+          path: artifacts/*.sarif

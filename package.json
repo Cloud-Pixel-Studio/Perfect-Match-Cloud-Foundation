@@ -1,0 +1,12 @@
+{
+  "name": "perfect-match-cloud-foundation",
+  "private": true,
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@12.3.4",
+  "scripts": {
+    "build": "pnpm --filter @perfect-match/web build",
+    "lint": "pnpm --filter @perfect-match/web lint",
+    "test": "pnpm --filter @perfect-match/web test",
+    "typecheck": "pnpm --filter @perfect-match/web typecheck"
+  }
+}

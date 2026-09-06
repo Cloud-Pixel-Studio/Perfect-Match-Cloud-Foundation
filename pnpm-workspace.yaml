@@ -1,0 +1,10 @@
+packages:
+  - apps/web
+  - packages/*
+
+allowBuilds:
+  unrs-resolver: true
+
+ignoredOptionalDependencies:
+  - "@img/sharp-libvips-linux-x64"
+  - "@img/sharp-linux-x64"

@@ -12,3 +12,15 @@ events; private storage URLs; and cross-tenant AI retrieval prevention.
 
 Active attack scanning, production targeting, LAN discovery, and external source
 upload are prohibited in PMC-00.
+
+## PMC-00 baseline risk treatments
+
+ZAP rule 10055 remains `WARN`: Next.js hydration uses inline bootstrap scripts.
+The local shell's CSP otherwise limits scripts, connections, images, forms,
+frames, and objects to explicit safe sources. This exception is limited to the
+disposable foundation UI, which renders no customer or user-authored content.
+Nonce-based script policy is required before production exposure.
+
+ZAP rule 10109 is ignored because it only classifies the target as a modern web
+application. It is not a vulnerability. The suppression is scoped to the
+PMC-00 local passive baseline configuration.

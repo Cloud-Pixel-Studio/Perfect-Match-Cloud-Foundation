@@ -1,0 +1,82 @@
+:root {
+  color-scheme: light;
+  --pm-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pm-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --pm-text-xs: 0.75rem;
+  --pm-text-sm: 0.875rem;
+  --pm-text-md: 1rem;
+  --pm-text-lg: 1.125rem;
+  --pm-text-xl: 1.5rem;
+  --pm-weight-regular: 400;
+  --pm-weight-medium: 560;
+  --pm-weight-semibold: 650;
+  --pm-space-1: 0.25rem;
+  --pm-space-2: 0.5rem;
+  --pm-space-3: 0.75rem;
+  --pm-space-4: 1rem;
+  --pm-space-5: 1.25rem;
+  --pm-space-6: 1.5rem;
+  --pm-space-8: 2rem;
+  --pm-space-10: 2.5rem;
+  --pm-radius-sm: 4px;
+  --pm-radius-md: 6px;
+  --pm-radius-lg: 8px;
+  --pm-motion-fast: 140ms;
+  --pm-motion-standard: 220ms;
+  --pm-bg: #f4f6f7;
+  --pm-surface: #ffffff;
+  --pm-surface-raised: #ffffff;
+  --pm-surface-muted: #e9edef;
+  --pm-text: #172026;
+  --pm-text-muted: #5c6870;
+  --pm-border: #d4dadd;
+  --pm-border-strong: #abb5ba;
+  --pm-primary: #087f79;
+  --pm-primary-strong: #04645f;
+  --pm-accent: #db4b3f;
+  --pm-success: #147a48;
+  --pm-warning: #9b6500;
+  --pm-danger: #b4232d;
+  --pm-info: #2463a7;
+  --pm-focus: #087f79;
+  --pm-shadow-sm: 0 1px 2px rgb(23 32 38 / 8%);
+  --pm-shadow-md: 0 8px 24px rgb(23 32 38 / 10%);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --pm-bg: #111619;
+  --pm-surface: #181f23;
+  --pm-surface-raised: #20292e;
+  --pm-surface-muted: #29343a;
+  --pm-text: #f2f5f6;
+  --pm-text-muted: #aab6bc;
+  --pm-border: #344249;
+  --pm-border-strong: #52636b;
+  --pm-primary: #35b9b0;
+  --pm-primary-strong: #6ad2ca;
+  --pm-accent: #ff7164;
+  --pm-success: #53bf82;
+  --pm-warning: #e0a83d;
+  --pm-danger: #ff7b82;
+  --pm-info: #73a8df;
+  --pm-focus: #56c9c1;
+  --pm-shadow-sm: 0 1px 2px rgb(0 0 0 / 30%);
+  --pm-shadow-md: 0 8px 24px rgb(0 0 0 / 32%);
+}
+
+*:focus-visible {
+  outline: 3px solid var(--pm-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

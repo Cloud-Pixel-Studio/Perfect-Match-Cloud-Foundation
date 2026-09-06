@@ -13,8 +13,11 @@ coverage/
 dist/
 build/
 artifacts/
+apps/api/vendor-wheels/*.whl
+apps/web/prebuilt.tar
 *.sarif
 *.log
+*.tsbuildinfo
 .DS_Store
 .idea/
 .vscode/
