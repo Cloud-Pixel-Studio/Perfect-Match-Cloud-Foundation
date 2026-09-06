@@ -10,7 +10,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data:",
   "object-src 'none'",
   "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self'",
 ].join("; ");
 
 const nextConfig: NextConfig = {
