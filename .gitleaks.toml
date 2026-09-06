@@ -1,0 +1,15 @@
+title = "Perfect Match Cloud Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated and ignored local build or scanner artifacts"
+paths = [
+  '''(^|/)\.next/''',
+  '''(^|/)\.venv/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)artifacts/''',
+  '''(^|/)vendor-wheels/''',
+  '''(^|/)prebuilt\.tar$''',
+]

@@ -1,0 +1,10 @@
+rules:
+  - id: pmc.python.wildcard-cors
+    languages: [python]
+    severity: ERROR
+    message: Wildcard CORS is prohibited for Perfect Match Cloud services.
+    metadata:
+      category: security
+      confidence: high
+      technology: [fastapi]
+    pattern: $APP.add_middleware(..., allow_origins=["*"], ...)

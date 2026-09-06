@@ -26,7 +26,43 @@ regulatory certification.
 - PMC-13 Compliance Engine
 - PMC-14 Perfect Match AI
 
-Development commands are added on the `pmc/00-local-foundation` branch.
+## Local development
+
+Requirements are Docker Engine with Compose, Python 3.12, uv, Node 24, and pnpm.
+Local credentials live outside the repository in
+`~/.config/pmcloud/dev.env`; `make configure` creates them with restrictive
+permissions.
+
+```bash
+make configure
+make up
+make health
+make logs
+make down
+```
+
+The web shell listens on `http://127.0.0.1:3000`, the API on
+`http://127.0.0.1:8000`, and the development S3-compatible endpoint on
+`http://127.0.0.1:8333`. PostgreSQL has no host port.
+
+## Validation
+
+```bash
+make lint
+make typecheck
+make test
+make build
+make security-focused
+make checkpoint
+```
+
+`make security-focused` runs local checks only. The final checkpoint additionally
+uses Trivy, Gitleaks, dependency audits, application image scans, a CycloneDX
+SBOM, and a passive OWASP ZAP baseline against the disposable local application.
+
+The current UI and API are a development foundation only. No QMS business
+modules, production identity, tenant provisioning, AWS infrastructure, or
+certification claims are implemented.
 
 ## Proprietary status
 
