@@ -30,7 +30,9 @@ jobs:
       - run: cd apps/api && uv sync --frozen
       - run: mkdir -p artifacts
       - name: Install OpenGrep
-        run: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -s -- -v v1.29.0
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash -s -- -v v1.29.0
+          echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
       - name: OpenGrep rule fixtures
         run: ./security/opengrep/test-rules.sh
       - name: OpenGrep SAST
