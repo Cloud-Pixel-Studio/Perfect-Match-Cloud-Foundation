@@ -60,7 +60,7 @@ jobs:
           gitleaks git --config .gitleaks.toml --redact --no-banner .
       - name: Dependency audits
         run: |
-          cd apps/api && uv run pip-audit
+          cd apps/api && uvx --from pip-audit==2.10.1 pip-audit -r requirements-runtime.txt
           cd ../.. && pnpm audit --audit-level high
       - name: License validation
         run: ./scripts/check-licenses.sh
