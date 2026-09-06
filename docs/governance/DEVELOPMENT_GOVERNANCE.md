@@ -44,7 +44,28 @@ OWNER APPROVAL -> OWNER-EXECUTED MERGE
 The Owner may explicitly delegate non-administrative implementation work, but
 administrative authority remains with the Owner unless the Owner formally
 changes this governance policy. Codex may prepare changes, commits, issues, pull
-requests, test results, and checkpoint evidence. Codex may not merge its own work.
+requests, test results, and checkpoint evidence. Codex may not merge unless the
+Product Owner has explicitly authorized that specific merge and Codex proves it
+is operating through an authenticated Owner account.
+
+## OWNER-AUTHORIZED AUTOMATION EXECUTION
+
+Administrative and privileged authority remains exclusively with the Owner. The
+Owner may explicitly authorize an automation agent such as Codex to execute a
+specific Owner-only operation through an authenticated Owner account. Such
+delegation must be:
+
+- explicit;
+- specific to the repository, action, and pull request where applicable;
+- temporary;
+- evidence-driven; and
+- recorded.
+
+Automation must verify authenticated Owner authority immediately before
+execution. A general Codex session, PASS checkpoint, successful CI, repository
+write permission, or repository administrator permission does not by itself
+authorize a privileged operation. An Owner-authorized automation execution does
+not transfer Owner authority to Codex.
 
 ## Public Repository and Proprietary Source
 
