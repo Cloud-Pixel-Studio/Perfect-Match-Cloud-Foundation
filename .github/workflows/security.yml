@@ -75,6 +75,7 @@ jobs:
           set -a
           source "${RUNNER_TEMP}/pmcloud/dev.env"
           set +a
+          chmod 644 "${PMC_RUNTIME_DIR}/seaweedfs-s3.json"
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build
           for url in http://127.0.0.1:8000/health http://127.0.0.1:3000; do
             for attempt in $(seq 1 30); do
