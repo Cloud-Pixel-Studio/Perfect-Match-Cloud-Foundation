@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select, tuple_
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from pmc_api.auth import Authenticated
@@ -188,7 +188,13 @@ def events(
     position = _cursor(cursor)
     if position:
         statement = statement.where(
-            tuple_(AuditEvent.occurred_at, AuditEvent.id) < tuple_(*position)
+            or_(
+                AuditEvent.occurred_at < position[0],
+                and_(
+                    AuditEvent.occurred_at == position[0],
+                    AuditEvent.id < position[1],
+                ),
+            )
         )
     rows = list(
         db.scalars(
