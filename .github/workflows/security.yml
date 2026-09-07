@@ -64,6 +64,9 @@ jobs:
           docker build --pull=false --tag "pmcloud-api:${IMAGE_TAG}" apps/api
           docker build --pull=false --tag "pmcloud-web:${IMAGE_TAG}" --target runtime --file apps/web/Dockerfile .
           docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-api:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-database-bootstrap:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-migrate:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-identity-bootstrap:latest
           docker tag "pmcloud-web:${IMAGE_TAG}" pmcloud-web:latest
           docker image inspect "pmcloud-api:${IMAGE_TAG}" "pmcloud-web:${IMAGE_TAG}" > artifacts/application-images.json
       - name: Prepare disposable CI runtime
