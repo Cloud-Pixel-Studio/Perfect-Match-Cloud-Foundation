@@ -18,9 +18,22 @@ AUDIT_SCHEMA_VERSION = 1
 ACTION_TENANT_SELECTED = "auth.tenant_selected"
 MAX_PAYLOAD_BYTES = 64 * 1024
 FORBIDDEN_KEYS = {
-    "password", "session_token", "csrf_token", "authorization_code", "pkce_verifier",
-    "login_binding", "access_token", "refresh_token", "id_token", "cookie", "api_key",
-    "private_key", "client_secret", "database_password", "aws_credential", "github_credential",
+    "password",
+    "session_token",
+    "csrf_token",
+    "authorization_code",
+    "pkce_verifier",
+    "login_binding",
+    "access_token",
+    "refresh_token",
+    "id_token",
+    "cookie",
+    "api_key",
+    "private_key",
+    "client_secret",
+    "database_password",
+    "aws_credential",
+    "github_credential",
 }
 
 
@@ -32,7 +45,9 @@ def _validate_value(value: object, path: str = "payload") -> None:
     if isinstance(value, dict):
         for key, nested in value.items():
             normalized = key.lower()
-            if normalized in FORBIDDEN_KEYS or any(part in normalized for part in ("token", "secret")):
+            if normalized in FORBIDDEN_KEYS or any(
+                part in normalized for part in ("token", "secret")
+            ):
                 raise AuditPayloadError(f"forbidden audit field: {path}.{key}")
             _validate_value(nested, f"{path}.{key}")
     elif isinstance(value, list):
@@ -44,7 +59,10 @@ def _safe_payload(value: dict[str, object] | None) -> dict[str, object] | None:
     if value is None:
         return None
     _validate_value(value)
-    if len(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()) > MAX_PAYLOAD_BYTES:
+    if (
+        len(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode())
+        > MAX_PAYLOAD_BYTES
+    ):
         raise AuditPayloadError("audit payload exceeds maximum size")
     return value
 
@@ -74,11 +92,20 @@ def record(
     old_values, new_values = _safe_payload(old_values), _safe_payload(new_values)
     metadata = _safe_payload(metadata or {}) or {}
     event = AuditEvent(
-        id=uuid4(), tenant_id=tenant_id, actor_user_id=actor_user_id,
-        actor_display_name=actor_display_name, actor_role=actor_role, action=action,
-        resource_type=resource_type, resource_id=resource_id, request_id=request_id,
-        schema_version=AUDIT_SCHEMA_VERSION, changed_fields=_changed_fields(old_values, new_values),
-        old_values=old_values, new_values=new_values, metadata=metadata,
+        id=uuid4(),
+        tenant_id=tenant_id,
+        actor_user_id=actor_user_id,
+        actor_display_name=actor_display_name,
+        actor_role=actor_role,
+        action=action,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        request_id=request_id,
+        schema_version=AUDIT_SCHEMA_VERSION,
+        changed_fields=_changed_fields(old_values, new_values),
+        old_values=old_values,
+        new_values=new_values,
+        metadata=metadata,
         occurred_at=datetime.now(UTC),
     )
     db.add(event)
@@ -136,8 +163,19 @@ def events(
     tenant_id = authenticated.record.current_tenant_id
     if tenant_id is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "tenant selection required")
-    set_request_context(db, user_id=authenticated.user.id, tenant_id=tenant_id, session_hash=authenticated.record.token_hash)
-    membership = db.scalar(select(Membership).where(Membership.tenant_id == tenant_id, Membership.user_id == authenticated.user.id, Membership.status == "active"))
+    set_request_context(
+        db,
+        user_id=authenticated.user.id,
+        tenant_id=tenant_id,
+        session_hash=authenticated.record.token_hash,
+    )
+    membership = db.scalar(
+        select(Membership).where(
+            Membership.tenant_id == tenant_id,
+            Membership.user_id == authenticated.user.id,
+            Membership.status == "active",
+        )
+    )
     if membership is None or membership.role not in {"owner", "admin", "auditor"}:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "audit access denied")
     statement = select(AuditEvent).where(AuditEvent.tenant_id == tenant_id)
@@ -147,10 +185,20 @@ def events(
         statement = statement.where(AuditEvent.resource_type == resource_type)
     position = _cursor(cursor)
     if position:
-        statement = statement.where(tuple_(AuditEvent.occurred_at, AuditEvent.id) < tuple_(*position))
-    rows = list(db.scalars(statement.order_by(AuditEvent.occurred_at.desc(), AuditEvent.id.desc()).limit(limit + 1)))
+        statement = statement.where(
+            tuple_(AuditEvent.occurred_at, AuditEvent.id) < tuple_(*position)
+        )
+    rows = list(
+        db.scalars(
+            statement.order_by(AuditEvent.occurred_at.desc(), AuditEvent.id.desc()).limit(limit + 1)
+        )
+    )
     has_more = len(rows) > limit
     rows = rows[:limit]
-    next_cursor = f"{rows[-1].occurred_at.isoformat()}|{rows[-1].id}" if has_more and rows else None
+    next_cursor = (
+        f"{rows[-1].occurred_at.isoformat()}|{rows[-1].id}" if has_more and rows else None
+    )
     response.headers["X-Request-ID"] = str(request.state.request_id)
-    return AuditEventPage(items=[AuditEventResponse.model_validate(row) for row in rows], next_cursor=next_cursor)
+    return AuditEventPage(
+        items=[AuditEventResponse.model_validate(row) for row in rows], next_cursor=next_cursor
+    )
