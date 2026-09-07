@@ -20,6 +20,9 @@ to their respective components. Dependencies are kept narrow and mature.
 | Pydantic | 2.13.5 | https://github.com/pydantic/pydantic | MIT | Typed validation and API contracts. |
 | boto3 | 1.43.89 | https://github.com/boto/boto3 | Apache-2.0 | Standard S3-compatible client surface. |
 | pg8000 | 1.31.5 | https://github.com/tlocke/pg8000 | BSD-3-Clause | PostgreSQL driver without a copyleft runtime dependency. |
+| JOSE RFC | 1.7.5 | https://github.com/authlib/joserfc | BSD-3-Clause | Restricted-algorithm JWT signature and claims validation. |
+| Cryptography | 50.0.1 | https://github.com/pyca/cryptography | Apache-2.0 OR BSD-3-Clause | Mature authenticated encryption and asymmetric primitives used by JOSE. |
+| HTTPX | 0.28.1 | https://github.com/encode/httpx | BSD-3-Clause | OIDC discovery, token exchange, JWKS retrieval, and isolated local bootstrap HTTP. |
 | Uvicorn | 0.52.4 | https://github.com/encode/uvicorn | BSD-3-Clause | ASGI application server. |
 | Node.js | 24.20.0 LTS | https://nodejs.org/ | MIT | Supported frontend and build runtime. |
 | pnpm | 12.3.4 | https://github.com/pnpm/pnpm | MIT | Pinned workspace package manager with install-script policy. |
@@ -29,6 +32,7 @@ to their respective components. Dependencies are kept narrow and mature.
 | Lucide React | 1.41.0 | https://github.com/lucide-icons/lucide | ISC | Accessible interface icon set. |
 | PostgreSQL | 18.6 | https://www.postgresql.org/ | PostgreSQL | Local relational data service and future RDS-compatible engine. |
 | SeaweedFS Community Edition | 4.45 | https://github.com/seaweedfs/seaweedfs | Apache-2.0 | Local S3-compatible object storage. |
+| Keycloak | 26.7.3 | https://github.com/keycloak/keycloak | Apache-2.0 | Local-only standards-compliant OIDC provider; not used by product business code. |
 
 The standalone engineering tools are Docker Engine 29.8.0 (Apache-2.0 core),
 Docker Compose 5.5.1 (Apache-2.0), OpenGrep 1.29.0 (LGPL-2.1), Trivy 0.74.0

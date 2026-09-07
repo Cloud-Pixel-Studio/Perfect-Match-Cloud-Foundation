@@ -15,7 +15,7 @@ def test_health_reports_ready_dependencies(monkeypatch: pytest.MonkeyPatch) -> N
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "dependencies": {"database": "ok", "object_storage": "ok"},
     }
 

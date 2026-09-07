@@ -1,13 +1,16 @@
 [project]
 name = "perfect-match-cloud-api"
-version = "0.1.0"
-description = "Perfect Match Cloud API foundation"
+version = "0.2.0"
+description = "Perfect Match Cloud identity and multi-tenancy foundation"
 license = "LicenseRef-Proprietary"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "alembic>=1.16,<2",
   "boto3>=1.40,<2",
+  "cryptography==50.0.1",
   "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "joserfc>=1.7,<2",
   "pg8000>=1.31,<2",
   "pydantic-settings>=2.10,<3",
   "sqlalchemy>=2.0,<3",
@@ -50,3 +53,4 @@ mypy_path = "src"
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+markers = ["tenant_isolation: tests requiring disposable PostgreSQL with forced RLS"]

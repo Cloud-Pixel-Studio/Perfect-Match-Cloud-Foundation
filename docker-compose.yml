@@ -2,7 +2,7 @@ name: pmcloud
 
 services:
   postgres:
-    image: postgres:18-alpine
+    image: postgres:18-alpine@sha256:24b9bbcd16361b62a3051ed06287050fd9a61f6fb6d36f1850eae4b741c61ce3
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -15,6 +15,88 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql
+    networks:
+      - platform
+
+  database-bootstrap:
+    build:
+      context: ./apps/api
+    command: ["python", "-m", "pmc_api.bootstrap_database"]
+    environment:
+      PMC_DATABASE_ADMIN_URL: postgresql+pg8000://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_MIGRATION_PASSWORD: ${POSTGRES_MIGRATION_PASSWORD}
+      POSTGRES_MIGRATION_USER: ${POSTGRES_MIGRATION_USER:-pmcloud_migrator}
+      POSTGRES_RUNTIME_PASSWORD: ${POSTGRES_RUNTIME_PASSWORD}
+      POSTGRES_RUNTIME_USER: ${POSTGRES_RUNTIME_USER:-pmcloud_app}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - platform
+
+  migrate:
+    build:
+      context: ./apps/api
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      PMC_DATABASE_URL: postgresql+pg8000://${POSTGRES_MIGRATION_USER:-pmcloud_migrator}:${POSTGRES_MIGRATION_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      database-bootstrap:
+        condition: service_completed_successfully
+    restart: "no"
+    networks:
+      - platform
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+    command: ["start-dev", "--hostname-strict=true"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: http://127.0.0.1:8080
+      KC_HTTP_ENABLED: "true"
+      JAVA_OPTS_KC_HEAP: -XX:InitialRAMPercentage=20 -XX:MaxRAMPercentage=65
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000; printf 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3; grep -q '200 OK' <&3"]
+      interval: 8s
+      timeout: 5s
+      retries: 24
+      start_period: 30s
+    mem_limit: 768m
+    ports:
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - platform
+      - edge
+
+  identity-bootstrap:
+    build:
+      context: ./apps/api
+    command: ["python", "-m", "pmc_api.local_identity_bootstrap"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_INTERNAL_URL: http://keycloak:8080/
+      KEYCLOAK_MULTI_USER_PASSWORD: ${KEYCLOAK_MULTI_USER_PASSWORD}
+      KEYCLOAK_USER_A_PASSWORD: ${KEYCLOAK_USER_A_PASSWORD}
+      KEYCLOAK_USER_B_PASSWORD: ${KEYCLOAK_USER_B_PASSWORD}
+      OIDC_CALLBACK_URL: ${OIDC_CALLBACK_URL}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-perfect-match-web}
+      OIDC_ISSUER: ${OIDC_ISSUER}
+      PMC_DATABASE_ADMIN_URL: postgresql+pg8000://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PMC_WEB_URL: ${PMC_WEB_URL}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
     networks:
       - platform
 
@@ -50,15 +132,26 @@ services:
     build:
       context: ./apps/api
     environment:
-      PMC_APP_VERSION: ${APP_VERSION:-0.1.0}
-      PMC_DATABASE_URL: postgresql+pg8000://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PMC_APP_VERSION: ${APP_VERSION:-0.2.0}
+      PMC_COOKIE_SECURE: ${PMC_COOKIE_SECURE:-false}
+      PMC_DATABASE_URL: postgresql+pg8000://${POSTGRES_RUNTIME_USER:-pmcloud_app}:${POSTGRES_RUNTIME_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PMC_ENVIRONMENT: ${PMC_ENVIRONMENT:-development}
+      PMC_LOGIN_TRANSACTION_KEY: ${PMC_LOGIN_TRANSACTION_KEY}
+      PMC_OIDC_BACKCHANNEL_BASE_URL: ${OIDC_BACKCHANNEL_BASE_URL}
+      PMC_OIDC_CALLBACK_URL: ${OIDC_CALLBACK_URL}
+      PMC_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-perfect-match-web}
+      PMC_OIDC_DISCOVERY_URL: ${OIDC_DISCOVERY_URL}
+      PMC_OIDC_ISSUER: ${OIDC_ISSUER}
       PMC_S3_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY}
       PMC_S3_ENDPOINT: http://seaweedfs:8333
       PMC_S3_REGION: us-east-1
       PMC_S3_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY}
+      PMC_WEB_URL: ${PMC_WEB_URL}
     depends_on:
       postgres:
         condition: service_healthy
+      identity-bootstrap:
+        condition: service_completed_successfully
       seaweedfs:
         condition: service_healthy
     healthcheck:
@@ -113,5 +206,6 @@ networks:
   edge:
 
 volumes:
+  keycloak_data:
   postgres_data:
   seaweedfs_data:
