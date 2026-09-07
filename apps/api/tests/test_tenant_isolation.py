@@ -41,7 +41,7 @@ def synthetic_fixtures() -> None:
     with admin.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE tenant_isolation_probes, application_sessions, memberships, "
+                "TRUNCATE audit_events, tenant_isolation_probes, application_sessions, memberships, "
                 "external_identities, users, tenants CASCADE"
             )
         )
@@ -63,17 +63,31 @@ def synthetic_fixtures() -> None:
                 ),
                 {"id": user_id, "name": name, "now": now},
             )
-        for tenant_id, user_id in (
-            (TENANT_A, USER_A),
-            (TENANT_B, USER_B),
-            (TENANT_A, MULTI),
-            (TENANT_B, MULTI),
+        for tenant_id, user_id, role in (
+            (TENANT_A, USER_A, "owner"),
+            (TENANT_B, USER_B, "auditor"),
+            (TENANT_A, MULTI, "member"),
+            (TENANT_B, MULTI, "member"),
         ):
             connection.execute(
                 text(
-                    "INSERT INTO memberships VALUES (:id, :tenant, :user, 'member', 'active', :now)"
+                    "INSERT INTO memberships VALUES (:id, :tenant, :user, :role, 'active', :now)"
                 ),
-                {"id": uuid4(), "tenant": tenant_id, "user": user_id, "now": now},
+                {"id": uuid4(), "tenant": tenant_id, "user": user_id, "role": role, "now": now},
+            )
+        for tenant_id, user_id, role, name in (
+            (TENANT_A, USER_A, "owner", "User A"),
+            (TENANT_B, USER_B, "auditor", "User B"),
+        ):
+            connection.execute(
+                text(
+                    "INSERT INTO audit_events "
+                    "(id, tenant_id, actor_user_id, actor_display_name, actor_role, action, "
+                    "resource_type, request_id, schema_version, changed_fields, new_values, metadata) "
+                    "VALUES (:id, :tenant, :user, :name, :role, 'auth.tenant_selected', "
+                    "'application_session', :request, 1, '[]'::jsonb, '{\"selected\": true}'::jsonb, '{}'::jsonb)"
+                ),
+                {"id": uuid4(), "tenant": tenant_id, "user": user_id, "name": name, "role": role, "request": uuid4()},
             )
         for tenant_id, value in ((TENANT_A, "A protected"), (TENANT_B, "B protected")):
             connection.execute(
@@ -128,6 +142,56 @@ def test_cross_tenant_reads_and_unsafe_unfiltered_query_are_denied() -> None:
     assert _values(USER_B, TENANT_B) == ["B protected"]
     assert _values(MULTI, TENANT_A) == ["A protected"]
     assert _values(MULTI, TENANT_B) == ["B protected"]
+
+
+def _audit_values(user: UUID, tenant: UUID) -> list[UUID]:
+    with _engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+        _context(connection, user, tenant)
+        return list(connection.execute(text("SELECT id FROM audit_events ORDER BY id")).scalars())
+
+
+def test_audit_reader_roles_and_tenant_isolation() -> None:
+    assert len(_audit_values(USER_A, TENANT_A)) == 1
+    assert _audit_values(USER_A, TENANT_B) == []
+    assert _audit_values(USER_B, TENANT_A) == []
+    assert len(_audit_values(USER_B, TENANT_B)) == 1
+    assert _audit_values(MULTI, TENANT_A) == []
+
+
+def test_audit_runtime_insert_rejects_cross_tenant_and_actor_forgery() -> None:
+    attempts = [
+        {"tenant": TENANT_B, "user": USER_A, "name": "User A", "role": "owner"},
+        {"tenant": TENANT_A, "user": USER_B, "name": "User A", "role": "owner"},
+        {"tenant": TENANT_A, "user": USER_A, "name": "Forged", "role": "owner"},
+        {"tenant": TENANT_A, "user": USER_A, "name": "User A", "role": "admin"},
+    ]
+    for attempt in attempts:
+        with _engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+            transaction = connection.begin()
+            _context(connection, USER_A, TENANT_A)
+            with pytest.raises(DBAPIError):
+                connection.execute(
+                    text(
+                        "INSERT INTO audit_events "
+                        "(id, tenant_id, actor_user_id, actor_display_name, actor_role, action, "
+                        "resource_type, request_id, schema_version, changed_fields, metadata) "
+                        "VALUES (:id, :tenant, :user, :name, :role, 'auth.tenant_selected', "
+                        "'application_session', :request, 1, '[]'::jsonb, '{}'::jsonb)"
+                    ),
+                    {**attempt, "id": uuid4(), "request": uuid4()},
+                )
+            transaction.rollback()
+
+
+def test_audit_runtime_update_delete_are_denied() -> None:
+    with _engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+        _context(connection, USER_A, TENANT_A)
+        with pytest.raises(DBAPIError):
+            connection.execute(text("UPDATE audit_events SET action = 'auth.tenant_selected'"))
+        connection.rollback()
+        with pytest.raises(DBAPIError):
+            connection.execute(text("DELETE FROM audit_events"))
+        connection.rollback()
 
 
 def test_cross_tenant_insert_is_denied() -> None:
@@ -352,6 +416,46 @@ def test_tenant_selection_requires_active_membership(
         headers={"X-CSRF-Token": csrf, "Origin": "http://127.0.0.1:3000"},
     )
     assert response.status_code == expected
+
+
+def test_tenant_selection_audit_uses_server_request_id() -> None:
+    raw, csrf = _application_session(USER_A, None)
+    response = _client(raw, csrf).post(
+        "/auth/tenant",
+        json={"tenant_id": str(TENANT_A)},
+        headers={"X-CSRF-Token": csrf, "Origin": "http://127.0.0.1:3000"},
+    )
+    assert response.status_code == 200
+    request_id = UUID(response.headers["X-Request-ID"])
+    with _engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
+        assert connection.scalar(
+            text(
+                "SELECT count(*) FROM audit_events WHERE request_id = :request "
+                "AND action = 'auth.tenant_selected' AND tenant_id = :tenant"
+            ),
+            {"request": request_id, "tenant": TENANT_A},
+        ) == 1
+
+
+def test_audit_failure_rolls_back_tenant_selection(monkeypatch: pytest.MonkeyPatch) -> None:
+    raw, csrf = _application_session(USER_A, None)
+
+    def fail(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("synthetic audit failure")
+
+    monkeypatch.setattr("pmc_api.auth.record", fail)
+    response = TestClient(app, raise_server_exceptions=False).post(
+        "/auth/tenant",
+        json={"tenant_id": str(TENANT_A)},
+        cookies={"pm_session": raw, "pm_csrf": csrf},
+        headers={"X-CSRF-Token": csrf, "Origin": "http://127.0.0.1:3000"},
+    )
+    assert response.status_code == 500
+    with _engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
+        assert connection.scalar(
+            text("SELECT current_tenant_id FROM application_sessions WHERE token_hash = :hash"),
+            {"hash": token_hash(raw)},
+        ) is None
 
 
 def test_database_enforces_session_current_tenant_membership() -> None:
