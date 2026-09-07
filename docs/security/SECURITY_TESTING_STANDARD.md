@@ -21,6 +21,6 @@ frames, and objects to explicit safe sources. This exception is limited to the
 disposable foundation UI, which renders no customer or user-authored content.
 Nonce-based script policy is required before production exposure.
 
-ZAP rule 10109 is ignored because it only classifies the target as a modern web
-application. It is not a vulnerability. The suppression is scoped to the
-PMC-00 local passive baseline configuration.
+ZAP rule 10109 is retained in the report and classified as the informational
+Modern Web Application observation. It is not suppressed as a vulnerability;
+the final evidence manifest records its title, risk, confidence, and count.
