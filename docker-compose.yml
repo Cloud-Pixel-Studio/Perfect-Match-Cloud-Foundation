@@ -2,7 +2,7 @@ name: pmcloud
 
 services:
   postgres:
-    image: postgres:18-alpine@sha256:24b9bbcd16361b62a3051ed06287050fd9a61f6fb6d36f1850eae4b741c61ce3
+    image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
