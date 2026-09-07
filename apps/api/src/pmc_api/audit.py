@@ -6,7 +6,7 @@ from typing import Annotated
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
@@ -105,7 +105,7 @@ def record(
         changed_fields=_changed_fields(old_values, new_values),
         old_values=old_values,
         new_values=new_values,
-        metadata=metadata,
+        event_metadata=metadata,
         occurred_at=datetime.now(UTC),
     )
     db.add(event)
@@ -127,7 +127,9 @@ class AuditEventResponse(BaseModel):
     changed_fields: list[str]
     old_values: dict[str, object] | None
     new_values: dict[str, object] | None
-    metadata: dict[str, object]
+    metadata: dict[str, object] = Field(
+        validation_alias="event_metadata", serialization_alias="metadata"
+    )
 
 
 class AuditEventPage(BaseModel):

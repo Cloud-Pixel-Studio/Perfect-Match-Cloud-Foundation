@@ -114,4 +114,6 @@ class AuditEvent(Base):
     changed_fields: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     old_values: Mapped[dict[str, object] | None] = mapped_column(JSON)
     new_values: Mapped[dict[str, object] | None] = mapped_column(JSON)
-    metadata: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False, default=dict)
+    event_metadata: Mapped[dict[str, object]] = mapped_column(
+        "metadata", JSON, nullable=False, default=dict
+    )
