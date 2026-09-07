@@ -8,11 +8,30 @@ from pmc_api.audit_service import AuditPayloadError, record_tenant_selected, val
 
 def test_audit_service_rejects_secret_key_variants() -> None:
     variants = [
-        "password", "user_password", "userPassword", "session_token", "sessionToken",
-        "csrf_token", "authorization_code", "pkce_verifier", "login_binding", "access_token",
-        "refresh_token", "id_token", "cookie", "cookie_value", "api_key", "apiKey",
-        "private_key", "privateKey", "client_secret", "clientSecret", "database_password",
-        "aws_credential", "github_credential", "githubCredential",
+        "password",
+        "user_password",
+        "userPassword",
+        "session_token",
+        "sessionToken",
+        "csrf_token",
+        "authorization_code",
+        "pkce_verifier",
+        "login_binding",
+        "access_token",
+        "refresh_token",
+        "id_token",
+        "cookie",
+        "cookie_value",
+        "api_key",
+        "apiKey",
+        "private_key",
+        "privateKey",
+        "client_secret",
+        "clientSecret",
+        "database_password",
+        "aws_credential",
+        "github_credential",
+        "githubCredential",
     ]
     for key in variants:
         with pytest.raises(AuditPayloadError):

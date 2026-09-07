@@ -460,7 +460,7 @@ def test_audit_failure_rolls_back_tenant_selection(monkeypatch: pytest.MonkeyPat
     def fail(*_args: object, **_kwargs: object) -> None:
         raise RuntimeError("synthetic audit failure")
 
-    monkeypatch.setattr("pmc_api.auth.record", fail)
+    monkeypatch.setattr("pmc_api.auth.record_tenant_selected", fail)
     response = TestClient(app, raise_server_exceptions=False).post(
         "/auth/tenant",
         json={"tenant_id": str(TENANT_A)},
