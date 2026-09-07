@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 12.3.4
@@ -59,7 +60,7 @@ jobs:
         run: ./scripts/check-licenses.sh
       - name: Build commit-bound application images
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           docker build --pull=false --tag "pmcloud-api:${IMAGE_TAG}" apps/api
           docker build --pull=false --tag "pmcloud-web:${IMAGE_TAG}" --target runtime --file apps/web/Dockerfile .
@@ -92,7 +93,7 @@ jobs:
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color seaweedfs keycloak api web || true
       - name: Final application image scans
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -o pipefail
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-api-image.json "pmcloud-api:${IMAGE_TAG}"
@@ -107,7 +108,7 @@ jobs:
           trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
       - name: Generate and validate CycloneDX SBOMs
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           trivy fs --format cyclonedx --output artifacts/sbom-repository.json .
           trivy image --format cyclonedx --output artifacts/sbom-api.json "pmcloud-api:${IMAGE_TAG}"
@@ -128,15 +129,17 @@ jobs:
       - name: Write release evidence manifest
         if: always()
         env:
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
+          SBOM_COUNT=$(find artifacts -maxdepth 1 -name 'sbom-*.json' -print0 | xargs -0 -r -n1 jq '.components | length' | jq -s 'length')
           jq -n \
             --arg sha "$IMAGE_TAG" \
             --arg run "$RUN_ID" \
             --argjson images "$(cat artifacts/application-images.json 2>/dev/null || echo '[]')" \
             --argjson zap "$(cat artifacts/zap-summary.json 2>/dev/null || echo '{}')" \
-            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, sboms: ([inputs] | length)}' \
+            --argjson sboms "$SBOM_COUNT" \
+            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, sboms: $sboms}' \
             /dev/null > artifacts/release-evidence-manifest.json
       - name: Stop disposable CI runtime
         if: always()
@@ -152,5 +155,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: pmc-02-final-release-evidence-${{ github.sha }}
+          name: pmc-02-final-release-evidence-${{ github.event.pull_request.head.sha || github.sha }}
           path: artifacts
