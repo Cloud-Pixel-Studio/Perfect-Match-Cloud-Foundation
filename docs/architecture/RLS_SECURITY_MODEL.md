@@ -10,6 +10,10 @@ application sessions, login transactions, and the disposable tenant-isolation
 probe. Runtime access is limited by grants and policies. Membership rows are
 readable only for the current user, tenant rows require active membership, and
 tenant-scoped DML requires both matching user membership and tenant context.
+The application-session policy permits a null current tenant or a tenant for
+which the session user has an active membership. The runtime role cannot write
+an unauthorized or revoked tenant into `current_tenant_id`, even if application
+validation is omitted.
 
 The database boundary sets `app.user_id`, `app.tenant_id`, session hash, and
 OIDC lookup values with `set_config(..., true)`. The final `true` makes values

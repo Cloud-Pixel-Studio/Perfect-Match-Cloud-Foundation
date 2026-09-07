@@ -10,6 +10,12 @@ PKCE S256, exchanges the one-time code, validates the ID token, and maps
 tokens are not placed in browser storage and are discarded after identity
 validation.
 
+The authorization transaction is bound to its initiating browser with an
+independent random cookie whose digest is stored beside state. State alone is
+therefore insufficient to complete a callback in another browser. The OIDC
+boundary also requires one exact client audience and validates `azp` whenever
+the provider supplies it.
+
 Keycloak supplies the local OIDC protocol endpoint, but no business module
 imports a Keycloak SDK or calls a Keycloak business API. The backchannel base
 URL setting only handles container networking when a provider publishes a

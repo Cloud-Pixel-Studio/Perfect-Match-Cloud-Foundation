@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import os
 from datetime import UTC, datetime, timedelta
+from urllib.parse import parse_qs, urlsplit
 from uuid import UUID, uuid4
 
 import pytest
@@ -278,6 +279,25 @@ def _client(raw: str | None = None, csrf: str | None = None) -> TestClient:
     return client
 
 
+def _set_session_tenant_as_runtime(raw: str, user_id: UUID, tenant_id: UUID) -> int:
+    with _engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+        connection.execute(
+            text("SELECT set_config('app.user_id', :user, true)"), {"user": str(user_id)}
+        )
+        connection.execute(
+            text("SELECT set_config('app.session_hash', :session, true)"),
+            {"session": token_hash(raw).hex()},
+        )
+        result = connection.execute(
+            text(
+                "UPDATE application_sessions SET current_tenant_id = :tenant "
+                "WHERE token_hash = :session"
+            ),
+            {"tenant": tenant_id, "session": token_hash(raw)},
+        )
+        return result.rowcount
+
+
 def test_session_matrix_accepts_only_active_session() -> None:
     active, csrf = _application_session(USER_A, TENANT_A)
     assert _client(active, csrf).get("/auth/me").status_code == 200
@@ -334,6 +354,44 @@ def test_tenant_selection_requires_active_membership(
     assert response.status_code == expected
 
 
+def test_database_enforces_session_current_tenant_membership() -> None:
+    user_a_session, _ = _application_session(USER_A, None)
+    assert _set_session_tenant_as_runtime(user_a_session, USER_A, TENANT_A) == 1
+
+    denied_session, _ = _application_session(USER_A, None)
+    with pytest.raises(DBAPIError):
+        _set_session_tenant_as_runtime(denied_session, USER_A, TENANT_B)
+
+    multi_session, _ = _application_session(MULTI, None)
+    assert _set_session_tenant_as_runtime(multi_session, MULTI, TENANT_A) == 1
+    assert _set_session_tenant_as_runtime(multi_session, MULTI, TENANT_B) == 1
+
+
+def test_database_denies_revoked_membership_as_session_tenant() -> None:
+    raw, _ = _application_session(USER_A, None)
+    admin = _engine("PMC_TEST_ADMIN_DATABASE_URL")
+    with admin.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE memberships SET status = 'revoked' "
+                "WHERE tenant_id = :tenant AND user_id = :user"
+            ),
+            {"tenant": TENANT_A, "user": USER_A},
+        )
+    try:
+        with pytest.raises(DBAPIError):
+            _set_session_tenant_as_runtime(raw, USER_A, TENANT_A)
+    finally:
+        with admin.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE memberships SET status = 'active' "
+                    "WHERE tenant_id = :tenant AND user_id = :user"
+                ),
+                {"tenant": TENANT_A, "user": USER_A},
+            )
+
+
 def test_existing_session_loses_tenant_after_membership_revocation() -> None:
     raw, csrf = _application_session(USER_A, TENANT_A)
     client = _client(raw, csrf)
@@ -358,8 +416,47 @@ def test_existing_session_loses_tenant_after_membership_revocation() -> None:
         )
 
 
-def _login_transaction(*, expired: bool = False, used: bool = False) -> str:
+def test_revoked_membership_session_can_still_log_out() -> None:
+    raw, csrf = _application_session(USER_A, TENANT_A)
+    admin = _engine("PMC_TEST_ADMIN_DATABASE_URL")
+    with admin.begin() as connection:
+        connection.execute(
+            text(
+                "UPDATE memberships SET status = 'revoked' "
+                "WHERE tenant_id = :tenant AND user_id = :user"
+            ),
+            {"tenant": TENANT_A, "user": USER_A},
+        )
+    try:
+        response = _client(raw, csrf).post(
+            "/auth/logout",
+            headers={"X-CSRF-Token": csrf, "Origin": "http://127.0.0.1:3000"},
+        )
+        assert response.status_code == 204
+        with admin.connect() as connection:
+            current_tenant_id, revoked_at = connection.execute(
+                text(
+                    "SELECT current_tenant_id, revoked_at FROM application_sessions "
+                    "WHERE token_hash = :session"
+                ),
+                {"session": token_hash(raw)},
+            ).one()
+        assert current_tenant_id is None
+        assert revoked_at is not None
+    finally:
+        with admin.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE memberships SET status = 'active' "
+                    "WHERE tenant_id = :tenant AND user_id = :user"
+                ),
+                {"tenant": TENANT_A, "user": USER_A},
+            )
+
+
+def _login_transaction(*, expired: bool = False, used: bool = False) -> tuple[str, str]:
     raw_state = generate_token()
+    raw_binding = generate_token()
     now = datetime.now(UTC)
     expires = now - timedelta(minutes=1) if expired else now + timedelta(minutes=5)
     encrypted = TransactionCipher(os.environ["PMC_LOGIN_TRANSACTION_KEY"]).encrypt(
@@ -368,12 +465,15 @@ def _login_transaction(*, expired: bool = False, used: bool = False) -> str:
     with _engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "INSERT INTO oidc_login_transactions VALUES "
-                "(:id, :state, :verifier, :nonce, :now, :expires, :used)"
+                "INSERT INTO oidc_login_transactions "
+                "(id, state_hash, login_binding_hash, encrypted_pkce_verifier, nonce, "
+                "created_at, expires_at, used_at) VALUES "
+                "(:id, :state, :binding, :verifier, :nonce, :now, :expires, :used)"
             ),
             {
                 "id": uuid4(),
                 "state": token_hash(raw_state),
+                "binding": token_hash(raw_binding),
                 "verifier": encrypted,
                 "nonce": "synthetic-nonce",
                 "now": now,
@@ -381,7 +481,11 @@ def _login_transaction(*, expired: bool = False, used: bool = False) -> str:
                 "used": now if used else None,
             },
         )
-    return raw_state
+    return raw_state, raw_binding
+
+
+def _set_login_binding(client: TestClient, binding: str) -> None:
+    client.cookies.set("pm_login", binding, path="/auth")
 
 
 def test_invalid_expired_and_previously_used_state_are_denied() -> None:
@@ -390,16 +494,18 @@ def test_invalid_expired_and_previously_used_state_are_denied() -> None:
         client.get("/auth/callback", params={"code": "x", "state": generate_token()}).status_code
         == 400
     )
-    expired = _login_transaction(expired=True)
+    expired, expired_binding = _login_transaction(expired=True)
+    _set_login_binding(client, expired_binding)
     assert client.get("/auth/callback", params={"code": "x", "state": expired}).status_code == 400
-    used = _login_transaction(used=True)
+    used, used_binding = _login_transaction(used=True)
+    _set_login_binding(client, used_binding)
     assert client.get("/auth/callback", params={"code": "x", "state": used}).status_code == 400
 
 
 def test_valid_callback_rotates_session_and_state_cannot_replay(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    state_value = _login_transaction()
+    state_value, login_binding = _login_transaction()
     upstream_token = generate_token()
 
     async def exchange(_self: OIDCProvider, *, code: str, verifier: str) -> str:
@@ -420,6 +526,7 @@ def test_valid_callback_rotates_session_and_state_cannot_replay(
     monkeypatch.setattr(OIDCProvider, "exchange_code", exchange)
     monkeypatch.setattr(OIDCProvider, "validate_id_token", validate)
     client = _client()
+    _set_login_binding(client, login_binding)
     response = client.get(
         "/auth/callback",
         params={"code": "synthetic-code", "state": state_value},
@@ -432,9 +539,95 @@ def test_valid_callback_rotates_session_and_state_cannot_replay(
         for cookie in cookies
     )
     assert all(upstream_token not in cookie for cookie in cookies)
+    assert any("pm_login=" in cookie and "Max-Age=0" in cookie for cookie in cookies)
+    _set_login_binding(client, login_binding)
     replay = client.get(
         "/auth/callback",
         params={"code": "synthetic-code", "state": state_value},
         follow_redirects=False,
     )
     assert replay.status_code == 400
+
+
+def test_cross_browser_callback_requires_initiating_browser_binding(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    upstream_token = generate_token()
+
+    async def authorization_url(
+        _self: OIDCProvider, *, state: str, nonce: str, challenge: str
+    ) -> str:
+        assert nonce
+        assert challenge
+        return f"https://issuer.example/authorize?state={state}"
+
+    async def exchange(_self: OIDCProvider, *, code: str, verifier: str) -> str:
+        assert code == "synthetic-code"
+        assert verifier
+        return upstream_token
+
+    async def validate(_self: OIDCProvider, encoded_token: str, *, nonce: str) -> IdentityClaims:
+        assert encoded_token == upstream_token
+        assert nonce
+        return IdentityClaims(
+            issuer="https://issuer.example/realms/perfect-match",
+            subject="synthetic-cross-browser-subject",
+            display_name="Synthetic cross browser user",
+            email="cross-browser@example.test",
+        )
+
+    monkeypatch.setattr(OIDCProvider, "authorization_url", authorization_url)
+    monkeypatch.setattr(OIDCProvider, "exchange_code", exchange)
+    monkeypatch.setattr(OIDCProvider, "validate_id_token", validate)
+
+    browser_a = _client()
+    login = browser_a.get("/auth/login", follow_redirects=False)
+    assert login.status_code == 303
+    login_cookies = login.headers.get_list("set-cookie")
+    assert any(
+        "pm_login=" in cookie
+        and "HttpOnly" in cookie
+        and "SameSite=lax" in cookie
+        and "Path=/auth" in cookie
+        and "Max-Age=300" in cookie
+        for cookie in login_cookies
+    )
+    state_value = parse_qs(urlsplit(login.headers["location"]).query)["state"][0]
+    raw_binding = browser_a.cookies.get("pm_login")
+    assert raw_binding is not None
+
+    with _engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
+        stored_binding = connection.scalar(
+            text(
+                "SELECT login_binding_hash FROM oidc_login_transactions WHERE state_hash = :state"
+            ),
+            {"state": token_hash(state_value)},
+        )
+    assert stored_binding == token_hash(raw_binding)
+    assert raw_binding.encode() != stored_binding
+
+    browser_b = _client()
+    swapped = browser_b.get(
+        "/auth/callback",
+        params={"code": "synthetic-code", "state": state_value},
+        follow_redirects=False,
+    )
+    assert swapped.status_code == 400
+    assert "pm_session" not in swapped.cookies
+
+    _set_login_binding(browser_b, generate_token())
+    wrong = browser_b.get(
+        "/auth/callback",
+        params={"code": "synthetic-code", "state": state_value},
+        follow_redirects=False,
+    )
+    assert wrong.status_code == 400
+    assert "pm_session" not in wrong.cookies
+
+    completed = browser_a.get(
+        "/auth/callback",
+        params={"code": "synthetic-code", "state": state_value},
+        follow_redirects=False,
+    )
+    assert completed.status_code == 303
+    assert browser_a.cookies.get("pm_session") is not None

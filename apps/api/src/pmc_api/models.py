@@ -82,6 +82,7 @@ class OIDCLoginTransaction(TimestampMixin, Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     state_hash: Mapped[bytes] = mapped_column(LargeBinary(32), unique=True, nullable=False)
+    login_binding_hash: Mapped[bytes] = mapped_column(LargeBinary(32), nullable=False)
     encrypted_pkce_verifier: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     nonce: Mapped[str] = mapped_column(String(255), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

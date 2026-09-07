@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     oidc_callback_url: str = "http://127.0.0.1:8000/auth/callback"
     web_url: str = "http://127.0.0.1:3000"
     login_transaction_key: str = Field(default="", repr=False)
+    login_cookie_name: str = "pm_login"
     session_cookie_name: str = "pm_session"
     csrf_cookie_name: str = "pm_csrf"
     cookie_secure: bool = False

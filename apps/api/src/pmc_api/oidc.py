@@ -47,6 +47,11 @@ class OIDCProvider:
         for key in ("authorization_endpoint", "token_endpoint", "jwks_uri"):
             if not isinstance(metadata.get(key), str):
                 raise OIDCValidationError(f"OIDC discovery missing {key}")
+        pkce_methods = metadata.get("code_challenge_methods_supported")
+        if pkce_methods is not None and (
+            not isinstance(pkce_methods, list) or "S256" not in pkce_methods
+        ):
+            raise OIDCValidationError("OIDC provider does not advertise PKCE S256")
         return metadata
 
     async def authorization_url(self, *, state: str, nonce: str, challenge: str) -> str:
@@ -99,7 +104,7 @@ class OIDCProvider:
                 leeway=30,
                 iss={"essential": True, "value": self.settings.oidc_issuer},
                 sub={"essential": True},
-                aud={"essential": True, "value": self.settings.oidc_client_id},
+                aud={"essential": True},
                 exp={"essential": True},
                 nonce={"essential": True},
             )
@@ -108,6 +113,25 @@ class OIDCProvider:
             raise OIDCValidationError("OIDC assertion validation failed") from exc
         if not hmac.compare_digest(str(claims.get("nonce", "")), nonce):
             raise OIDCValidationError("OIDC nonce mismatch")
+        audience_claim = claims.get("aud")
+        if isinstance(audience_claim, str):
+            audiences = [audience_claim]
+        elif isinstance(audience_claim, list) and all(
+            isinstance(audience, str) for audience in audience_claim
+        ):
+            audiences = audience_claim
+        else:
+            raise OIDCValidationError("OIDC audience claim is invalid")
+        if len(audiences) != 1 or not hmac.compare_digest(
+            audiences[0], self.settings.oidc_client_id
+        ):
+            raise OIDCValidationError("OIDC audience mismatch")
+        authorized_party = claims.get("azp")
+        if authorized_party is not None and (
+            not isinstance(authorized_party, str)
+            or not hmac.compare_digest(authorized_party, self.settings.oidc_client_id)
+        ):
+            raise OIDCValidationError("OIDC authorized party mismatch")
         subject = str(claims["sub"])
         display_name = str(claims.get("name") or claims.get("preferred_username") or subject)
         email = claims.get("email")

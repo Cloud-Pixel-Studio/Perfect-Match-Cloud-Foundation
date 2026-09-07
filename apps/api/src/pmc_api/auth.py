@@ -115,6 +115,7 @@ async def login(db: DBSession, settings: Annotated[Settings, Depends(get_setting
     now = _now()
     state_value = generate_token()
     state_digest = token_hash(state_value)
+    login_binding = generate_token()
     nonce = generate_token()
     pkce = generate_pkce()
     set_request_context(db, login_state_hash=state_digest)
@@ -122,6 +123,7 @@ async def login(db: DBSession, settings: Annotated[Settings, Depends(get_setting
         OIDCLoginTransaction(
             id=uuid4(),
             state_hash=state_digest,
+            login_binding_hash=token_hash(login_binding),
             encrypted_pkce_verifier=TransactionCipher(settings.login_transaction_key).encrypt(
                 pkce.verifier
             ),
@@ -135,11 +137,22 @@ async def login(db: DBSession, settings: Annotated[Settings, Depends(get_setting
         authorization_url = await OIDCProvider(settings, client).authorization_url(
             state=state_value, nonce=nonce, challenge=pkce.challenge
         )
-    return RedirectResponse(authorization_url, status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(authorization_url, status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(
+        settings.login_cookie_name,
+        login_binding,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+        path="/auth",
+        max_age=settings.login_ttl_seconds,
+    )
+    return response
 
 
 @router.get("/callback")
 async def callback(
+    request: Request,
     code: str,
     state: str,
     db: DBSession,
@@ -153,6 +166,9 @@ async def callback(
     )
     if transaction is None or transaction.used_at is not None or transaction.expires_at <= now:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid or expired login state")
+    login_binding = request.cookies.get(settings.login_cookie_name)
+    if not login_binding or not token_matches(login_binding, transaction.login_binding_hash):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "invalid login binding")
     transaction.used_at = now
     db.commit()
     verifier = TransactionCipher(settings.login_transaction_key).decrypt(
@@ -224,6 +240,13 @@ async def callback(
     db.commit()
 
     response = RedirectResponse(settings.web_url, status_code=status.HTTP_303_SEE_OTHER)
+    response.delete_cookie(
+        settings.login_cookie_name,
+        path="/auth",
+        secure=settings.cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
     response.set_cookie(
         settings.session_cookie_name,
         session_token,
@@ -307,6 +330,7 @@ def logout(
     authenticated: Authenticated,
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> None:
+    authenticated.record.current_tenant_id = None
     authenticated.record.revoked_at = _now()
     db.commit()
     response.delete_cookie(settings.session_cookie_name, path="/")

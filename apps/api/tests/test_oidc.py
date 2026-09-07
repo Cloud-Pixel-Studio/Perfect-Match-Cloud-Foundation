@@ -57,6 +57,7 @@ def _provider(
         "authorization_endpoint": "https://issuer.example/authorize",
         "token_endpoint": "https://issuer.example/token",
         "jwks_uri": "https://issuer.example/jwks",
+        "code_challenge_methods_supported": ["S256"],
     }
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -91,6 +92,35 @@ async def test_valid_oidc_assertion() -> None:
     identity = await provider.validate_id_token(token, nonce="expected-nonce")
     assert identity.subject == "synthetic-subject"
     assert identity.email == "pmc-user-a@example.test"
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("audience", ["pm-client", ["pm-client"]])
+async def test_single_configured_audience_is_accepted(audience: str | list[str]) -> None:
+    provider, token = _provider(_claims(aud=audience))
+    identity = await provider.validate_id_token(token, nonce="expected-nonce")
+    assert identity.subject == "synthetic-subject"
+
+
+@pytest.mark.anyio
+async def test_multiple_audiences_are_denied_without_an_allowlist() -> None:
+    provider, token = _provider(_claims(aud=["pm-client", "unknown-api"], azp="pm-client"))
+    with pytest.raises(OIDCValidationError, match="audience mismatch"):
+        await provider.validate_id_token(token, nonce="expected-nonce")
+
+
+@pytest.mark.anyio
+async def test_matching_authorized_party_is_accepted() -> None:
+    provider, token = _provider(_claims(azp="pm-client"))
+    identity = await provider.validate_id_token(token, nonce="expected-nonce")
+    assert identity.subject == "synthetic-subject"
+
+
+@pytest.mark.anyio
+async def test_wrong_authorized_party_is_denied() -> None:
+    provider, token = _provider(_claims(azp="other-client"))
+    with pytest.raises(OIDCValidationError, match="authorized party mismatch"):
+        await provider.validate_id_token(token, nonce="expected-nonce")
 
 
 @pytest.mark.anyio
@@ -130,6 +160,7 @@ async def test_pkce_mismatch_is_denied_by_token_endpoint() -> None:
         "authorization_endpoint": "https://issuer.example/authorize",
         "token_endpoint": "https://issuer.example/token",
         "jwks_uri": "https://issuer.example/jwks",
+        "code_challenge_methods_supported": ["S256"],
     }
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -140,3 +171,29 @@ async def test_pkce_mismatch_is_denied_by_token_endpoint() -> None:
     provider = OIDCProvider(settings, httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     with pytest.raises(httpx.HTTPStatusError):
         await provider.exchange_code(code="synthetic-code", verifier="wrong-verifier")
+
+
+@pytest.mark.anyio
+async def test_provider_advertising_pkce_without_s256_is_denied() -> None:
+    settings = Settings(
+        environment="test",
+        oidc_issuer="https://issuer.example/realms/pm",
+        oidc_discovery_url="https://internal.example/.well-known/openid-configuration",
+        oidc_client_id="pm-client",
+    )
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "issuer": settings.oidc_issuer,
+                "authorization_endpoint": "https://issuer.example/authorize",
+                "token_endpoint": "https://issuer.example/token",
+                "jwks_uri": "https://issuer.example/jwks",
+                "code_challenge_methods_supported": ["plain"],
+            },
+        )
+
+    provider = OIDCProvider(settings, httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+    with pytest.raises(OIDCValidationError, match="PKCE S256"):
+        await provider.authorization_url(state="state", nonce="nonce", challenge="challenge")
