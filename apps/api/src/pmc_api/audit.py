@@ -197,9 +197,7 @@ def events(
     )
     has_more = len(rows) > limit
     rows = rows[:limit]
-    next_cursor = (
-        f"{rows[-1].occurred_at.isoformat()}|{rows[-1].id}" if has_more and rows else None
-    )
+    next_cursor = f"{rows[-1].occurred_at.isoformat()}|{rows[-1].id}" if has_more and rows else None
     response.headers["X-Request-ID"] = str(request.state.request_id)
     return AuditEventPage(
         items=[AuditEventResponse.model_validate(row) for row in rows], next_cursor=next_cursor

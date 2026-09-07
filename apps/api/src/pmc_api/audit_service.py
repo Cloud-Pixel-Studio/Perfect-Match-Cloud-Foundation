@@ -92,7 +92,9 @@ def record(
         resource_id=resource_id,
         request_id=request_id,
         schema_version=AUDIT_SCHEMA_VERSION,
-        changed_fields=sorted(key for key in {*before, *after} if before.get(key) != after.get(key)),
+        changed_fields=sorted(
+            key for key in {*before, *after} if before.get(key) != after.get(key)
+        ),
         old_values=old_values,
         new_values=new_values,
         event_metadata=metadata,
