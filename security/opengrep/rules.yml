@@ -42,6 +42,18 @@ rules:
       - pattern-not-inside: |
           def record(...):
             ...
+  - id: pmc.python.audit-direct-construction
+    languages: [python]
+    severity: ERROR
+    message: AuditEvent objects may only be constructed by the authoritative audit service.
+    metadata:
+      category: security
+      confidence: high
+    patterns:
+      - pattern: AuditEvent(...)
+      - pattern-not-inside: |
+          def _record(...):
+            ...
   - id: pmc.python.public-audit-write
     languages: [python]
     severity: ERROR

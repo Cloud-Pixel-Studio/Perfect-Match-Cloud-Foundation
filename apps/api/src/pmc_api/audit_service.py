@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -13,21 +14,23 @@ ACTION_TENANT_SELECTED = "auth.tenant_selected"
 MAX_PAYLOAD_BYTES = 64 * 1024
 FORBIDDEN_KEYS = {
     "password",
-    "session_token",
-    "csrf_token",
-    "authorization_code",
-    "pkce_verifier",
-    "login_binding",
-    "access_token",
-    "refresh_token",
-    "id_token",
+    "userpassword",
+    "sessiontoken",
+    "csrftoken",
+    "authorizationcode",
+    "pkceverifier",
+    "loginbinding",
+    "accesstoken",
+    "refreshtoken",
+    "idtoken",
     "cookie",
-    "api_key",
-    "private_key",
-    "client_secret",
-    "database_password",
-    "aws_credential",
-    "github_credential",
+    "cookievalue",
+    "apikey",
+    "privatekey",
+    "clientsecret",
+    "databasepassword",
+    "awscredential",
+    "githubcredential",
 }
 
 
@@ -35,24 +38,26 @@ class AuditPayloadError(ValueError):
     pass
 
 
-def _validate(value: object) -> None:
+def _normalize_key(key: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", key.casefold())
+
+
+def validate_payload(value: object, path: str = "payload") -> None:
     if isinstance(value, dict):
         for key, nested in value.items():
-            normalized = key.lower()
-            if normalized in FORBIDDEN_KEYS or any(
-                part in normalized for part in ("token", "secret")
-            ):
-                raise AuditPayloadError(f"forbidden audit field: {key}")
-            _validate(nested)
+            normalized = _normalize_key(str(key))
+            if normalized in FORBIDDEN_KEYS:
+                raise AuditPayloadError(f"forbidden audit field: {path}.{key}")
+            validate_payload(nested, f"{path}.{key}")
     elif isinstance(value, list):
-        for nested in value:
-            _validate(nested)
+        for index, nested in enumerate(value):
+            validate_payload(nested, f"{path}[{index}]")
 
 
 def _safe(value: dict[str, object] | None) -> dict[str, object] | None:
     if value is None:
         return None
-    _validate(value)
+    validate_payload(value)
     if (
         len(json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode())
         > MAX_PAYLOAD_BYTES
@@ -61,7 +66,7 @@ def _safe(value: dict[str, object] | None) -> dict[str, object] | None:
     return value
 
 
-def record(
+def _record(
     db: Session,
     *,
     tenant_id: UUID,
@@ -102,3 +107,30 @@ def record(
     )
     db.add(event)
     return event
+
+
+def record_tenant_selected(
+    db: Session,
+    *,
+    tenant_id: UUID,
+    actor_user_id: UUID,
+    actor_display_name: str,
+    actor_role: str,
+    resource_id: UUID,
+    request_id: UUID,
+) -> AuditEvent:
+    """Append the fixed, minimal payload for a validated tenant selection."""
+    return _record(
+        db,
+        tenant_id=tenant_id,
+        actor_user_id=actor_user_id,
+        actor_display_name=actor_display_name,
+        actor_role=actor_role,
+        action=ACTION_TENANT_SELECTED,
+        resource_type="application_session",
+        resource_id=resource_id,
+        request_id=request_id,
+        old_values=None,
+        new_values={"selected": True},
+        metadata={"selection": "validated"},
+    )
