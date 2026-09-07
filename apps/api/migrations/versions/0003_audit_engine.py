@@ -24,7 +24,8 @@ def upgrade() -> None:
             actor_user_id uuid NOT NULL REFERENCES
                 users(id) ON DELETE RESTRICT,
             actor_display_name varchar(160) NOT NULL,
-            actor_role varchar(20) NOT NULL CHECK (actor_role IN ('owner', 'admin', 'member', 'auditor')),
+            actor_role varchar(20) NOT NULL CHECK
+                (actor_role IN ('owner', 'admin', 'member', 'auditor')),
             action varchar(120) NOT NULL CHECK (action IN ('auth.tenant_selected')),
             resource_type varchar(80) NOT NULL,
             resource_id uuid,
