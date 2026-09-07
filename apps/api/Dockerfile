@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:0.12.10@sha256:ea9b849527e3851bd5b31780837ed2d8090dd8f7e90a420337b9ebd16c95cacc AS uv
+FROM docker.io/astral/uv:0.12.10-python3.12-trixie@sha256:d6266fd06c07deff751ec9f579679a8f3c209c32494cbc4b947a2aa586762106 AS uv
 
 FROM python:3.12-alpine@sha256:b64631e04e4920160c50fbe8d8df828f7f35f06f425cb44aa09bca53e708a35a AS runtime
 
