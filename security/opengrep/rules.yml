@@ -8,3 +8,23 @@ rules:
       confidence: high
       technology: [fastapi]
     pattern: $APP.add_middleware(..., allow_origins=["*"], ...)
+  - id: pmc.python.literal-insecure-cookie
+    languages: [python]
+    severity: ERROR
+    message: Cookie security must be controlled by validated environment configuration.
+    metadata:
+      category: security
+      confidence: high
+      technology: [fastapi]
+    pattern: $RESPONSE.set_cookie(..., secure=False, ...)
+  - id: pmc.python.authentication-bypass-flag
+    languages: [python]
+    severity: ERROR
+    message: Authentication and authorization bypass flags are prohibited.
+    metadata:
+      category: security
+      confidence: high
+      technology: [fastapi]
+    pattern-either:
+      - pattern: AUTHENTICATION_DISABLED = True
+      - pattern: AUTHORIZATION_BYPASS = True

@@ -4,6 +4,7 @@ FROM python:3.12-alpine@sha256:b64631e04e4920160c50fbe8d8df828f7f35f06f425cb44aa
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    UV_HTTP_TIMEOUT=120 \
     PATH="/app/.venv/bin:$PATH"
 
 RUN apk upgrade --no-cache \
@@ -14,7 +15,7 @@ WORKDIR /app
 COPY --from=uv /uv /uvx /bin/
 COPY pyproject.toml uv.lock requirements-runtime.txt ./
 COPY vendor-wheels ./vendor-wheels
-RUN if find vendor-wheels -name '*.whl' -print -quit | grep -q .; then \
+RUN if [ -f vendor-wheels/.complete ]; then \
       uv pip install --system --no-index --find-links=vendor-wheels -r requirements-runtime.txt; \
     else \
       uv sync --frozen --no-dev --no-install-project; \
@@ -25,6 +26,8 @@ RUN if find vendor-wheels -name '*.whl' -print -quit | grep -q .; then \
     && rm -f /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/pip3.12 \
         /bin/uv /bin/uvx
 COPY src ./src
+COPY alembic.ini ./alembic.ini
+COPY migrations ./migrations
 
 USER pmcloud
 EXPOSE 8000
