@@ -21,7 +21,8 @@ def upgrade() -> None:
             id uuid PRIMARY KEY,
             tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
             occurred_at timestamptz NOT NULL DEFAULT now(),
-            actor_user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+            actor_user_id uuid NOT NULL REFERENCES
+                users(id) ON DELETE RESTRICT,
             actor_display_name varchar(160) NOT NULL,
             actor_role varchar(20) NOT NULL CHECK (actor_role IN ('owner', 'admin', 'member', 'auditor')),
             action varchar(120) NOT NULL CHECK (action IN ('auth.tenant_selected')),
@@ -34,8 +35,10 @@ def upgrade() -> None:
             new_values jsonb,
             metadata jsonb NOT NULL DEFAULT '{}'::jsonb
         );
-        CREATE INDEX audit_events_tenant_time_idx ON audit_events (tenant_id, occurred_at DESC, id DESC);
-        CREATE INDEX audit_events_action_idx ON audit_events (tenant_id, action, occurred_at DESC, id DESC);
+        CREATE INDEX audit_events_tenant_time_idx ON audit_events
+            (tenant_id, occurred_at DESC, id DESC);
+        CREATE INDEX audit_events_action_idx ON audit_events
+            (tenant_id, action, occurred_at DESC, id DESC);
         REVOKE ALL ON audit_events FROM PUBLIC;
         GRANT SELECT, INSERT ON audit_events TO pmcloud_app;
         REVOKE UPDATE, DELETE, TRUNCATE ON audit_events FROM pmcloud_app;

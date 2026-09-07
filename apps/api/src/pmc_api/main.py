@@ -7,8 +7,8 @@ from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from pmc_api.audit import router as audit_router
 from pmc_api import __version__
+from pmc_api.audit import router as audit_router
 from pmc_api.auth import router as auth_router
 from pmc_api.config import get_settings
 from pmc_api.database import database_is_ready
