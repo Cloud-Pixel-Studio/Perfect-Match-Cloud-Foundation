@@ -87,7 +87,14 @@ def synthetic_fixtures() -> None:
                     "VALUES (:id, :tenant, :user, :name, :role, 'auth.tenant_selected', "
                     "'application_session', :request, 1, '[]'::jsonb, '{\"selected\": true}'::jsonb, '{}'::jsonb)"
                 ),
-                {"id": uuid4(), "tenant": tenant_id, "user": user_id, "name": name, "role": role, "request": uuid4()},
+                {
+                    "id": uuid4(),
+                    "tenant": tenant_id,
+                    "user": user_id,
+                    "name": name,
+                    "role": role,
+                    "request": uuid4(),
+                },
             )
         for tenant_id, value in ((TENANT_A, "A protected"), (TENANT_B, "B protected")):
             connection.execute(
@@ -428,13 +435,16 @@ def test_tenant_selection_audit_uses_server_request_id() -> None:
     assert response.status_code == 200
     request_id = UUID(response.headers["X-Request-ID"])
     with _engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
-        assert connection.scalar(
-            text(
-                "SELECT count(*) FROM audit_events WHERE request_id = :request "
-                "AND action = 'auth.tenant_selected' AND tenant_id = :tenant"
-            ),
-            {"request": request_id, "tenant": TENANT_A},
-        ) == 1
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT count(*) FROM audit_events WHERE request_id = :request "
+                    "AND action = 'auth.tenant_selected' AND tenant_id = :tenant"
+                ),
+                {"request": request_id, "tenant": TENANT_A},
+            )
+            == 1
+        )
 
 
 def test_audit_failure_rolls_back_tenant_selection(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -452,10 +462,13 @@ def test_audit_failure_rolls_back_tenant_selection(monkeypatch: pytest.MonkeyPat
     )
     assert response.status_code == 500
     with _engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
-        assert connection.scalar(
-            text("SELECT current_tenant_id FROM application_sessions WHERE token_hash = :hash"),
-            {"hash": token_hash(raw)},
-        ) is None
+        assert (
+            connection.scalar(
+                text("SELECT current_tenant_id FROM application_sessions WHERE token_hash = :hash"),
+                {"hash": token_hash(raw)},
+            )
+            is None
+        )
 
 
 def test_database_enforces_session_current_tenant_membership() -> None:
