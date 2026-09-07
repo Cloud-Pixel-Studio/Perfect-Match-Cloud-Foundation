@@ -12,7 +12,7 @@ RUN apk upgrade --no-cache \
     && adduser -S -D -H -u 10001 -G pmcloud pmcloud
 
 WORKDIR /app
-COPY --from=uv /uv /uvx /bin/
+COPY --from=uv /usr/local/bin/uv /usr/local/bin/uvx /bin/
 COPY pyproject.toml uv.lock requirements-runtime.txt ./
 COPY vendor-wheels ./vendor-wheels
 RUN if [ -f vendor-wheels/.complete ]; then \
