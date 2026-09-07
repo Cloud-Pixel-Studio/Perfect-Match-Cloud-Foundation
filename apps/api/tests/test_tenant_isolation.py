@@ -70,10 +70,14 @@ def synthetic_fixtures() -> None:
             (TENANT_B, MULTI, "member"),
         ):
             connection.execute(
-                text(
-                    "INSERT INTO memberships VALUES (:id, :tenant, :user, :role, 'active', :now)"
-                ),
-                {"id": uuid4(), "tenant": tenant_id, "user": user_id, "role": role, "now": now},
+                text("INSERT INTO memberships VALUES (:id, :tenant, :user, :role, 'active', :now)"),
+                {
+                    "id": uuid4(),
+                    "tenant": tenant_id,
+                    "user": user_id,
+                    "role": role,
+                    "now": now,
+                },
             )
         for tenant_id, user_id, role, name in (
             (TENANT_A, USER_A, "owner", "User A"),
