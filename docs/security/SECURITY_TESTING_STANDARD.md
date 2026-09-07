@@ -24,3 +24,14 @@ Nonce-based script policy is required before production exposure.
 ZAP rule 10109 is retained in the report and classified as the informational
 Modern Web Application observation. It is not suppressed as a vulnerability;
 the final evidence manifest records its title, risk, confidence, and count.
+
+ZAP rule 10049 is retained as an informational cacheability observation. The
+disposable foundation UI intentionally marks robots and sitemap responses
+`no-store` while static assets and the document response expose explicit cache
+directives; this is not a PMC-02 security defect.
+
+ZAP rule 90004 is retained as a low-risk response-header observation. The
+disposable local UI does not require cross-origin isolation for PMC-02, and no
+cross-tenant, authentication, audit-write, or secret exposure was observed.
+Production cross-origin isolation policy remains deferred to the production
+deployment hardening review.

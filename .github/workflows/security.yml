@@ -57,7 +57,9 @@ jobs:
           cd apps/api && uvx --from pip-audit==2.10.1 pip-audit -r requirements-runtime.txt
           cd ../.. && pnpm audit --audit-level high
       - name: License validation
-        run: ./scripts/check-licenses.sh
+        run: |
+          ./scripts/test-license-validator.sh
+          ./scripts/check-licenses.sh
       - name: Build commit-bound application images
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -123,9 +125,8 @@ jobs:
           docker run --rm --network host \
             --volume "${PWD}/artifacts:/zap/wrk:rw" \
             ghcr.io/zaproxy/zaproxy@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef \
-            zap-baseline.py -t http://127.0.0.1:3000 -r zap.html -J zap.json -I
-          jq -e '[.site[]?.alerts[]? | select(.riskcode == "3")] | length == 0' artifacts/zap.json >/dev/null
-          jq '{pass: ([.site[]?.alerts[]? | select(.riskcode == "0")] | length), fail: ([.site[]?.alerts[]? | select(.riskcode == "3")] | length), warn: ([.site[]?.alerts[]? | select(.riskcode == "2")] | length), alerts: [.site[]?.alerts[]? | {pluginid, alert, riskdesc, confidence, count}]}' artifacts/zap.json > artifacts/zap-summary.json
+            zap-baseline.py -t http://127.0.0.1:3000 -r zap.html -J zap.json -I 2>&1 | tee artifacts/zap.log
+          python3 scripts/summarize-zap.py artifacts/zap.json artifacts/zap.log artifacts/zap-summary.json
       - name: Write release evidence manifest
         if: always()
         env:
@@ -133,13 +134,22 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           SBOM_COUNT=$(find artifacts -maxdepth 1 -name 'sbom-*.json' -print0 | xargs -0 -r -n1 jq '.components | length' | jq -s 'length')
+          SBOM_REPOSITORY=$(jq '.components | length' artifacts/sbom-repository.json)
+          SBOM_API=$(jq '.components | length' artifacts/sbom-api.json)
+          SBOM_WEB=$(jq '.components | length' artifacts/sbom-web.json)
+          SBOM_KEYCLOAK=$(jq '.components | length' artifacts/sbom-keycloak.json)
           jq -n \
             --arg sha "$IMAGE_TAG" \
             --arg run "$RUN_ID" \
             --argjson images "$(cat artifacts/application-images.json 2>/dev/null || echo '[]')" \
             --argjson zap "$(cat artifacts/zap-summary.json 2>/dev/null || echo '{}')" \
+            --argjson licenses "$(cat artifacts/licenses/summary.json 2>/dev/null || echo '{}')" \
             --argjson sboms "$SBOM_COUNT" \
-            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, sboms: $sboms}' \
+            --argjson repository_components "$SBOM_REPOSITORY" \
+            --argjson api_components "$SBOM_API" \
+            --argjson web_components "$SBOM_WEB" \
+            --argjson keycloak_components "$SBOM_KEYCLOAK" \
+            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, licenses: $licenses, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components}}' \
             /dev/null > artifacts/release-evidence-manifest.json
       - name: Stop disposable CI runtime
         if: always()
