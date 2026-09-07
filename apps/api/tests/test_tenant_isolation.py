@@ -41,7 +41,8 @@ def synthetic_fixtures() -> None:
     with admin.begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE audit_events, tenant_isolation_probes, application_sessions, memberships, "
+                "TRUNCATE audit_events, tenant_isolation_probes, application_sessions, "
+                "memberships, "
                 "external_identities, users, tenants CASCADE"
             )
         )
@@ -86,10 +87,12 @@ def synthetic_fixtures() -> None:
             connection.execute(
                 text(
                     "INSERT INTO audit_events "
-                    "(id, tenant_id, actor_user_id, actor_display_name, actor_role, action, "
-                    "resource_type, request_id, schema_version, changed_fields, new_values, metadata) "
+                    "(id, tenant_id, actor_user_id, actor_display_name, actor_role, "
+                    "action, resource_type, request_id, schema_version, changed_fields, "
+                    "new_values, metadata) "
                     "VALUES (:id, :tenant, :user, :name, :role, 'auth.tenant_selected', "
-                    "'application_session', :request, 1, '[]'::jsonb, '{\"selected\": true}'::jsonb, '{}'::jsonb)"
+                    "'application_session', :request, 1, '[]'::jsonb, "
+                    "'{\"selected\": true}'::jsonb, '{}'::jsonb)"
                 ),
                 {
                     "id": uuid4(),
