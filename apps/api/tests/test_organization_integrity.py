@@ -628,6 +628,7 @@ def test_organization_service_audit_atomicity_and_request_id(
             request_id=request_id,
             values={"unit_type": "team", "code": str(uuid4())[:8], "name": "Atomic"},
         )
+        set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
         update_unit(
             session,
             actor=actor,
