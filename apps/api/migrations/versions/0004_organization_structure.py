@@ -228,7 +228,7 @@ def upgrade() -> None:
                         NULLIF(current_setting('app.user_id', true), '')::uuid
                     AND actor_membership.status = 'active'
               )
-            ORDER BY lower(u.display_name), u.id;
+            ORDER BY lower(p.display_name), p.user_id;
         $$;
         REVOKE ALL ON FUNCTION organization_member_directory() FROM PUBLIC;
         GRANT EXECUTE ON FUNCTION organization_member_directory() TO pmcloud_app;
