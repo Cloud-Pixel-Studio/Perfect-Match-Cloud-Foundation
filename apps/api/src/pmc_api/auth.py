@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from pmc_api.audit_service import record_tenant_selected
 from pmc_api.config import Settings, get_settings
 from pmc_api.database import get_db, set_request_context
 from pmc_api.models import (
@@ -299,6 +300,7 @@ def tenants(db: DBSession, authenticated: Authenticated) -> list[TenantResponse]
 
 @router.post("/tenant", response_model=TenantResponse, dependencies=[Depends(require_csrf)])
 def select_tenant(
+    request: Request,
     selection: TenantSelection,
     db: DBSession,
     authenticated: Authenticated,
@@ -315,9 +317,18 @@ def select_tenant(
     ).one_or_none()
     if row is None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "tenant access denied")
-    authenticated.record.current_tenant_id = selection.tenant_id
-    db.commit()
     tenant, role = row
+    authenticated.record.current_tenant_id = selection.tenant_id
+    record_tenant_selected(
+        db,
+        tenant_id=selection.tenant_id,
+        actor_user_id=authenticated.user.id,
+        actor_display_name=authenticated.user.display_name,
+        actor_role=role,
+        resource_id=authenticated.record.id,
+        request_id=request.state.request_id,
+    )
+    db.commit()
     return TenantResponse(id=tenant.id, name=tenant.name, slug=tenant.slug, role=role)
 
 

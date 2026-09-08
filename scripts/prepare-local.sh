@@ -26,7 +26,7 @@ if [[ ! -f "$env_file" ]]; then
     printf 'SEAWEEDFS_SECRET_KEY=%s\n' "$storage_secret"
     printf 'SEAWEEDFS_SIGNING_KEY=%s\n' "$storage_signing"
     printf 'PMC_RUNTIME_DIR=%s\n' "$runtime_dir"
-    printf 'APP_VERSION=0.2.0\n'
+    printf 'APP_VERSION=0.3.0\n'
     printf 'WEB_BUILD_TARGET=runtime\n'
   } > "$env_file"
 fi
@@ -67,9 +67,9 @@ ensure_value PMC_COOKIE_SECURE false
 ensure_value PMC_WEB_URL http://127.0.0.1:3000
 
 if grep -q '^APP_VERSION=' "$env_file"; then
-  sed -i 's/^APP_VERSION=.*/APP_VERSION=0.2.0/' "$env_file"
+  sed -i 's/^APP_VERSION=.*/APP_VERSION=0.3.0/' "$env_file"
 else
-  printf 'APP_VERSION=0.2.0\n' >> "$env_file"
+  printf 'APP_VERSION=0.3.0\n' >> "$env_file"
 fi
 
 chmod 600 "$env_file"

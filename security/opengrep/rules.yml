@@ -28,3 +28,37 @@ rules:
     pattern-either:
       - pattern: AUTHENTICATION_DISABLED = True
       - pattern: AUTHORIZATION_BYPASS = True
+  - id: pmc.python.audit-direct-mutation
+    languages: [python]
+    severity: ERROR
+    message: Audit events must be written only through the audit service and cannot be mutated directly.
+    metadata:
+      category: security
+      confidence: high
+    patterns:
+      - pattern-either:
+          - pattern: $DB.execute("...UPDATE audit_events...")
+          - pattern: $DB.execute("...DELETE FROM audit_events...")
+      - pattern-not-inside: |
+          def record(...):
+            ...
+  - id: pmc.python.audit-direct-construction
+    languages: [python]
+    severity: ERROR
+    message: AuditEvent objects may only be constructed by the authoritative audit service.
+    metadata:
+      category: security
+      confidence: high
+    patterns:
+      - pattern: AuditEvent(...)
+      - pattern-not-inside: |
+          def _record(...):
+            ...
+  - id: pmc.python.public-audit-write
+    languages: [python]
+    severity: ERROR
+    message: Audit events have no public write endpoint.
+    metadata:
+      category: security
+      confidence: high
+    pattern: '@$ROUTER.post("/audit/events", ...)'

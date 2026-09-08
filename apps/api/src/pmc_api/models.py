@@ -3,7 +3,16 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, LargeBinary, String, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -95,3 +104,29 @@ class TenantIsolationProbe(TimestampMixin, Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="CASCADE"))
     value: Mapped[str] = mapped_column(String(160), nullable=False)
+
+
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(
+        ForeignKey("tenants.id", ondelete="RESTRICT"), nullable=False
+    )
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    actor_user_id: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
+    )
+    actor_display_name: Mapped[str] = mapped_column(String(160), nullable=False)
+    actor_role: Mapped[str] = mapped_column(String(20), nullable=False)
+    action: Mapped[str] = mapped_column(String(120), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(80), nullable=False)
+    resource_id: Mapped[UUID | None] = mapped_column()
+    request_id: Mapped[UUID] = mapped_column(nullable=False)
+    schema_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    changed_fields: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    old_values: Mapped[dict[str, object] | None] = mapped_column(JSON)
+    new_values: Mapped[dict[str, object] | None] = mapped_column(JSON)
+    event_metadata: Mapped[dict[str, object]] = mapped_column(
+        "metadata", JSON, nullable=False, default=dict
+    )

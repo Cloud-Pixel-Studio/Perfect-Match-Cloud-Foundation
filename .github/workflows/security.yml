@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 12.3.4
@@ -56,10 +57,113 @@ jobs:
           cd apps/api && uvx --from pip-audit==2.10.1 pip-audit -r requirements-runtime.txt
           cd ../.. && pnpm audit --audit-level high
       - name: License validation
-        run: ./scripts/check-licenses.sh
+        run: |
+          ./scripts/test-license-validator.sh
+          ./scripts/check-licenses.sh
+      - name: Build commit-bound application images
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          docker build --pull=false --tag "pmcloud-api:${IMAGE_TAG}" apps/api
+          docker build --pull=false --tag "pmcloud-web:${IMAGE_TAG}" --target runtime --file apps/web/Dockerfile .
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-api:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-database-bootstrap:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-migrate:latest
+          docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-identity-bootstrap:latest
+          docker tag "pmcloud-web:${IMAGE_TAG}" pmcloud-web:latest
+          docker image inspect "pmcloud-api:${IMAGE_TAG}" "pmcloud-web:${IMAGE_TAG}" > artifacts/application-images.json
+      - name: Prepare disposable CI runtime
+        run: |
+          ./scripts/prepare-local.sh "${RUNNER_TEMP}/pmcloud/dev.env"
+          set -a
+          source "${RUNNER_TEMP}/pmcloud/dev.env"
+          set +a
+          chmod 644 "${PMC_RUNTIME_DIR}/seaweedfs-s3.json"
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build
+          for url in http://127.0.0.1:8000/health http://127.0.0.1:3000; do
+            for attempt in $(seq 1 30); do
+              if curl --fail --silent --show-error "$url" >/dev/null; then break; fi
+              sleep 2
+            done
+            curl --fail --silent --show-error "$url" >/dev/null
+          done
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps
+      - name: Dump disposable runtime diagnostics
+        if: failure()
+        run: |
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps --all
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color seaweedfs keycloak api web || true
+      - name: Final application image scans
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -o pipefail
+          trivy image --format json --scanners vuln,secret --output artifacts/trivy-api-image.json "pmcloud-api:${IMAGE_TAG}"
+          trivy image --format json --scanners vuln,secret --output artifacts/trivy-web-image.json "pmcloud-web:${IMAGE_TAG}"
+          for report in artifacts/trivy-api-image.json artifacts/trivy-web-image.json; do
+            test "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' "$report")" -eq 0
+          done
+      - name: Third-party image scans
+        run: |
+          trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.45@sha256:fc9f76fa993ad69966ffeb2f65d0318fcae39c6f8e20cf68ef7b3a5cb97769e5
+          trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+      - name: Generate and validate CycloneDX SBOMs
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          trivy fs --format cyclonedx --output artifacts/sbom-repository.json .
+          trivy image --format cyclonedx --output artifacts/sbom-api.json "pmcloud-api:${IMAGE_TAG}"
+          trivy image --format cyclonedx --output artifacts/sbom-web.json "pmcloud-web:${IMAGE_TAG}"
+          trivy image --format cyclonedx --output artifacts/sbom-keycloak.json quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+          for sbom in artifacts/sbom-*.json; do
+            jq -e '.bomFormat == "CycloneDX" and (.metadata | type == "object") and (.components | length > 0)' "$sbom" >/dev/null
+          done
+      - name: OWASP ZAP passive baseline
+        run: |
+          chmod -R a+rwX artifacts
+          docker run --rm --network host \
+            --volume "${PWD}/artifacts:/zap/wrk:rw" \
+            ghcr.io/zaproxy/zaproxy@sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef \
+            zap-baseline.py -t http://127.0.0.1:3000 -r zap.html -J zap.json -I 2>&1 | tee artifacts/zap.log
+          python3 scripts/summarize-zap.py artifacts/zap.json artifacts/zap.log artifacts/zap-summary.json
+      - name: Write release evidence manifest
+        if: always()
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          SBOM_COUNT=$(find artifacts -maxdepth 1 -name 'sbom-*.json' -print0 | xargs -0 -r -n1 jq '.components | length' | jq -s 'length')
+          SBOM_REPOSITORY=$(jq '.components | length' artifacts/sbom-repository.json)
+          SBOM_API=$(jq '.components | length' artifacts/sbom-api.json)
+          SBOM_WEB=$(jq '.components | length' artifacts/sbom-web.json)
+          SBOM_KEYCLOAK=$(jq '.components | length' artifacts/sbom-keycloak.json)
+          jq -n \
+            --arg sha "$IMAGE_TAG" \
+            --arg run "$RUN_ID" \
+            --argjson images "$(cat artifacts/application-images.json 2>/dev/null || echo '[]')" \
+            --argjson zap "$(cat artifacts/zap-summary.json 2>/dev/null || echo '{}')" \
+            --argjson licenses "$(cat artifacts/licenses/summary.json 2>/dev/null || echo '{}')" \
+            --argjson sboms "$SBOM_COUNT" \
+            --argjson repository_components "$SBOM_REPOSITORY" \
+            --argjson api_components "$SBOM_API" \
+            --argjson web_components "$SBOM_WEB" \
+            --argjson keycloak_components "$SBOM_KEYCLOAK" \
+            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, licenses: $licenses, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components}}' \
+            /dev/null > artifacts/release-evidence-manifest.json
+      - name: Stop disposable CI runtime
+        if: always()
+        run: |
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" down --volumes --remove-orphans || true
       - name: Upload SARIF
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: foundation-security-sarif
           path: artifacts/*.sarif
+      - name: Upload final release evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: pmc-02-final-release-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: artifacts

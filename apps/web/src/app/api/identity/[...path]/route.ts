@@ -1,4 +1,4 @@
-const allowedRoots = new Set(["auth", "tenant"]);
+const allowedRoots = new Set(["auth", "tenant", "audit"]);
 const routeSegment = /^[a-z][a-z-]*$/;
 
 type RouteContext = { params: Promise<{ path: string[] }> };

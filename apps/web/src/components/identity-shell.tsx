@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, ChevronDown, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { Building2, ChevronDown, ClipboardList, LogIn, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -14,6 +14,7 @@ type Identity = {
 };
 
 type Tenant = { id: string; name: string; slug: string; role: string };
+type AuditEvent = { id: string; occurred_at: string; actor_display_name: string; actor_role: string; action: string; resource_type: string; request_id: string; changed_fields: string[]; old_values: Record<string, unknown> | null; new_values: Record<string, unknown> | null };
 const apiUrl = "/api/identity";
 
 function csrfToken(): string {
@@ -26,6 +27,9 @@ export function IdentityShell() {
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [busy, setBusy] = useState(false);
+  const [showAudit, setShowAudit] = useState(false);
+  const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [auditError, setAuditError] = useState<string | null>(null);
 
   const loadIdentity = useCallback(async () => {
     try {
@@ -82,6 +86,14 @@ export function IdentityShell() {
     setBusy(false);
   }
 
+  async function loadAudit() {
+    setShowAudit(true);
+    setAuditError(null);
+    const response = await fetch(`${apiUrl}/audit/events?limit=50`, { credentials: "include" });
+    if (!response.ok) { setAuditError(response.status === 403 ? "Audit Trail access is restricted to authorized roles." : "Audit Trail is unavailable."); return; }
+    setEvents(((await response.json()) as { items: AuditEvent[] }).items);
+  }
+
   if (view === "loading") {
     return (
       <main className="identity-main" aria-live="polite">
@@ -122,6 +134,7 @@ export function IdentityShell() {
   }
 
   const current = tenants.find((tenant) => tenant.id === identity.current_tenant_id);
+  const canAudit = ["owner", "admin", "auditor"].includes(current?.role ?? "");
   return (
     <main className="identity-main authenticated-main">
       <div className="authenticated-toolbar">
@@ -146,7 +159,12 @@ export function IdentityShell() {
           </label>
         )}
         <div className="context-assurance"><ShieldCheck aria-hidden="true" size={18} /><span><strong>Validated server-side</strong><small>Organization access is derived from your active membership.</small></span></div>
+        {canAudit && <button className="secondary-action" type="button" onClick={() => void loadAudit()}><ClipboardList aria-hidden="true" size={18} /> Audit Trail</button>}
       </section>
+      {showAudit && <section className="audit-panel" aria-labelledby="audit-heading">
+        <div className="audit-heading"><div><p className="eyebrow">Compliance history</p><h2 id="audit-heading">Audit Trail</h2></div><button className="icon-button" aria-label="Close Audit Trail" title="Close Audit Trail" type="button" onClick={() => setShowAudit(false)}>x</button></div>
+        {auditError ? <p className="denied-state">{auditError}</p> : events.length === 0 ? <p className="empty-state">No audit events for this organization.</p> : <div className="audit-list">{events.map((event) => <details className="audit-event" key={event.id}><summary><span><strong>{event.action}</strong><small>{event.actor_display_name} · {event.actor_role} · {event.resource_type}</small></span><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString()}</time></summary><dl><dt>Request ID</dt><dd>{event.request_id}</dd><dt>Changed fields</dt><dd>{event.changed_fields.join(", ") || "None"}</dd><dt>Before</dt><dd>{event.old_values ? JSON.stringify(event.old_values) : "None"}</dd><dt>After</dt><dd>{event.new_values ? JSON.stringify(event.new_values) : "None"}</dd></dl></details>)}</div>}
+      </section>}
     </main>
   );
 }
