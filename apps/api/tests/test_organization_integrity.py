@@ -55,9 +55,7 @@ def fixtures() -> None:
             {"a": TENANT_A, "b": TENANT_B},
         )
         connection.execute(
-            text(
-                "DELETE FROM users WHERE id IN (:owner, :admin, :auditor, :member, :b_member)"
-            ),
+            text("DELETE FROM users WHERE id IN (:owner, :admin, :auditor, :member, :b_member)"),
             {
                 "owner": OWNER,
                 "admin": ADMIN,
@@ -321,11 +319,14 @@ def test_owner_admin_write_and_auditor_member_denial() -> None:
 
 def test_forced_rls_no_delete_and_pool_context_reset() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").connect() as connection:
-        assert connection.scalar(
-            text(
-                "SELECT count(*) FROM pg_policies WHERE policyname='memberships_organization_assignment_validation'"
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT count(*) FROM pg_policies WHERE policyname='memberships_organization_assignment_validation'"
+                )
             )
-        ) == 0
+            == 0
+        )
         row = connection.execute(
             text(
                 "SELECT relrowsecurity, relforcerowsecurity FROM pg_class WHERE oid='organization_units'::regclass"
@@ -379,7 +380,13 @@ def test_directory_is_current_tenant_active_safe_projection() -> None:
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"), {"user": MEMBER}) == 0
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
+                {"user": MEMBER},
+            )
+            == 0
+        )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
@@ -392,23 +399,44 @@ def test_directory_is_current_tenant_active_safe_projection() -> None:
 def test_raw_target_guc_cannot_bypass_membership_isolation() -> None:
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        connection.execute(text("SELECT set_config('app.tenant_id', :tenant, true)"), {"tenant": str(TENANT_B)})
-        connection.execute(text("SELECT set_config('app.organization_target_user', :user, true)"), {"user": str(B_MEMBER)})
-        assert connection.scalar(text("SELECT count(*) FROM memberships WHERE tenant_id=:tenant"), {"tenant": TENANT_B}) == 0
+        connection.execute(
+            text("SELECT set_config('app.tenant_id', :tenant, true)"), {"tenant": str(TENANT_B)}
+        )
+        connection.execute(
+            text("SELECT set_config('app.organization_target_user', :user, true)"),
+            {"user": str(B_MEMBER)},
+        )
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM memberships WHERE tenant_id=:tenant"),
+                {"tenant": TENANT_B},
+            )
+            == 0
+        )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, UUID(int=0), None)
         assert connection.scalar(text("SELECT count(*) FROM memberships")) == 0
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("UPDATE memberships SET status='revoked' WHERE tenant_id=:tenant AND user_id=:user"),
+            text(
+                "UPDATE memberships SET status='revoked' WHERE tenant_id=:tenant AND user_id=:user"
+            ),
             {"tenant": TENANT_A, "user": OWNER},
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(text("SELECT count(*) FROM memberships WHERE tenant_id=:tenant"), {"tenant": TENANT_A}) == 0
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM memberships WHERE tenant_id=:tenant"),
+                {"tenant": TENANT_A},
+            )
+            == 0
+        )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("UPDATE memberships SET status='active' WHERE tenant_id=:tenant AND user_id=:user"),
+            text(
+                "UPDATE memberships SET status='active' WHERE tenant_id=:tenant AND user_id=:user"
+            ),
             {"tenant": TENANT_A, "user": OWNER},
         )
 
@@ -417,53 +445,110 @@ def test_real_cross_tenant_parent_and_assignment_boundaries() -> None:
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         transaction = connection.begin()
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(text("SELECT count(*) FROM organization_units WHERE id=:id"), {"id": B_UNIT}) == 0
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_units WHERE id=:id"), {"id": B_UNIT}
+            )
+            == 0
+        )
         with pytest.raises(DBAPIError):
-            connection.execute(text("UPDATE organization_units SET parent_id=:parent WHERE id=:id"), {"parent": B_UNIT, "id": ROOT})
+            connection.execute(
+                text("UPDATE organization_units SET parent_id=:parent WHERE id=:id"),
+                {"parent": B_UNIT, "id": ROOT},
+            )
         transaction.rollback()
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         transaction = connection.begin()
         context(connection, OWNER, TENANT_A)
         with pytest.raises(DBAPIError):
             connection.execute(
-                text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"),
-                {"id": uuid4(), "tenant": TENANT_A, "unit": B_UNIT, "user": MEMBER, "now": datetime.now(UTC)},
+                text(
+                    "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"
+                ),
+                {
+                    "id": uuid4(),
+                    "tenant": TENANT_A,
+                    "unit": B_UNIT,
+                    "user": MEMBER,
+                    "now": datetime.now(UTC),
+                },
             )
         with pytest.raises(DBAPIError):
             connection.execute(
-                text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"),
-                {"id": uuid4(), "tenant": TENANT_A, "unit": ROOT, "user": B_MEMBER, "now": datetime.now(UTC)},
+                text(
+                    "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"
+                ),
+                {
+                    "id": uuid4(),
+                    "tenant": TENANT_A,
+                    "unit": ROOT,
+                    "user": B_MEMBER,
+                    "now": datetime.now(UTC),
+                },
             )
         transaction.rollback()
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         a_assignment = uuid4()
         b_assignment = uuid4()
         now = datetime.now(UTC)
-        for assignment, tenant, unit, user in ((a_assignment, TENANT_A, ROOT, MEMBER), (b_assignment, TENANT_B, B_UNIT, B_MEMBER)):
+        for assignment, tenant, unit, user in (
+            (a_assignment, TENANT_A, ROOT, MEMBER),
+            (b_assignment, TENANT_B, B_UNIT, B_MEMBER),
+        ):
             connection.execute(
-                text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"),
+                text(
+                    "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"
+                ),
                 {"id": assignment, "tenant": tenant, "unit": unit, "user": user, "now": now},
             )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"), {"id": b_assignment}) == 0
-        assert connection.scalar(text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"), {"id": a_assignment}) == 1
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"),
+                {"id": b_assignment},
+            )
+            == 0
+        )
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"),
+                {"id": a_assignment},
+            )
+            == 1
+        )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, B_MEMBER, TENANT_B)
-        assert connection.scalar(text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"), {"id": a_assignment}) == 0
-        assert connection.scalar(text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"), {"id": b_assignment}) == 1
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"),
+                {"id": a_assignment},
+            )
+            == 0
+        )
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"),
+                {"id": b_assignment},
+            )
+            == 1
+        )
 
 
 def test_archived_unit_rejects_create_and_reactivation() -> None:
     now = datetime.now(UTC)
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("INSERT INTO organization_units (id,tenant_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,'team','ARCHIVED','Archived','archived',:now,:now)"),
+            text(
+                "INSERT INTO organization_units (id,tenant_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,'team','ARCHIVED','Archived','archived',:now,:now)"
+            ),
             {"id": ARCHIVED_UNIT, "tenant": TENANT_A, "now": now},
         )
         inactive = uuid4()
         connection.execute(
-            text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'inactive',:now,:now)"),
+            text(
+                "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'inactive',:now,:now)"
+            ),
             {"id": inactive, "tenant": TENANT_A, "unit": ARCHIVED_UNIT, "user": MEMBER, "now": now},
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
@@ -471,11 +556,22 @@ def test_archived_unit_rejects_create_and_reactivation() -> None:
         context(connection, OWNER, TENANT_A)
         with pytest.raises(DBAPIError):
             connection.execute(
-                text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"),
-                {"id": uuid4(), "tenant": TENANT_A, "unit": ARCHIVED_UNIT, "user": MEMBER, "now": now},
+                text(
+                    "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"
+                ),
+                {
+                    "id": uuid4(),
+                    "tenant": TENANT_A,
+                    "unit": ARCHIVED_UNIT,
+                    "user": MEMBER,
+                    "now": now,
+                },
             )
         with pytest.raises(DBAPIError):
-            connection.execute(text("UPDATE organization_unit_assignments SET status='active' WHERE id=:id"), {"id": inactive})
+            connection.execute(
+                text("UPDATE organization_unit_assignments SET status='active' WHERE id=:id"),
+                {"id": inactive},
+            )
         transaction.rollback()
 
 
@@ -483,49 +579,116 @@ def test_lead_assignment_does_not_escalate_application_role() -> None:
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
         connection.execute(
-            text("INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'lead',false,'active',:now,:now)"),
-            {"id": uuid4(), "tenant": TENANT_A, "unit": CHILD, "user": MEMBER, "now": datetime.now(UTC)},
+            text(
+                "INSERT INTO organization_unit_assignments (id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) VALUES (:id,:tenant,:unit,:user,'lead',false,'active',:now,:now)"
+            ),
+            {
+                "id": uuid4(),
+                "tenant": TENANT_A,
+                "unit": CHILD,
+                "user": MEMBER,
+                "now": datetime.now(UTC),
+            },
         )
-        assert connection.scalar(text("SELECT role FROM memberships WHERE tenant_id=:tenant AND user_id=:user"), {"tenant": TENANT_A, "user": MEMBER}) == "member"
+        assert (
+            connection.scalar(
+                text("SELECT role FROM memberships WHERE tenant_id=:tenant AND user_id=:user"),
+                {"tenant": TENANT_A, "user": MEMBER},
+            )
+            == "member"
+        )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         transaction = connection.begin()
         context(connection, MEMBER, TENANT_A)
         with pytest.raises(DBAPIError):
-            connection.execute(text("INSERT INTO organization_units (id,tenant_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,'team','LEAD-DENIED','Denied','active',:now,:now)"), {"id": uuid4(), "tenant": TENANT_A, "now": datetime.now(UTC)})
+            connection.execute(
+                text(
+                    "INSERT INTO organization_units (id,tenant_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,'team','LEAD-DENIED','Denied','active',:now,:now)"
+                ),
+                {"id": uuid4(), "tenant": TENANT_A, "now": datetime.now(UTC)},
+            )
         transaction.rollback()
 
 
-def test_organization_service_audit_atomicity_and_request_id(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_organization_service_audit_atomicity_and_request_id(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from pmc_api import audit_service
     from pmc_api.database import set_request_context
     from pmc_api.organization_service import create_unit, require_context, update_unit
+
     request_id = uuid4()
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
         actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
-        unit = create_unit(session, actor=actor, request_id=request_id, values={"unit_type": "team", "code": str(uuid4())[:8], "name": "Atomic"})
-        update_unit(session, actor=actor, request_id=request_id, unit=unit, changes={"name": "Atomic Updated"})
-        assert session.scalar(text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": request_id}) == 2
-        assert session.scalar(text("SELECT count(*) FROM organization_units WHERE id=:id"), {"id": unit.id}) == 1
+        unit = create_unit(
+            session,
+            actor=actor,
+            request_id=request_id,
+            values={"unit_type": "team", "code": str(uuid4())[:8], "name": "Atomic"},
+        )
+        update_unit(
+            session,
+            actor=actor,
+            request_id=request_id,
+            unit=unit,
+            changes={"name": "Atomic Updated"},
+        )
+        assert (
+            session.scalar(
+                text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": request_id}
+            )
+            == 2
+        )
+        assert (
+            session.scalar(
+                text("SELECT count(*) FROM organization_units WHERE id=:id"), {"id": unit.id}
+            )
+            == 1
+        )
     failed_id = uuid4()
     original = audit_service.record_organization_unit_created
-    monkeypatch.setattr(audit_service, "record_organization_unit_created", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("audit failure")))
+    monkeypatch.setattr(
+        audit_service,
+        "record_organization_unit_created",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("audit failure")),
+    )
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
         actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
         with pytest.raises(RuntimeError):
-            create_unit(session, actor=actor, request_id=failed_id, values={"unit_type": "team", "code": str(uuid4())[:8], "name": "Rolled Back"})
+            create_unit(
+                session,
+                actor=actor,
+                request_id=failed_id,
+                values={"unit_type": "team", "code": str(uuid4())[:8], "name": "Rolled Back"},
+            )
         session.rollback()
-        assert session.scalar(text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": failed_id}) == 0
+        assert (
+            session.scalar(
+                text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": failed_id}
+            )
+            == 0
+        )
     monkeypatch.setattr(audit_service, "record_organization_unit_created", original)
     duplicate_id = uuid4()
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
         actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
         with pytest.raises(DBAPIError):
-            create_unit(session, actor=actor, request_id=duplicate_id, values={"unit_type": "team", "code": "ROOT", "name": "Constraint"})
+            create_unit(
+                session,
+                actor=actor,
+                request_id=duplicate_id,
+                values={"unit_type": "team", "code": "ROOT", "name": "Constraint"},
+            )
         session.rollback()
-        assert session.scalar(text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": duplicate_id}) == 0
+        assert (
+            session.scalar(
+                text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": duplicate_id}
+            )
+            == 0
+        )
 
 
 def test_organization_audit_contract_rejects_extra_fields() -> None:

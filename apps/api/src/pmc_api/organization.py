@@ -280,9 +280,7 @@ def get_assignments(
     names = _directory_names(db)
     return [
         _assignment_response(db, row, names)
-        for row in list_assignments(
-            db, actor, limit=limit, offset=offset, unit_id=unit_id
-        )
+        for row in list_assignments(db, actor, limit=limit, offset=offset, unit_id=unit_id)
     ]
 
 
