@@ -52,6 +52,14 @@ def upgrade() -> None:
         CREATE INDEX organization_units_parent_idx ON organization_units (tenant_id, parent_id);
         CREATE INDEX organization_units_tenant_status_idx ON organization_units (tenant_id, status);
 
+        CREATE TABLE organization_unit_integrity_projection (
+            id uuid PRIMARY KEY,
+            tenant_id uuid NOT NULL,
+            parent_id uuid,
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'archived'))
+        );
+        REVOKE ALL ON organization_unit_integrity_projection FROM PUBLIC, pmcloud_app;
+
         CREATE TABLE organization_unit_assignments (
             id uuid PRIMARY KEY,
             tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
@@ -153,14 +161,14 @@ def upgrade() -> None:
                 RAISE EXCEPTION 'organization unit cannot parent itself' USING ERRCODE = '23514';
             END IF;
             IF NEW.parent_id IS NOT NULL AND NOT EXISTS (
-                SELECT 1 FROM organization_units p
+                SELECT 1 FROM organization_unit_integrity_projection p
                 WHERE p.id = NEW.parent_id AND p.tenant_id = NEW.tenant_id
             ) THEN
                 RAISE EXCEPTION 'organization unit parent must belong to the same tenant'
                     USING ERRCODE = '23514';
             END IF;
             IF NEW.parent_id IS NOT NULL AND EXISTS (
-                SELECT 1 FROM organization_units p
+                SELECT 1 FROM organization_unit_integrity_projection p
                 WHERE p.id = NEW.parent_id AND p.status = 'archived' AND NEW.status = 'active'
             ) THEN
                 RAISE EXCEPTION 'active organization unit cannot use archived parent'
@@ -170,7 +178,7 @@ def upgrade() -> None:
                 WITH RECURSIVE parents(id) AS (
                     SELECT NEW.parent_id
                     UNION ALL
-                    SELECT u.parent_id FROM organization_units u JOIN parents p ON u.id = p.id
+                    SELECT u.parent_id FROM organization_unit_integrity_projection u JOIN parents p ON u.id = p.id
                     WHERE u.parent_id IS NOT NULL
                 ) SELECT 1 FROM parents WHERE id = NEW.id
             ) THEN
@@ -182,6 +190,27 @@ def upgrade() -> None:
         $$;
         CREATE TRIGGER organization_units_validate BEFORE INSERT OR UPDATE ON organization_units
             FOR EACH ROW EXECUTE FUNCTION validate_organization_unit();
+
+        CREATE FUNCTION sync_organization_unit_integrity_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_unit_integrity_projection WHERE id = OLD.id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_unit_integrity_projection (id, tenant_id, parent_id, status)
+            VALUES (NEW.id, NEW.tenant_id, NEW.parent_id, NEW.status)
+            ON CONFLICT (id) DO UPDATE SET
+                tenant_id = EXCLUDED.tenant_id,
+                parent_id = EXCLUDED.parent_id,
+                status = EXCLUDED.status;
+            RETURN NEW;
+        END;
+        $$;
+        REVOKE ALL ON FUNCTION sync_organization_unit_integrity_projection() FROM PUBLIC, pmcloud_app;
+        CREATE TRIGGER organization_units_sync_integrity_projection
+            AFTER INSERT OR UPDATE OR DELETE ON organization_units
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_unit_integrity_projection();
 
         CREATE FUNCTION validate_organization_assignment() RETURNS trigger
         LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
@@ -324,10 +353,13 @@ def downgrade() -> None:
         DROP TRIGGER IF EXISTS organization_assignments_validate ON organization_unit_assignments;
         DROP TRIGGER IF EXISTS organization_units_archive_guard ON organization_units;
         DROP TRIGGER IF EXISTS organization_units_validate ON organization_units;
+        DROP TRIGGER IF EXISTS organization_units_sync_integrity_projection ON organization_units;
         DROP FUNCTION IF EXISTS validate_organization_assignment();
         DROP FUNCTION IF EXISTS prevent_organization_archive();
+        DROP FUNCTION IF EXISTS sync_organization_unit_integrity_projection();
         DROP FUNCTION IF EXISTS validate_organization_unit();
         DROP TABLE IF EXISTS organization_unit_assignments;
+        DROP TABLE IF EXISTS organization_unit_integrity_projection;
         DROP TABLE IF EXISTS organization_units;
         DROP POLICY IF EXISTS memberships_self ON memberships;
         CREATE POLICY memberships_self ON memberships FOR SELECT USING (
