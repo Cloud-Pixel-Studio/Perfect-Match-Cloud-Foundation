@@ -42,7 +42,8 @@ def context(connection: Connection, user: UUID, tenant: UUID | None) -> None:
 @pytest.fixture(scope="module", autouse=True)
 def fixtures() -> None:
     now = datetime.now(UTC)
-    with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+        context(connection, OWNER, TENANT_A)
         connection.execute(
             text("TRUNCATE organization_unit_assignments, organization_units CASCADE")
         )
@@ -149,7 +150,8 @@ def test_hierarchy_self_parent_cycle_cross_tenant_and_archived_parent() -> None:
             with pytest.raises(DBAPIError):
                 connection.execute(text(sql), params)  # type: ignore[call-overload]
             transaction.rollback()
-    with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+        context(connection, OWNER, TENANT_A)
         connection.execute(
             text("UPDATE organization_units SET parent_id=NULL WHERE id=:id"), {"id": CHILD}
         )
