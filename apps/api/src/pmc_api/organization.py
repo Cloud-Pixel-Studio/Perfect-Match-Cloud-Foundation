@@ -5,13 +5,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.database import get_db, set_request_context
-from pmc_api.models import Membership, OrganizationUnit, OrganizationUnitAssignment, User
+from pmc_api.models import OrganizationUnit, OrganizationUnitAssignment
 from pmc_api.organization_service import (
     OrganizationActor,
     archive_unit,
@@ -125,11 +125,25 @@ def _assignment_or_404(
 
 
 def _conflict(exc: IntegrityError) -> HTTPException:
+    sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(exc.orig, "pgcode", None)
+    if sqlstate not in {"23503", "23505", "23514"}:
+        raise exc
     return HTTPException(status.HTTP_409_CONFLICT, "organization constraint rejected the change")
 
 
-def _assignment_response(db: Session, assignment: OrganizationUnitAssignment) -> dict[str, object]:
-    user = db.get(User, assignment.user_id)
+def _directory_names(db: Session) -> dict[UUID, str]:
+    return {
+        row[0]: row[1]
+        for row in db.execute(
+            text("SELECT user_id, display_name FROM organization_member_directory()")
+        )
+    }
+
+
+def _assignment_response(
+    db: Session, assignment: OrganizationUnitAssignment, names: dict[UUID, str] | None = None
+) -> dict[str, object]:
+    display_name = (names if names is not None else _directory_names(db)).get(assignment.user_id)
     return {
         "id": assignment.id,
         "tenant_id": assignment.tenant_id,
@@ -138,7 +152,7 @@ def _assignment_response(db: Session, assignment: OrganizationUnitAssignment) ->
         "assignment_role": assignment.assignment_role,
         "is_primary": assignment.is_primary,
         "status": assignment.status,
-        "user_display_name": user.display_name if user else None,
+        "user_display_name": display_name,
     }
 
 
@@ -262,10 +276,12 @@ def get_assignments(
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0, le=10000)] = 0,
 ) -> list[dict[str, object]]:
+    actor = _actor(db, authenticated)
+    names = _directory_names(db)
     return [
-        _assignment_response(db, row)
+        _assignment_response(db, row, names)
         for row in list_assignments(
-            db, _actor(db, authenticated), limit=limit, offset=offset, unit_id=unit_id
+            db, actor, limit=limit, offset=offset, unit_id=unit_id
         )
     ]
 
@@ -277,20 +293,16 @@ def get_members(
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0, le=10000)] = 0,
 ) -> list[dict[str, object]]:
-    actor = _actor(db, authenticated)
+    _actor(db, authenticated)
     rows = db.execute(
-        select(User, Membership.role)
-        .join(Membership, Membership.user_id == User.id)
-        .where(
-            Membership.tenant_id == actor.tenant_id,
-            Membership.status == "active",
-            User.status == "active",
-        )
-        .order_by(User.display_name, User.id)
-        .limit(limit)
-        .offset(offset)
+        text(
+            "SELECT user_id AS id, display_name, role "
+            "FROM organization_member_directory() "
+            "ORDER BY lower(display_name), user_id LIMIT :limit OFFSET :offset"
+        ),
+        {"limit": limit, "offset": offset},
     )
-    return [{"id": user.id, "display_name": user.display_name, "role": role} for user, role in rows]
+    return [{"id": row.id, "display_name": row.display_name, "role": row.role} for row in rows]
 
 
 @router.post(

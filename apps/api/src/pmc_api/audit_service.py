@@ -22,6 +22,12 @@ ORGANIZATION_ACTIONS = {
     "organization.assignment_deactivated": "organization_assignment",
     "organization.assignment_reactivated": "organization_assignment",
 }
+ORGANIZATION_UNIT_FIELDS = frozenset(
+    {"unit_id", "code", "name", "unit_type", "parent_id", "status"}
+)
+ORGANIZATION_ASSIGNMENT_FIELDS = frozenset(
+    {"assignment_id", "unit_id", "user_id", "assignment_role", "is_primary", "status"}
+)
 MAX_PAYLOAD_BYTES = 64 * 1024
 FORBIDDEN_KEYS = {
     "password",
@@ -163,6 +169,14 @@ def _record_organization(
     old_values: dict[str, object] | None = None,
     new_values: dict[str, object] | None = None,
 ) -> AuditEvent:
+    allowed = (
+        ORGANIZATION_UNIT_FIELDS
+        if ORGANIZATION_ACTIONS[action] == "organization_unit"
+        else ORGANIZATION_ASSIGNMENT_FIELDS
+    )
+    for payload in (old_values, new_values):
+        if payload is not None and not set(payload).issubset(allowed):
+            raise AuditPayloadError("organization audit payload contains an unsupported field")
     return _record(
         db,
         tenant_id=tenant_id,
