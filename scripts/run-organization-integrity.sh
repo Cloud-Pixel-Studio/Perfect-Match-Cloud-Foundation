@@ -14,5 +14,6 @@ export POSTGRES_DB=pmcloud_organization POSTGRES_MIGRATION_USER=pmcloud_migrator
 export PMC_DATABASE_ADMIN_URL="postgresql+pg8000://pmcloud_bootstrap:${bootstrap_password}@127.0.0.1:${port}/pmcloud_organization"
 export PMC_DATABASE_URL="postgresql+pg8000://pmcloud_migrator:${migration_password}@127.0.0.1:${port}/pmcloud_organization"
 export PMC_TEST_ADMIN_DATABASE_URL="$PMC_DATABASE_ADMIN_URL" PMC_TEST_RUNTIME_DATABASE_URL="postgresql+pg8000://pmcloud_app:${runtime_password}@127.0.0.1:${port}/pmcloud_organization"
-export PMC_LOGIN_TRANSACTION_KEY="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')"
+PMC_LOGIN_TRANSACTION_KEY="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')"
+export PMC_LOGIN_TRANSACTION_KEY
 (cd apps/api && uv run --no-sync python -m pmc_api.bootstrap_database && uv run --no-sync alembic upgrade head && uv run --no-sync pytest -m organization_integrity tests/test_organization_integrity.py)

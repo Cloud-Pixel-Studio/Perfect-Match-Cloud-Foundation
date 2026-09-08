@@ -68,7 +68,7 @@ def upgrade() -> None:
         CREATE INDEX organization_assignments_unit_idx ON organization_unit_assignments (tenant_id, unit_id);
 
         CREATE FUNCTION validate_organization_unit() RETURNS trigger
-        LANGUAGE plpgsql SECURITY INVOKER SET search_path = pg_catalog AS $$
+        LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
         BEGIN
             IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
                 RAISE EXCEPTION 'organization unit cannot parent itself';
@@ -96,7 +96,7 @@ def upgrade() -> None:
             FOR EACH ROW EXECUTE FUNCTION validate_organization_unit();
 
         CREATE FUNCTION validate_organization_assignment() RETURNS trigger
-        LANGUAGE plpgsql SECURITY INVOKER SET search_path = pg_catalog AS $$
+        LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
         BEGIN
             IF NOT EXISTS (
                 SELECT 1 FROM memberships m WHERE m.tenant_id = NEW.tenant_id
@@ -118,7 +118,7 @@ def upgrade() -> None:
             FOR EACH ROW WHEN (NEW.status = 'active') EXECUTE FUNCTION validate_organization_assignment();
 
         CREATE FUNCTION prevent_organization_archive() RETURNS trigger
-        LANGUAGE plpgsql SECURITY INVOKER SET search_path = pg_catalog AS $$
+        LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
         BEGIN
             IF NEW.status = 'archived' AND OLD.status <> 'archived' AND (
                 EXISTS (SELECT 1 FROM organization_units WHERE parent_id = NEW.id AND status = 'active')
