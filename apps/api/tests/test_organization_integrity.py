@@ -636,6 +636,7 @@ def test_organization_service_audit_atomicity_and_request_id(
             unit=unit,
             changes={"name": "Atomic Updated"},
         )
+        set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
         assert (
             session.scalar(
                 text("SELECT count(*) FROM audit_events WHERE request_id=:id"), {"id": request_id}
