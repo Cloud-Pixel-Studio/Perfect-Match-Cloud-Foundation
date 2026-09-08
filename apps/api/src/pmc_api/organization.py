@@ -290,10 +290,7 @@ def get_members(
         .limit(limit)
         .offset(offset)
     )
-    return [
-        {"id": user.id, "display_name": user.display_name, "role": role}
-        for user, role in rows
-    ]
+    return [{"id": user.id, "display_name": user.display_name, "role": role} for user, role in rows]
 
 
 @router.post(
