@@ -27,6 +27,12 @@ def upgrade() -> None:
             'organization.assignment_deactivated', 'organization.assignment_reactivated'
         ));
 
+        DROP POLICY IF EXISTS memberships_self ON memberships;
+        CREATE POLICY memberships_self ON memberships FOR SELECT USING (
+            user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+            AND status = 'active'
+        );
+
         CREATE TABLE organization_units (
             id uuid PRIMARY KEY,
             tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
@@ -145,6 +151,13 @@ def upgrade() -> None:
         BEGIN
             IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
                 RAISE EXCEPTION 'organization unit cannot parent itself' USING ERRCODE = '23514';
+            END IF;
+            IF NEW.parent_id IS NOT NULL AND NOT EXISTS (
+                SELECT 1 FROM organization_units p
+                WHERE p.id = NEW.parent_id AND p.tenant_id = NEW.tenant_id
+            ) THEN
+                RAISE EXCEPTION 'organization unit parent must belong to the same tenant'
+                    USING ERRCODE = '23514';
             END IF;
             IF NEW.parent_id IS NOT NULL AND EXISTS (
                 SELECT 1 FROM organization_units p
@@ -316,6 +329,10 @@ def downgrade() -> None:
         DROP FUNCTION IF EXISTS validate_organization_unit();
         DROP TABLE IF EXISTS organization_unit_assignments;
         DROP TABLE IF EXISTS organization_units;
+        DROP POLICY IF EXISTS memberships_self ON memberships;
+        CREATE POLICY memberships_self ON memberships FOR SELECT USING (
+            user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+        );
         ALTER TABLE audit_events DROP CONSTRAINT IF EXISTS audit_events_action_check;
         ALTER TABLE audit_events ADD CONSTRAINT audit_events_action_check
             CHECK (action IN ('auth.tenant_selected'));
