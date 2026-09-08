@@ -590,6 +590,7 @@ def test_lead_assignment_does_not_escalate_application_role() -> None:
                 "now": datetime.now(UTC),
             },
         )
+    with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         assert (
             connection.scalar(
                 text("SELECT role FROM memberships WHERE tenant_id=:tenant AND user_id=:user"),
@@ -619,8 +620,8 @@ def test_organization_service_audit_atomicity_and_request_id(
 
     request_id = uuid4()
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
-        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
+        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         unit = create_unit(
             session,
             actor=actor,
@@ -654,8 +655,8 @@ def test_organization_service_audit_atomicity_and_request_id(
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("audit failure")),
     )
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
-        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
+        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         with pytest.raises(RuntimeError):
             create_unit(
                 session,
@@ -673,8 +674,8 @@ def test_organization_service_audit_atomicity_and_request_id(
     monkeypatch.setattr(audit_service, "record_organization_unit_created", original)
     duplicate_id = uuid4()
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL")) as session:
-        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         set_request_context(session, user_id=OWNER, tenant_id=TENANT_A)
+        actor = require_context(session, user_id=OWNER, tenant_id=TENANT_A)
         with pytest.raises(DBAPIError):
             create_unit(
                 session,
