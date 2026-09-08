@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from pmc_api.auth import Authenticated, require_csrf
@@ -124,7 +124,7 @@ def _assignment_or_404(
     return assignment
 
 
-def _conflict(exc: IntegrityError) -> HTTPException:
+def _conflict(exc: DBAPIError) -> HTTPException:
     sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(exc.orig, "pgcode", None)
     if sqlstate not in {"23503", "23505", "23514"}:
         raise exc
@@ -182,7 +182,7 @@ def post_unit(
             request_id=request.state.request_id,
             values=body.model_dump(),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -205,7 +205,7 @@ def patch_unit(
             unit=_unit_or_404(db, actor, unit_id),
             changes=body.model_dump(exclude_unset=True),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -225,7 +225,7 @@ def post_move(
             unit=_unit_or_404(db, actor, unit_id),
             parent_id=body.parent_id,
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -244,7 +244,7 @@ def post_archive(
             request_id=request.state.request_id,
             unit=_unit_or_404(db, actor, unit_id),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -263,7 +263,7 @@ def post_restore(
             request_id=request.state.request_id,
             unit=_unit_or_404(db, actor, unit_id),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -322,7 +322,7 @@ def post_assignment(
                 values=body.model_dump(),
             ),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc
 
@@ -351,6 +351,6 @@ def patch_assignment(
                 changes=body.model_dump(exclude_unset=True),
             ),
         )
-    except IntegrityError as exc:
+    except DBAPIError as exc:
         db.rollback()
         raise _conflict(exc) from exc

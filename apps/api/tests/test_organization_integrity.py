@@ -694,15 +694,17 @@ def test_organization_service_audit_atomicity_and_request_id(
 def test_organization_audit_contract_rejects_extra_fields() -> None:
     from pmc_api.audit_service import AuditPayloadError, record_organization_unit_created
 
-    with Session(engine("PMC_TEST_ADMIN_DATABASE_URL")) as session:
-        with pytest.raises(AuditPayloadError):
-            record_organization_unit_created(
-                session,
-                tenant_id=TENANT_A,
-                actor_user_id=OWNER,
-                actor_display_name="Owner",
-                actor_role="owner",
-                resource_id=ROOT,
-                request_id=uuid4(),
-                new_values={"unit_id": str(ROOT), "internal_note": "reject"},
-            )
+    with (
+        Session(engine("PMC_TEST_ADMIN_DATABASE_URL")) as session,
+        pytest.raises(AuditPayloadError),
+    ):
+        record_organization_unit_created(
+            session,
+            tenant_id=TENANT_A,
+            actor_user_id=OWNER,
+            actor_display_name="Owner",
+            actor_role="owner",
+            resource_id=ROOT,
+            request_id=uuid4(),
+            new_values={"unit_id": str(ROOT), "internal_note": "reject"},
+        )

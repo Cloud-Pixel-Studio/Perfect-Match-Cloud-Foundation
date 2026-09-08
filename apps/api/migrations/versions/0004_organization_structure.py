@@ -67,6 +67,79 @@ def upgrade() -> None:
             WHERE status = 'active';
         CREATE INDEX organization_assignments_unit_idx ON organization_unit_assignments (tenant_id, unit_id);
 
+        CREATE TABLE organization_member_directory_projection (
+            tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+            user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            display_name varchar(160) NOT NULL,
+            role varchar(20) NOT NULL CHECK (role IN ('owner', 'admin', 'member', 'auditor')),
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'revoked')),
+            PRIMARY KEY (tenant_id, user_id)
+        );
+        REVOKE ALL ON organization_member_directory_projection FROM PUBLIC, pmcloud_app;
+
+        CREATE TABLE organization_user_directory_projection (
+            user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            display_name varchar(160) NOT NULL,
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'disabled'))
+        );
+        REVOKE ALL ON organization_user_directory_projection FROM PUBLIC, pmcloud_app;
+
+        ALTER TABLE users NO FORCE ROW LEVEL SECURITY;
+        INSERT INTO organization_user_directory_projection (user_id, display_name, status)
+            SELECT id, display_name, status FROM users;
+        ALTER TABLE users FORCE ROW LEVEL SECURITY;
+        ALTER TABLE memberships NO FORCE ROW LEVEL SECURITY;
+        INSERT INTO organization_member_directory_projection (tenant_id, user_id, display_name, role, status)
+            SELECT m.tenant_id, m.user_id, u.display_name, m.role, m.status
+            FROM memberships AS m JOIN organization_user_directory_projection AS u ON u.user_id = m.user_id;
+        ALTER TABLE memberships FORCE ROW LEVEL SECURITY;
+
+        CREATE FUNCTION sync_organization_member_directory_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_member_directory_projection
+                WHERE tenant_id = OLD.tenant_id AND user_id = OLD.user_id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_member_directory_projection
+                (tenant_id, user_id, display_name, role, status)
+            SELECT NEW.tenant_id, NEW.user_id, u.display_name, NEW.role, NEW.status
+            FROM public.organization_user_directory_projection AS u WHERE u.user_id = NEW.user_id
+            ON CONFLICT (tenant_id, user_id) DO UPDATE SET
+                display_name = EXCLUDED.display_name,
+                role = EXCLUDED.role,
+                status = EXCLUDED.status;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER memberships_sync_organization_directory
+            AFTER INSERT OR UPDATE OR DELETE ON memberships
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_member_directory_projection();
+
+        CREATE FUNCTION sync_organization_user_directory_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_user_directory_projection WHERE user_id = OLD.id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_user_directory_projection (user_id, display_name, status)
+                VALUES (NEW.id, NEW.display_name, NEW.status)
+            ON CONFLICT (user_id) DO UPDATE SET
+                display_name = EXCLUDED.display_name, status = EXCLUDED.status;
+            UPDATE public.organization_member_directory_projection
+            SET display_name = NEW.display_name, status = NEW.status
+            WHERE user_id = NEW.id;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER users_sync_organization_directory
+            AFTER INSERT OR UPDATE OF display_name, status OR DELETE ON users
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_user_directory_projection();
+        REVOKE ALL ON FUNCTION sync_organization_member_directory_projection() FROM PUBLIC, pmcloud_app;
+        REVOKE ALL ON FUNCTION sync_organization_user_directory_projection() FROM PUBLIC, pmcloud_app;
+
         CREATE FUNCTION validate_organization_unit() RETURNS trigger
         LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog AS $$
         BEGIN
@@ -101,8 +174,9 @@ def upgrade() -> None:
         LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
         BEGIN
             IF NOT EXISTS (
-                SELECT 1 FROM public.memberships m WHERE m.tenant_id = NEW.tenant_id
-                  AND m.user_id = NEW.user_id AND m.status = 'active'
+                SELECT 1 FROM public.organization_member_directory_projection p
+                WHERE p.tenant_id = NEW.tenant_id
+                  AND p.user_id = NEW.user_id AND p.status = 'active'
             ) THEN
                 RAISE EXCEPTION 'organization assignment requires active tenant membership'
                     USING ERRCODE = '23514';
@@ -142,16 +216,14 @@ def upgrade() -> None:
         CREATE FUNCTION organization_member_directory()
         RETURNS TABLE (user_id uuid, display_name varchar, role varchar)
         LANGUAGE sql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
-            SELECT m.user_id, u.display_name, m.role
-            FROM public.memberships AS m
-            JOIN public.users AS u ON u.id = m.user_id
-            WHERE m.tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid
-              AND m.status = 'active'
-              AND u.status = 'active'
+            SELECT p.user_id, p.display_name, p.role
+            FROM public.organization_member_directory_projection AS p
+            WHERE p.tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid
+              AND p.status = 'active'
               AND EXISTS (
                   SELECT 1
                   FROM public.memberships AS actor_membership
-                  WHERE actor_membership.tenant_id = m.tenant_id
+                  WHERE actor_membership.tenant_id = p.tenant_id
                     AND actor_membership.user_id =
                         NULLIF(current_setting('app.user_id', true), '')::uuid
                     AND actor_membership.status = 'active'
@@ -230,6 +302,12 @@ def downgrade() -> None:
         END;
         $$;
         DROP FUNCTION IF EXISTS organization_member_directory();
+        DROP TRIGGER IF EXISTS memberships_sync_organization_directory ON memberships;
+        DROP TRIGGER IF EXISTS users_sync_organization_directory ON users;
+        DROP FUNCTION IF EXISTS sync_organization_member_directory_projection();
+        DROP FUNCTION IF EXISTS sync_organization_user_directory_projection();
+        DROP TABLE IF EXISTS organization_member_directory_projection;
+        DROP TABLE IF EXISTS organization_user_directory_projection;
         DROP TRIGGER IF EXISTS organization_assignments_validate ON organization_unit_assignments;
         DROP TRIGGER IF EXISTS organization_units_archive_guard ON organization_units;
         DROP TRIGGER IF EXISTS organization_units_validate ON organization_units;
