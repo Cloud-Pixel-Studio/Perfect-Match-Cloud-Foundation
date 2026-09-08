@@ -42,8 +42,7 @@ def context(connection: Connection, user: UUID, tenant: UUID | None) -> None:
 @pytest.fixture(scope="module", autouse=True)
 def fixtures() -> None:
     now = datetime.now(UTC)
-    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
-        context(connection, OWNER, TENANT_A)
+    with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text("TRUNCATE organization_unit_assignments, organization_units CASCADE")
         )
