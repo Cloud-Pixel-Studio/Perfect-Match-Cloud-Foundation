@@ -149,7 +149,8 @@ def test_hierarchy_self_parent_cycle_cross_tenant_and_archived_parent() -> None:
             with pytest.raises(DBAPIError):
                 connection.execute(text(sql), params)  # type: ignore[call-overload]
             transaction.rollback()
-    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+        transaction = connection.begin()
         context(connection, OWNER, TENANT_A)
         connection.execute(
             text("UPDATE organization_units SET parent_id=NULL WHERE id=:id"), {"id": CHILD}
@@ -170,6 +171,7 @@ def test_hierarchy_self_parent_cycle_cross_tenant_and_archived_parent() -> None:
                     "now": datetime.now(UTC),
                 },
             )
+        transaction.rollback()
 
 
 def test_case_insensitive_code_and_archive_dependencies() -> None:
