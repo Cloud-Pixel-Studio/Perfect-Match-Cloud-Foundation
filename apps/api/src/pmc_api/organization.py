@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.database import get_db, set_request_context
-from pmc_api.models import OrganizationUnit, OrganizationUnitAssignment, User
+from pmc_api.models import Membership, OrganizationUnit, OrganizationUnitAssignment, User
 from pmc_api.organization_service import (
     OrganizationActor,
     archive_unit,
@@ -83,6 +83,12 @@ class AssignmentResponse(BaseModel):
     status: str
     user_display_name: str | None = None
     model_config = {"from_attributes": True}
+
+
+class MemberResponse(BaseModel):
+    id: UUID
+    display_name: str
+    role: str
 
 
 def _actor(db: Session, authenticated: Authenticated) -> OrganizationActor:
@@ -261,6 +267,32 @@ def get_assignments(
         for row in list_assignments(
             db, _actor(db, authenticated), limit=limit, offset=offset, unit_id=unit_id
         )
+    ]
+
+
+@router.get("/members", response_model=list[MemberResponse])
+def get_members(
+    db: DBSession,
+    authenticated: Authenticated,
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0, le=10000)] = 0,
+) -> list[dict[str, object]]:
+    actor = _actor(db, authenticated)
+    rows = db.execute(
+        select(User, Membership.role)
+        .join(Membership, Membership.user_id == User.id)
+        .where(
+            Membership.tenant_id == actor.tenant_id,
+            Membership.status == "active",
+            User.status == "active",
+        )
+        .order_by(User.display_name, User.id)
+        .limit(limit)
+        .offset(offset)
+    )
+    return [
+        {"id": user.id, "display_name": user.display_name, "role": role}
+        for user, role in rows
     ]
 
 

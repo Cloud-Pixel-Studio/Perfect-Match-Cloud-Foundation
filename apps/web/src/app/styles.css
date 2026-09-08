@@ -93,5 +93,12 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .assignment-list li { display: flex; align-items: center; gap: var(--pm-space-2); padding: var(--pm-space-3); background: var(--pm-surface-muted); border-radius: var(--pm-radius-md); }
 .assignment-list li > span { min-width: 0; }
 .role-note { margin: var(--pm-space-5) 0 0; color: var(--pm-text-muted); font-size: var(--pm-text-xs); line-height: 1.5; }
+.management-controls, .assignment-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pm-space-3); margin: var(--pm-space-4) 0; }
+.management-controls label, .assignment-controls label { display: grid; gap: var(--pm-space-2); color: var(--pm-text-muted); font-size: var(--pm-text-xs); font-weight: var(--pm-weight-semibold); }
+.management-controls input, .management-controls select, .assignment-controls select { min-width: 0; height: 38px; padding: 0 var(--pm-space-2); color: var(--pm-text); background: var(--pm-bg); border: 1px solid var(--pm-border-strong); border-radius: var(--pm-radius-md); }
+.management-controls button, .assignment-controls button { align-self: end; }
+.secondary-action { min-height: 40px; padding-inline: var(--pm-space-3); color: var(--pm-text); background: var(--pm-surface-muted); border: 1px solid var(--pm-border-strong); border-radius: var(--pm-radius-md); cursor: pointer; }
+.secondary-action:disabled, .primary-action:disabled { cursor: not-allowed; opacity: .6; }
 @media (max-width: 760px) { .organization-grid { grid-template-columns: 1fr; } .workspace-heading { align-items: stretch; flex-direction: column; } .compact-action { align-self: flex-start; } }
+@media (max-width: 520px) { .management-controls, .assignment-controls { grid-template-columns: 1fr; } }
 @media (max-width: 640px) { .identity-brand { min-height: 64px; } .identity-main { padding: 68px var(--pm-space-4) var(--pm-space-8); } .login-panel { padding: var(--pm-space-6); } .authenticated-toolbar { align-items: flex-start; flex-direction: column-reverse; } .user-menu { width: 100%; } .user-menu > span:nth-child(2) { flex: 1; } .organization-heading { align-items: flex-start; } .identity-footer span:first-child { display: none; } h1 { font-size: 1.5rem; } }
