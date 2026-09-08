@@ -68,7 +68,7 @@ def upgrade() -> None:
         CREATE INDEX organization_assignments_unit_idx ON organization_unit_assignments (tenant_id, unit_id);
 
         CREATE FUNCTION validate_organization_unit() RETURNS trigger
-        LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog AS $$
         BEGIN
             IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
                 RAISE EXCEPTION 'organization unit cannot parent itself';
@@ -95,9 +95,16 @@ def upgrade() -> None:
         CREATE TRIGGER organization_units_validate BEFORE INSERT OR UPDATE ON organization_units
             FOR EACH ROW EXECUTE FUNCTION validate_organization_unit();
 
+        CREATE POLICY memberships_organization_assignment_validation ON memberships FOR SELECT USING (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid
+            AND status = 'active'
+            AND user_id = NULLIF(current_setting('app.organization_target_user', true), '')::uuid
+        );
+
         CREATE FUNCTION validate_organization_assignment() RETURNS trigger
         LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
         BEGIN
+            PERFORM set_config('app.organization_target_user', NEW.user_id::text, true);
             IF NOT EXISTS (
                 SELECT 1 FROM memberships m WHERE m.tenant_id = NEW.tenant_id
                   AND m.user_id = NEW.user_id AND m.status = 'active'

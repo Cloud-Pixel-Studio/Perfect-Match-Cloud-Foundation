@@ -126,31 +126,29 @@ def test_all_active_roles_read_and_tenant_isolation() -> None:
 
 
 def test_hierarchy_self_parent_cycle_cross_tenant_and_archived_parent() -> None:
-    with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
-        transaction = connection.begin()
-        context(connection, OWNER, TENANT_A)
-        for sql, params in [
-            ("UPDATE organization_units SET parent_id = id WHERE id = :id", {"id": ROOT}),
-            (
-                "UPDATE organization_units SET parent_id = :parent WHERE id = :id",
-                {"parent": CHILD, "id": ROOT},
-            ),
-            (
-                "INSERT INTO organization_units (id,tenant_id,parent_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,:parent,'team','BAD','Bad','active',:now,:now)",
-                {
-                    "id": uuid4(),
-                    "tenant": TENANT_A,
-                    "parent": UUID("50000000-0000-4000-8000-000000000099"),
-                    "now": datetime.now(UTC),
-                },
-            ),
-        ]:
+    attempts = [
+        ("UPDATE organization_units SET parent_id = id WHERE id = :id", {"id": ROOT}),
+        (
+            "UPDATE organization_units SET parent_id = :parent WHERE id = :id",
+            {"parent": CHILD, "id": ROOT},
+        ),
+        (
+            "INSERT INTO organization_units (id,tenant_id,parent_id,unit_type,code,name,status,created_at,updated_at) VALUES (:id,:tenant,:parent,'team','BAD','Bad','active',:now,:now)",
+            {
+                "id": uuid4(),
+                "tenant": TENANT_A,
+                "parent": UUID("50000000-0000-4000-8000-000000000099"),
+                "now": datetime.now(UTC),
+            },
+        ),
+    ]
+    for sql, params in attempts:
+        with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+            transaction = connection.begin()
+            context(connection, OWNER, TENANT_A)
             with pytest.raises(DBAPIError):
                 connection.execute(text(sql), params)  # type: ignore[call-overload]
             transaction.rollback()
-            transaction = connection.begin()
-            context(connection, OWNER, TENANT_A)
-        transaction.rollback()
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text("UPDATE organization_units SET parent_id=NULL WHERE id=:id"), {"id": CHILD}
