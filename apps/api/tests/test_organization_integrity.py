@@ -158,8 +158,16 @@ def test_hierarchy_self_parent_cycle_cross_tenant_and_archived_parent() -> None:
         )
         with pytest.raises(DBAPIError):
             connection.execute(
-                text("UPDATE organization_units SET parent_id=:parent WHERE id=:id"),
-                {"parent": CHILD, "id": ROOT},
+                text(
+                    "INSERT INTO organization_units (id,tenant_id,parent_id,unit_type,code,name,status,created_at,updated_at) "
+                    "VALUES (:id,:tenant,:parent,'team','ARCHIVED-PARENT','Blocked','active',:now,:now)"
+                ),
+                {
+                    "id": uuid4(),
+                    "tenant": TENANT_A,
+                    "parent": CHILD,
+                    "now": datetime.now(UTC),
+                },
             )
 
 
