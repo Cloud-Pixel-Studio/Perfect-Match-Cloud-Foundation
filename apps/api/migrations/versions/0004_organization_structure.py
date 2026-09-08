@@ -224,7 +224,7 @@ def upgrade() -> None:
                     USING ERRCODE = '23514';
             END IF;
             IF NOT EXISTS (
-                SELECT 1 FROM public.organization_units u WHERE u.id = NEW.unit_id
+                SELECT 1 FROM public.organization_unit_integrity_projection u WHERE u.id = NEW.unit_id
                   AND u.tenant_id = NEW.tenant_id AND u.status = 'active'
             ) THEN
                 RAISE EXCEPTION 'organization assignment requires active unit'
