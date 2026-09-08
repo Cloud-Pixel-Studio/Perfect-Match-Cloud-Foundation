@@ -12,6 +12,7 @@ from pmc_api.audit import router as audit_router
 from pmc_api.auth import router as auth_router
 from pmc_api.config import get_settings
 from pmc_api.database import database_is_ready
+from pmc_api.organization import router as organization_router
 from pmc_api.storage import object_storage_is_ready
 from pmc_api.tenant import router as tenant_router
 
@@ -56,6 +57,7 @@ async def request_correlation(
 app.include_router(auth_router)
 app.include_router(tenant_router)
 app.include_router(audit_router)
+app.include_router(organization_router)
 
 
 @app.get("/health", response_model=HealthResponse)

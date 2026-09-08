@@ -132,7 +132,7 @@ services:
     build:
       context: ./apps/api
     environment:
-      PMC_APP_VERSION: ${APP_VERSION:-0.3.0}
+      PMC_APP_VERSION: ${APP_VERSION:-0.4.0}
       PMC_COOKIE_SECURE: ${PMC_COOKIE_SECURE:-false}
       PMC_DATABASE_URL: postgresql+pg8000://${POSTGRES_RUNTIME_USER:-pmcloud_app}:${POSTGRES_RUNTIME_PASSWORD}@postgres:5432/${POSTGRES_DB}
       PMC_ENVIRONMENT: ${PMC_ENVIRONMENT:-development}

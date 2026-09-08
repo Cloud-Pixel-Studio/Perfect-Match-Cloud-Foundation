@@ -4,6 +4,7 @@ import { Building2, ChevronDown, ClipboardList, LogIn, LogOut, ShieldCheck, User
 import { useCallback, useEffect, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
+import { OrganizationWorkspace } from "./organization-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 
 type Identity = {
@@ -165,6 +166,7 @@ export function IdentityShell() {
         <div className="audit-heading"><div><p className="eyebrow">Compliance history</p><h2 id="audit-heading">Audit Trail</h2></div><button className="icon-button" aria-label="Close Audit Trail" title="Close Audit Trail" type="button" onClick={() => setShowAudit(false)}>x</button></div>
         {auditError ? <p className="denied-state">{auditError}</p> : events.length === 0 ? <p className="empty-state">No audit events for this organization.</p> : <div className="audit-list">{events.map((event) => <details className="audit-event" key={event.id}><summary><span><strong>{event.action}</strong><small>{event.actor_display_name} · {event.actor_role} · {event.resource_type}</small></span><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString()}</time></summary><dl><dt>Request ID</dt><dd>{event.request_id}</dd><dt>Changed fields</dt><dd>{event.changed_fields.join(", ") || "None"}</dd><dt>Before</dt><dd>{event.old_values ? JSON.stringify(event.old_values) : "None"}</dd><dt>After</dt><dd>{event.new_values ? JSON.stringify(event.new_values) : "None"}</dd></dl></details>)}</div>}
       </section>}
+      {current && <OrganizationWorkspace role={current.role} />}
     </main>
   );
 }
