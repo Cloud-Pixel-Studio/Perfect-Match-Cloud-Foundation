@@ -130,3 +130,39 @@ class AuditEvent(Base):
     event_metadata: Mapped[dict[str, object]] = mapped_column(
         "metadata", JSON, nullable=False, default=dict
     )
+
+
+class OrganizationUnit(TimestampMixin, Base):
+    __tablename__ = "organization_units"
+    __table_args__ = (
+        UniqueConstraint("id", "tenant_id"),
+        CheckConstraint("unit_type IN ('site', 'department', 'team')"),
+        CheckConstraint("status IN ('active', 'archived')"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    parent_id: Mapped[UUID | None] = mapped_column()
+    unit_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(500))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class OrganizationUnitAssignment(TimestampMixin, Base):
+    __tablename__ = "organization_unit_assignments"
+    __table_args__ = (
+        CheckConstraint("assignment_role IN ('member', 'lead')"),
+        CheckConstraint("status IN ('active', 'inactive')"),
+    )
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    assignment_role: Mapped[str] = mapped_column(String(20), nullable=False)
+    is_primary: Mapped[bool] = mapped_column(nullable=False, default=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

@@ -1,0 +1,378 @@
+# ruff: noqa: E501
+
+"""Add tenant-scoped organization structure and assignments.
+
+Revision ID: 0004_organization_structure
+Revises: 0003_audit_engine
+"""
+
+from collections.abc import Sequence
+
+from alembic import op
+
+revision: str = "0004_organization_structure"
+down_revision: str | None = "0003_audit_engine"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
+
+
+def upgrade() -> None:
+    op.execute(
+        r"""
+        ALTER TABLE audit_events DROP CONSTRAINT IF EXISTS audit_events_action_check;
+        ALTER TABLE audit_events ADD CONSTRAINT audit_events_action_check CHECK (action IN (
+            'auth.tenant_selected', 'organization.unit_created', 'organization.unit_updated',
+            'organization.unit_moved', 'organization.unit_archived', 'organization.unit_restored',
+            'organization.assignment_created', 'organization.assignment_updated',
+            'organization.assignment_deactivated', 'organization.assignment_reactivated'
+        ));
+
+        DROP POLICY IF EXISTS memberships_self ON memberships;
+        CREATE POLICY memberships_self ON memberships FOR SELECT USING (
+            user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+            AND status = 'active'
+        );
+
+        CREATE TABLE organization_units (
+            id uuid PRIMARY KEY,
+            tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
+            parent_id uuid,
+            unit_type varchar(20) NOT NULL CHECK (unit_type IN ('site', 'department', 'team')),
+            code varchar(40) NOT NULL CHECK (length(btrim(code)) > 0),
+            name varchar(160) NOT NULL CHECK (length(btrim(name)) > 0),
+            description varchar(500),
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'archived')),
+            created_at timestamptz NOT NULL,
+            updated_at timestamptz NOT NULL,
+            UNIQUE (id, tenant_id),
+            FOREIGN KEY (parent_id, tenant_id) REFERENCES organization_units(id, tenant_id)
+        );
+        CREATE UNIQUE INDEX organization_units_tenant_code_ci_idx
+            ON organization_units (tenant_id, lower(code));
+        CREATE INDEX organization_units_parent_idx ON organization_units (tenant_id, parent_id);
+        CREATE INDEX organization_units_tenant_status_idx ON organization_units (tenant_id, status);
+
+        CREATE TABLE organization_unit_integrity_projection (
+            id uuid PRIMARY KEY,
+            tenant_id uuid NOT NULL,
+            parent_id uuid,
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'archived'))
+        );
+        REVOKE ALL ON organization_unit_integrity_projection FROM PUBLIC, pmcloud_app;
+
+        CREATE TABLE organization_unit_assignments (
+            id uuid PRIMARY KEY,
+            tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
+            unit_id uuid NOT NULL,
+            user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+            assignment_role varchar(20) NOT NULL CHECK (assignment_role IN ('member', 'lead')),
+            is_primary boolean NOT NULL DEFAULT false,
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'inactive')),
+            created_at timestamptz NOT NULL,
+            updated_at timestamptz NOT NULL,
+            UNIQUE (id, tenant_id),
+            FOREIGN KEY (unit_id, tenant_id) REFERENCES organization_units(id, tenant_id)
+        );
+        CREATE UNIQUE INDEX organization_assignments_primary_ci_idx
+            ON organization_unit_assignments (tenant_id, user_id)
+            WHERE status = 'active' AND is_primary;
+        CREATE UNIQUE INDEX organization_assignments_active_user_unit_idx
+            ON organization_unit_assignments (tenant_id, unit_id, user_id)
+            WHERE status = 'active';
+        CREATE INDEX organization_assignments_unit_idx ON organization_unit_assignments (tenant_id, unit_id);
+
+        CREATE TABLE organization_member_directory_projection (
+            tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+            user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            display_name varchar(160) NOT NULL,
+            role varchar(20) NOT NULL CHECK (role IN ('owner', 'admin', 'member', 'auditor')),
+            membership_status varchar(20) NOT NULL CHECK (membership_status IN ('active', 'revoked')),
+            user_status varchar(20) NOT NULL CHECK (user_status IN ('active', 'disabled')),
+            PRIMARY KEY (tenant_id, user_id)
+        );
+        REVOKE ALL ON organization_member_directory_projection FROM PUBLIC, pmcloud_app;
+
+        CREATE TABLE organization_user_directory_projection (
+            user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            display_name varchar(160) NOT NULL,
+            status varchar(20) NOT NULL CHECK (status IN ('active', 'disabled'))
+        );
+        REVOKE ALL ON organization_user_directory_projection FROM PUBLIC, pmcloud_app;
+
+        ALTER TABLE users NO FORCE ROW LEVEL SECURITY;
+        INSERT INTO organization_user_directory_projection (user_id, display_name, status)
+            SELECT id, display_name, status FROM users;
+        ALTER TABLE users FORCE ROW LEVEL SECURITY;
+        ALTER TABLE memberships NO FORCE ROW LEVEL SECURITY;
+        INSERT INTO organization_member_directory_projection
+            (tenant_id, user_id, display_name, role, membership_status, user_status)
+            SELECT m.tenant_id, m.user_id, u.display_name, m.role, m.status, u.status
+            FROM memberships AS m JOIN organization_user_directory_projection AS u ON u.user_id = m.user_id;
+        ALTER TABLE memberships FORCE ROW LEVEL SECURITY;
+
+        CREATE FUNCTION sync_organization_member_directory_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_member_directory_projection
+                WHERE tenant_id = OLD.tenant_id AND user_id = OLD.user_id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_member_directory_projection
+                (tenant_id, user_id, display_name, role, membership_status, user_status)
+            SELECT NEW.tenant_id, NEW.user_id, u.display_name, NEW.role, NEW.status, u.status
+            FROM public.organization_user_directory_projection AS u WHERE u.user_id = NEW.user_id
+            ON CONFLICT (tenant_id, user_id) DO UPDATE SET
+                display_name = EXCLUDED.display_name,
+                role = EXCLUDED.role,
+                membership_status = EXCLUDED.membership_status,
+                user_status = EXCLUDED.user_status;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER memberships_sync_organization_directory
+            AFTER INSERT OR UPDATE OR DELETE ON memberships
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_member_directory_projection();
+
+        CREATE FUNCTION sync_organization_user_directory_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_user_directory_projection WHERE user_id = OLD.id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_user_directory_projection (user_id, display_name, status)
+                VALUES (NEW.id, NEW.display_name, NEW.status)
+            ON CONFLICT (user_id) DO UPDATE SET
+                display_name = EXCLUDED.display_name, status = EXCLUDED.status;
+            UPDATE public.organization_member_directory_projection
+            SET display_name = NEW.display_name, user_status = NEW.status
+            WHERE user_id = NEW.id;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER users_sync_organization_directory
+            AFTER INSERT OR UPDATE OF display_name, status OR DELETE ON users
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_user_directory_projection();
+        REVOKE ALL ON FUNCTION sync_organization_member_directory_projection() FROM PUBLIC, pmcloud_app;
+        REVOKE ALL ON FUNCTION sync_organization_user_directory_projection() FROM PUBLIC, pmcloud_app;
+
+        CREATE FUNCTION validate_organization_unit() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog AS $$
+        BEGIN
+            IF NEW.parent_id IS NOT NULL AND NEW.parent_id = NEW.id THEN
+                RAISE EXCEPTION 'organization unit cannot parent itself' USING ERRCODE = '23514';
+            END IF;
+            IF NEW.parent_id IS NOT NULL AND NOT EXISTS (
+                SELECT 1 FROM organization_unit_integrity_projection p
+                WHERE p.id = NEW.parent_id AND p.tenant_id = NEW.tenant_id
+            ) THEN
+                RAISE EXCEPTION 'organization unit parent must belong to the same tenant'
+                    USING ERRCODE = '23514';
+            END IF;
+            IF NEW.parent_id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM organization_unit_integrity_projection p
+                WHERE p.id = NEW.parent_id AND p.status = 'archived' AND NEW.status = 'active'
+            ) THEN
+                RAISE EXCEPTION 'active organization unit cannot use archived parent'
+                    USING ERRCODE = '23514';
+            END IF;
+            IF EXISTS (
+                WITH RECURSIVE parents(id) AS (
+                    SELECT NEW.parent_id
+                    UNION ALL
+                    SELECT u.parent_id FROM organization_unit_integrity_projection u JOIN parents p ON u.id = p.id
+                    WHERE u.parent_id IS NOT NULL
+                ) SELECT 1 FROM parents WHERE id = NEW.id
+            ) THEN
+                RAISE EXCEPTION 'organization unit hierarchy cycle is forbidden'
+                    USING ERRCODE = '23514';
+            END IF;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER organization_units_validate BEFORE INSERT OR UPDATE ON organization_units
+            FOR EACH ROW EXECUTE FUNCTION validate_organization_unit();
+
+        CREATE FUNCTION sync_organization_unit_integrity_projection() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog AS $$
+        BEGIN
+            IF TG_OP = 'DELETE' THEN
+                DELETE FROM public.organization_unit_integrity_projection WHERE id = OLD.id;
+                RETURN OLD;
+            END IF;
+            INSERT INTO public.organization_unit_integrity_projection (id, tenant_id, parent_id, status)
+            VALUES (NEW.id, NEW.tenant_id, NEW.parent_id, NEW.status)
+            ON CONFLICT (id) DO UPDATE SET
+                tenant_id = EXCLUDED.tenant_id,
+                parent_id = EXCLUDED.parent_id,
+                status = EXCLUDED.status;
+            RETURN NEW;
+        END;
+        $$;
+        REVOKE ALL ON FUNCTION sync_organization_unit_integrity_projection() FROM PUBLIC, pmcloud_app;
+        CREATE TRIGGER organization_units_sync_integrity_projection
+            AFTER INSERT OR UPDATE OR DELETE ON organization_units
+            FOR EACH ROW EXECUTE FUNCTION sync_organization_unit_integrity_projection();
+
+        CREATE FUNCTION validate_organization_assignment() RETURNS trigger
+        LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM public.organization_member_directory_projection p
+                WHERE p.tenant_id = NEW.tenant_id
+                  AND p.user_id = NEW.user_id
+                  AND p.membership_status = 'active'
+                  AND p.user_status = 'active'
+            ) THEN
+                RAISE EXCEPTION 'organization assignment requires active tenant membership'
+                    USING ERRCODE = '23514';
+            END IF;
+            IF NOT EXISTS (
+                SELECT 1 FROM public.organization_unit_integrity_projection u WHERE u.id = NEW.unit_id
+                  AND u.tenant_id = NEW.tenant_id AND u.status = 'active'
+            ) THEN
+                RAISE EXCEPTION 'organization assignment requires active unit'
+                    USING ERRCODE = '23514';
+            END IF;
+            RETURN NEW;
+        END;
+        $$;
+        REVOKE ALL ON FUNCTION validate_organization_assignment() FROM PUBLIC, pmcloud_app;
+        CREATE TRIGGER organization_assignments_validate
+            BEFORE INSERT OR UPDATE ON organization_unit_assignments
+            FOR EACH ROW WHEN (NEW.status = 'active') EXECUTE FUNCTION validate_organization_assignment();
+
+        CREATE FUNCTION prevent_organization_archive() RETURNS trigger
+        LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
+        BEGIN
+            IF NEW.status = 'archived' AND OLD.status <> 'archived' AND (
+                EXISTS (SELECT 1 FROM organization_units WHERE parent_id = NEW.id AND status = 'active')
+                OR EXISTS (SELECT 1 FROM organization_unit_assignments
+                           WHERE unit_id = NEW.id AND status = 'active')
+            ) THEN
+                RAISE EXCEPTION 'organization unit has active dependencies'
+                    USING ERRCODE = '23514';
+            END IF;
+            RETURN NEW;
+        END;
+        $$;
+        CREATE TRIGGER organization_units_archive_guard BEFORE UPDATE ON organization_units
+            FOR EACH ROW EXECUTE FUNCTION prevent_organization_archive();
+
+        CREATE FUNCTION organization_member_directory()
+        RETURNS TABLE (user_id uuid, display_name varchar, role varchar)
+        LANGUAGE sql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+            SELECT p.user_id, p.display_name, p.role
+            FROM public.organization_member_directory_projection AS p
+            WHERE p.tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid
+              AND p.membership_status = 'active'
+              AND p.user_status = 'active'
+              AND EXISTS (
+                  SELECT 1
+                  FROM public.memberships AS actor_membership
+                  WHERE actor_membership.tenant_id = p.tenant_id
+                    AND actor_membership.user_id =
+                        NULLIF(current_setting('app.user_id', true), '')::uuid
+                    AND actor_membership.status = 'active'
+              )
+            ORDER BY lower(p.display_name), p.user_id;
+        $$;
+        REVOKE ALL ON FUNCTION organization_member_directory() FROM PUBLIC;
+        GRANT EXECUTE ON FUNCTION organization_member_directory() TO pmcloud_app;
+
+        REVOKE ALL ON organization_units, organization_unit_assignments FROM PUBLIC;
+        GRANT SELECT, INSERT, UPDATE ON organization_units, organization_unit_assignments TO pmcloud_app;
+        REVOKE DELETE, TRUNCATE ON organization_units, organization_unit_assignments FROM pmcloud_app;
+        ALTER TABLE organization_units ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE organization_units FORCE ROW LEVEL SECURITY;
+        ALTER TABLE organization_unit_assignments ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE organization_unit_assignments FORCE ROW LEVEL SECURITY;
+        CREATE POLICY organization_units_read ON organization_units FOR SELECT USING (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_units.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin', 'auditor', 'member')
+            )
+        );
+        CREATE POLICY organization_units_write ON organization_units FOR INSERT WITH CHECK (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_units.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin')
+            )
+        );
+        CREATE POLICY organization_units_update ON organization_units FOR UPDATE USING (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_units.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin')
+            )
+        ) WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+        CREATE POLICY organization_assignments_read ON organization_unit_assignments FOR SELECT USING (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_unit_assignments.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin', 'auditor', 'member')
+            )
+        );
+        CREATE POLICY organization_assignments_write ON organization_unit_assignments FOR INSERT WITH CHECK (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_unit_assignments.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin')
+            )
+        );
+        CREATE POLICY organization_assignments_update ON organization_unit_assignments FOR UPDATE USING (
+            tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid AND EXISTS (
+                SELECT 1 FROM memberships m WHERE m.tenant_id = organization_unit_assignments.tenant_id
+                AND m.user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+                AND m.status = 'active' AND m.role IN ('owner', 'admin')
+            )
+        ) WITH CHECK (tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid);
+        """
+    )
+
+
+def downgrade() -> None:
+    op.execute(
+        r"""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM audit_events
+                WHERE action LIKE 'organization.%'
+            ) THEN
+                RAISE EXCEPTION
+                    'cannot downgrade 0004: organization audit history would violate 0003'
+                    USING ERRCODE = '55000';
+            END IF;
+        END;
+        $$;
+        DROP FUNCTION IF EXISTS organization_member_directory();
+        DROP TRIGGER IF EXISTS memberships_sync_organization_directory ON memberships;
+        DROP TRIGGER IF EXISTS users_sync_organization_directory ON users;
+        DROP FUNCTION IF EXISTS sync_organization_member_directory_projection();
+        DROP FUNCTION IF EXISTS sync_organization_user_directory_projection();
+        DROP TABLE IF EXISTS organization_member_directory_projection;
+        DROP TABLE IF EXISTS organization_user_directory_projection;
+        DROP TRIGGER IF EXISTS organization_assignments_validate ON organization_unit_assignments;
+        DROP TRIGGER IF EXISTS organization_units_archive_guard ON organization_units;
+        DROP TRIGGER IF EXISTS organization_units_validate ON organization_units;
+        DROP TRIGGER IF EXISTS organization_units_sync_integrity_projection ON organization_units;
+        DROP FUNCTION IF EXISTS validate_organization_assignment();
+        DROP FUNCTION IF EXISTS prevent_organization_archive();
+        DROP FUNCTION IF EXISTS sync_organization_unit_integrity_projection();
+        DROP FUNCTION IF EXISTS validate_organization_unit();
+        DROP TABLE IF EXISTS organization_unit_assignments;
+        DROP TABLE IF EXISTS organization_unit_integrity_projection;
+        DROP TABLE IF EXISTS organization_units;
+        DROP POLICY IF EXISTS memberships_self ON memberships;
+        CREATE POLICY memberships_self ON memberships FOR SELECT USING (
+            user_id = NULLIF(current_setting('app.user_id', true), '')::uuid
+        );
+        ALTER TABLE audit_events DROP CONSTRAINT IF EXISTS audit_events_action_check;
+        ALTER TABLE audit_events ADD CONSTRAINT audit_events_action_check
+            CHECK (action IN ('auth.tenant_selected'));
+        """
+    )
