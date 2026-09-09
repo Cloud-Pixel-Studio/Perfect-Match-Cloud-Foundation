@@ -86,7 +86,8 @@ def upgrade() -> None:
             user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             display_name varchar(160) NOT NULL,
             role varchar(20) NOT NULL CHECK (role IN ('owner', 'admin', 'member', 'auditor')),
-            status varchar(20) NOT NULL CHECK (status IN ('active', 'revoked')),
+            membership_status varchar(20) NOT NULL CHECK (membership_status IN ('active', 'revoked')),
+            user_status varchar(20) NOT NULL CHECK (user_status IN ('active', 'disabled')),
             PRIMARY KEY (tenant_id, user_id)
         );
         REVOKE ALL ON organization_member_directory_projection FROM PUBLIC, pmcloud_app;
@@ -103,8 +104,9 @@ def upgrade() -> None:
             SELECT id, display_name, status FROM users;
         ALTER TABLE users FORCE ROW LEVEL SECURITY;
         ALTER TABLE memberships NO FORCE ROW LEVEL SECURITY;
-        INSERT INTO organization_member_directory_projection (tenant_id, user_id, display_name, role, status)
-            SELECT m.tenant_id, m.user_id, u.display_name, m.role, m.status
+        INSERT INTO organization_member_directory_projection
+            (tenant_id, user_id, display_name, role, membership_status, user_status)
+            SELECT m.tenant_id, m.user_id, u.display_name, m.role, m.status, u.status
             FROM memberships AS m JOIN organization_user_directory_projection AS u ON u.user_id = m.user_id;
         ALTER TABLE memberships FORCE ROW LEVEL SECURITY;
 
@@ -117,13 +119,14 @@ def upgrade() -> None:
                 RETURN OLD;
             END IF;
             INSERT INTO public.organization_member_directory_projection
-                (tenant_id, user_id, display_name, role, status)
-            SELECT NEW.tenant_id, NEW.user_id, u.display_name, NEW.role, NEW.status
+                (tenant_id, user_id, display_name, role, membership_status, user_status)
+            SELECT NEW.tenant_id, NEW.user_id, u.display_name, NEW.role, NEW.status, u.status
             FROM public.organization_user_directory_projection AS u WHERE u.user_id = NEW.user_id
             ON CONFLICT (tenant_id, user_id) DO UPDATE SET
                 display_name = EXCLUDED.display_name,
                 role = EXCLUDED.role,
-                status = EXCLUDED.status;
+                membership_status = EXCLUDED.membership_status,
+                user_status = EXCLUDED.user_status;
             RETURN NEW;
         END;
         $$;
@@ -143,7 +146,7 @@ def upgrade() -> None:
             ON CONFLICT (user_id) DO UPDATE SET
                 display_name = EXCLUDED.display_name, status = EXCLUDED.status;
             UPDATE public.organization_member_directory_projection
-            SET display_name = NEW.display_name, status = NEW.status
+            SET display_name = NEW.display_name, user_status = NEW.status
             WHERE user_id = NEW.id;
             RETURN NEW;
         END;
@@ -218,7 +221,9 @@ def upgrade() -> None:
             IF NOT EXISTS (
                 SELECT 1 FROM public.organization_member_directory_projection p
                 WHERE p.tenant_id = NEW.tenant_id
-                  AND p.user_id = NEW.user_id AND p.status = 'active'
+                  AND p.user_id = NEW.user_id
+                  AND p.membership_status = 'active'
+                  AND p.user_status = 'active'
             ) THEN
                 RAISE EXCEPTION 'organization assignment requires active tenant membership'
                     USING ERRCODE = '23514';
@@ -261,7 +266,8 @@ def upgrade() -> None:
             SELECT p.user_id, p.display_name, p.role
             FROM public.organization_member_directory_projection AS p
             WHERE p.tenant_id = NULLIF(current_setting('app.tenant_id', true), '')::uuid
-              AND p.status = 'active'
+              AND p.membership_status = 'active'
+              AND p.user_status = 'active'
               AND EXISTS (
                   SELECT 1
                   FROM public.memberships AS actor_membership
