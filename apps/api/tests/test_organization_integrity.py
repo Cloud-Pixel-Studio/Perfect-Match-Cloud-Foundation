@@ -417,7 +417,8 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         projection = connection.execute(
             text(
-                "SELECT membership_status, user_status, role FROM organization_member_directory_projection "
+                "SELECT membership_status, user_status, role "
+                "FROM organization_member_directory_projection "
                 "WHERE tenant_id=:tenant AND user_id=:user"
             ),
             {"tenant": TENANT_A, "user": DISABLED_MEMBER},
@@ -427,7 +428,10 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
+                text(
+                    "SELECT count(*) FROM organization_member_directory() "
+                    "WHERE user_id=:user"
+                ),
                 {"user": DISABLED_MEMBER},
             )
             == 0
@@ -439,36 +443,57 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(
-            text("SELECT display_name FROM organization_member_directory() WHERE user_id=:user"),
-            {"user": DISABLED_MEMBER},
-        ) == "Re-enabled Member"
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT display_name FROM organization_member_directory() "
+                    "WHERE user_id=:user"
+                ),
+                {"user": DISABLED_MEMBER},
+            )
+            == "Re-enabled Member"
+        )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text("UPDATE users SET display_name='Disabled Member', status='disabled' WHERE id=:user"),
             {"user": DISABLED_MEMBER},
         )
         membership = connection.execute(
-            text("SELECT status, role FROM memberships WHERE tenant_id=:tenant AND user_id=:user"),
+            text(
+                "SELECT status, role FROM memberships "
+                "WHERE tenant_id=:tenant AND user_id=:user"
+            ),
             {"tenant": TENANT_A, "user": DISABLED_MEMBER},
         ).one()
         assert tuple(membership) == ("active", "member")
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(
-            text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
-            {"user": DISABLED_MEMBER},
-        ) == 0
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT count(*) FROM organization_member_directory() "
+                    "WHERE user_id=:user"
+                ),
+                {"user": DISABLED_MEMBER},
+            )
+            == 0
+        )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text("UPDATE users SET status='active' WHERE id=:user"), {"user": DISABLED_MEMBER}
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(
-            text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
-            {"user": DISABLED_MEMBER},
-        ) == 1
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT count(*) FROM organization_member_directory() "
+                    "WHERE user_id=:user"
+                ),
+                {"user": DISABLED_MEMBER},
+            )
+            == 1
+        )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text("UPDATE memberships SET status='revoked' WHERE tenant_id=:tenant AND user_id=:user"),
@@ -481,17 +506,26 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
             text("UPDATE users SET status='active' WHERE id=:user"), {"user": DISABLED_MEMBER}
         )
         final_state = connection.execute(
-            text("SELECT membership_status, user_status FROM organization_member_directory_projection "
-                 "WHERE tenant_id=:tenant AND user_id=:user"),
+            text(
+                "SELECT membership_status, user_status "
+                "FROM organization_member_directory_projection "
+                "WHERE tenant_id=:tenant AND user_id=:user"
+            ),
             {"tenant": TENANT_A, "user": DISABLED_MEMBER},
         ).one()
         assert tuple(final_state) == ("revoked", "active")
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
-        assert connection.scalar(
-            text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
-            {"user": DISABLED_MEMBER},
-        ) == 0
+        assert (
+            connection.scalar(
+                text(
+                    "SELECT count(*) FROM organization_member_directory() "
+                    "WHERE user_id=:user"
+                ),
+                {"user": DISABLED_MEMBER},
+            )
+            == 0
+        )
 
 
 def test_disabled_user_assignments_are_denied_without_hard_delete() -> None:
@@ -504,7 +538,13 @@ def test_disabled_user_assignments_are_denied_without_hard_delete() -> None:
                 "(id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) "
                 "VALUES (:id,:tenant,:unit,:user,'member',false,'inactive',:now,:now)"
             ),
-            {"id": inactive, "tenant": TENANT_A, "unit": ROOT, "user": DISABLED_MEMBER, "now": now},
+            {
+                "id": inactive,
+                "tenant": TENANT_A,
+                "unit": ROOT,
+                "user": DISABLED_MEMBER,
+                "now": now,
+            },
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         transaction = connection.begin()
@@ -516,7 +556,13 @@ def test_disabled_user_assignments_are_denied_without_hard_delete() -> None:
                     "(id,tenant_id,unit_id,user_id,assignment_role,is_primary,status,created_at,updated_at) "
                     "VALUES (:id,:tenant,:unit,:user,'member',false,'active',:now,:now)"
                 ),
-                {"id": uuid4(), "tenant": TENANT_A, "unit": ROOT, "user": DISABLED_MEMBER, "now": now},
+                {
+                    "id": uuid4(),
+                    "tenant": TENANT_A,
+                    "unit": ROOT,
+                    "user": DISABLED_MEMBER,
+                    "now": now,
+                },
             )
         with pytest.raises(DBAPIError):
             connection.execute(
@@ -525,16 +571,22 @@ def test_disabled_user_assignments_are_denied_without_hard_delete() -> None:
             )
         transaction.rollback()
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
-        assert connection.scalar(
-            text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"), {"id": inactive}
-        ) == 1
+        assert (
+            connection.scalar(
+                text("SELECT count(*) FROM organization_unit_assignments WHERE id=:id"),
+                {"id": inactive},
+            )
+            == 1
+        )
 
 
 def test_projection_tables_are_not_runtime_readable() -> None:
-    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+        transaction = connection.begin()
         context(connection, OWNER, TENANT_A)
         with pytest.raises(DBAPIError):
             connection.execute(text("SELECT user_id FROM organization_member_directory_projection"))
+        transaction.rollback()
 
 
 def test_raw_target_guc_cannot_bypass_membership_isolation() -> None:
