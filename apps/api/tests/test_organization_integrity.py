@@ -428,41 +428,36 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text(
-                    "SELECT count(*) FROM organization_member_directory() "
-                    "WHERE user_id=:user"
-                ),
+                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
                 {"user": DISABLED_MEMBER},
             )
             == 0
         )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("UPDATE users SET display_name='Re-enabled Member', status='active' WHERE id=:user"),
+            text(
+                "UPDATE users SET display_name='Re-enabled Member', status='active' WHERE id=:user"
+            ),
             {"user": DISABLED_MEMBER},
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text(
-                    "SELECT display_name FROM organization_member_directory() "
-                    "WHERE user_id=:user"
-                ),
+                text("SELECT display_name FROM organization_member_directory() WHERE user_id=:user"),
                 {"user": DISABLED_MEMBER},
             )
             == "Re-enabled Member"
         )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("UPDATE users SET display_name='Disabled Member', status='disabled' WHERE id=:user"),
+            text(
+                "UPDATE users SET display_name='Disabled Member', status='disabled' WHERE id=:user"
+            ),
             {"user": DISABLED_MEMBER},
         )
         membership = connection.execute(
-            text(
-                "SELECT status, role FROM memberships "
-                "WHERE tenant_id=:tenant AND user_id=:user"
-            ),
+            text("SELECT status, role FROM memberships WHERE tenant_id=:tenant AND user_id=:user"),
             {"tenant": TENANT_A, "user": DISABLED_MEMBER},
         ).one()
         assert tuple(membership) == ("active", "member")
@@ -470,10 +465,7 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text(
-                    "SELECT count(*) FROM organization_member_directory() "
-                    "WHERE user_id=:user"
-                ),
+                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
                 {"user": DISABLED_MEMBER},
             )
             == 0
@@ -486,17 +478,16 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text(
-                    "SELECT count(*) FROM organization_member_directory() "
-                    "WHERE user_id=:user"
-                ),
+                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
                 {"user": DISABLED_MEMBER},
             )
             == 1
         )
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
-            text("UPDATE memberships SET status='revoked' WHERE tenant_id=:tenant AND user_id=:user"),
+            text(
+                "UPDATE memberships SET status='revoked' WHERE tenant_id=:tenant AND user_id=:user"
+            ),
             {"tenant": TENANT_A, "user": DISABLED_MEMBER},
         )
         connection.execute(
@@ -518,10 +509,7 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text(
-                    "SELECT count(*) FROM organization_member_directory() "
-                    "WHERE user_id=:user"
-                ),
+                text("SELECT count(*) FROM organization_member_directory() WHERE user_id=:user"),
                 {"user": DISABLED_MEMBER},
             )
             == 0
