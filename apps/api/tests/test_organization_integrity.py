@@ -444,7 +444,9 @@ def test_directory_separates_membership_and_user_status_lifecycles() -> None:
         context(connection, OWNER, TENANT_A)
         assert (
             connection.scalar(
-                text("SELECT display_name FROM organization_member_directory() WHERE user_id=:user"),
+                text(
+                    "SELECT display_name FROM organization_member_directory() WHERE user_id=:user"
+                ),
                 {"user": DISABLED_MEMBER},
             )
             == "Re-enabled Member"
