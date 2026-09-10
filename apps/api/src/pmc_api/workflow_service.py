@@ -499,6 +499,8 @@ def transition_instance(
     transition_id: UUID,
     expected_version: int,
 ) -> WorkflowInstance:
+    if actor.role == "auditor":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "auditors have read-only workflow access")
     locked = db.scalar(
         select(WorkflowInstance)
         .where(WorkflowInstance.id == row.id, WorkflowInstance.tenant_id == actor.tenant_id)
