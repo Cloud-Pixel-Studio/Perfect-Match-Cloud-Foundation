@@ -22,6 +22,25 @@ ORGANIZATION_ACTIONS = {
     "organization.assignment_deactivated": "organization_assignment",
     "organization.assignment_reactivated": "organization_assignment",
 }
+WORKFLOW_ACTIONS = {
+    "workflow.definition_created": "workflow_definition",
+    "workflow.definition_updated": "workflow_definition",
+    "workflow.definition_retired": "workflow_definition",
+    "workflow.version_created": "workflow_version",
+    "workflow.version_updated": "workflow_version",
+    "workflow.version_published": "workflow_version",
+    "workflow.instance_started": "workflow_instance",
+    "workflow.instance_transitioned": "workflow_instance",
+    "workflow.instance_completed": "workflow_instance",
+    "workflow.instance_cancelled": "workflow_instance",
+}
+WORKFLOW_FIELDS = frozenset(
+    {
+        "workflow_definition_id", "workflow_version_id", "version_number", "status",
+        "workflow_instance_id", "from_step_id", "to_step_id", "transition_id", "row_version",
+        "step_id", "transition_key", "target_type",
+    }
+)
 ORGANIZATION_UNIT_FIELDS = frozenset(
     {"unit_id", "code", "name", "unit_type", "parent_id", "status"}
 )
@@ -98,7 +117,7 @@ def _record(
     new_values: dict[str, object] | None = None,
     metadata: dict[str, object] | None = None,
 ) -> AuditEvent:
-    expected_resource = ORGANIZATION_ACTIONS.get(action)
+    expected_resource = {**ORGANIZATION_ACTIONS, **WORKFLOW_ACTIONS}.get(action)
     if action != ACTION_TENANT_SELECTED and expected_resource != resource_type:
         raise AuditPayloadError("audit action or resource type is invalid")
     if not resource_type or len(resource_type) > 80:
@@ -227,3 +246,23 @@ def record_organization_assignment_deactivated(db: Session, **kwargs: object) ->
 
 def record_organization_assignment_reactivated(db: Session, **kwargs: object) -> AuditEvent:
     return _record_organization(db, action="organization.assignment_reactivated", **kwargs)  # type: ignore[arg-type]
+
+
+def _record_workflow(
+    db: Session, *, action: str, tenant_id: UUID, actor_user_id: UUID,
+    actor_display_name: str, actor_role: str, resource_id: UUID, request_id: UUID,
+    old_values: dict[str, object] | None = None, new_values: dict[str, object] | None = None,
+) -> AuditEvent:
+    for payload in (old_values, new_values):
+        if payload is not None and not set(payload).issubset(WORKFLOW_FIELDS):
+            raise AuditPayloadError("workflow audit payload contains an unsupported field")
+    return _record(
+        db, tenant_id=tenant_id, actor_user_id=actor_user_id, actor_display_name=actor_display_name,
+        actor_role=actor_role, action=action, resource_type=WORKFLOW_ACTIONS[action],
+        resource_id=resource_id, request_id=request_id, old_values=old_values, new_values=new_values,
+        metadata={"source": "workflow_service"},
+    )
+
+
+def record_workflow_event(db: Session, *, action: str, **kwargs: object) -> AuditEvent:
+    return _record_workflow(db, action=action, **kwargs)  # type: ignore[arg-type]

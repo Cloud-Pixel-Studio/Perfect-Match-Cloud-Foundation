@@ -1,6 +1,6 @@
 [project]
 name = "perfect-match-cloud-api"
-version = "0.4.0"
+version = "0.5.0"
 description = "Perfect Match Cloud identity and multi-tenancy foundation"
 license = "LicenseRef-Proprietary"
 requires-python = ">=3.12,<3.13"
@@ -53,4 +53,4 @@ mypy_path = "src"
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-markers = ["tenant_isolation: tests requiring disposable PostgreSQL with forced RLS", "organization_integrity: tests requiring disposable PostgreSQL"]
+markers = ["tenant_isolation: tests requiring disposable PostgreSQL with forced RLS", "organization_integrity: tests requiring disposable PostgreSQL", "workflow_integrity: tests requiring disposable PostgreSQL"]
