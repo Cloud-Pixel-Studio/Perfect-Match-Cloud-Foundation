@@ -529,6 +529,7 @@ def test_step_transition_assignment_mutations_emit_audit_in_same_transaction() -
                 "position": 2,
             },
         )
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         edge = upsert_transition(
             db,
             actor,
@@ -542,6 +543,7 @@ def test_step_transition_assignment_mutations_emit_audit_in_same_transaction() -
                 "label": "Again",
             },
         )
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         assignment = upsert_assignment(
             db,
             actor,
@@ -609,6 +611,7 @@ def test_cancellation_reason_is_bounded_and_stored_as_domain_event() -> None:
         instance = start_instance(db, actor, uuid4(), version, "Cancel", None)
         set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         cancelled = cancel_instance(db, actor, uuid4(), instance, "  no longer needed  ")
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         reason = db.scalar(
             text(
                 "SELECT reason FROM workflow_instance_events WHERE instance_id=:id AND event_type='cancelled'"

@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from pmc_api import audit_service
@@ -480,14 +480,11 @@ def _validate_graph(db: Session, version: WorkflowVersion) -> None:
         if assignment.target_type == "user":
             valid_target = (
                 db.scalar(
-                    select(User.id)
-                    .join(Membership, Membership.user_id == User.id)
-                    .where(
-                        User.id == assignment.target_user_id,
-                        User.status == "active",
-                        Membership.tenant_id == version.tenant_id,
-                        Membership.status == "active",
-                    )
+                    text(
+                        "SELECT user_id FROM organization_member_directory() "
+                        "WHERE user_id = :user_id"
+                    ),
+                    {"user_id": assignment.target_user_id},
                 )
                 is not None
             )
