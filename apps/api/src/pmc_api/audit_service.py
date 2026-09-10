@@ -36,9 +36,18 @@ WORKFLOW_ACTIONS = {
 }
 WORKFLOW_FIELDS = frozenset(
     {
-        "workflow_definition_id", "workflow_version_id", "version_number", "status",
-        "workflow_instance_id", "from_step_id", "to_step_id", "transition_id", "row_version",
-        "step_id", "transition_key", "target_type",
+        "workflow_definition_id",
+        "workflow_version_id",
+        "version_number",
+        "status",
+        "workflow_instance_id",
+        "from_step_id",
+        "to_step_id",
+        "transition_id",
+        "row_version",
+        "step_id",
+        "transition_key",
+        "target_type",
     }
 )
 ORGANIZATION_UNIT_FIELDS = frozenset(
@@ -249,17 +258,33 @@ def record_organization_assignment_reactivated(db: Session, **kwargs: object) ->
 
 
 def _record_workflow(
-    db: Session, *, action: str, tenant_id: UUID, actor_user_id: UUID,
-    actor_display_name: str, actor_role: str, resource_id: UUID, request_id: UUID,
-    old_values: dict[str, object] | None = None, new_values: dict[str, object] | None = None,
+    db: Session,
+    *,
+    action: str,
+    tenant_id: UUID,
+    actor_user_id: UUID,
+    actor_display_name: str,
+    actor_role: str,
+    resource_id: UUID,
+    request_id: UUID,
+    old_values: dict[str, object] | None = None,
+    new_values: dict[str, object] | None = None,
 ) -> AuditEvent:
     for payload in (old_values, new_values):
         if payload is not None and not set(payload).issubset(WORKFLOW_FIELDS):
             raise AuditPayloadError("workflow audit payload contains an unsupported field")
     return _record(
-        db, tenant_id=tenant_id, actor_user_id=actor_user_id, actor_display_name=actor_display_name,
-        actor_role=actor_role, action=action, resource_type=WORKFLOW_ACTIONS[action],
-        resource_id=resource_id, request_id=request_id, old_values=old_values, new_values=new_values,
+        db,
+        tenant_id=tenant_id,
+        actor_user_id=actor_user_id,
+        actor_display_name=actor_display_name,
+        actor_role=actor_role,
+        action=action,
+        resource_type=WORKFLOW_ACTIONS[action],
+        resource_id=resource_id,
+        request_id=request_id,
+        old_values=old_values,
+        new_values=new_values,
         metadata={"source": "workflow_service"},
     )
 
