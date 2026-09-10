@@ -23,7 +23,8 @@ export PMC_DATABASE_ADMIN_URL="postgresql+pg8000://pmcloud_bootstrap:${bootstrap
 export PMC_DATABASE_URL="postgresql+pg8000://pmcloud_migrator:${migration_password}@127.0.0.1:${port}/pmcloud_workflow"
 export PMC_TEST_ADMIN_DATABASE_URL="$PMC_DATABASE_ADMIN_URL"
 export PMC_TEST_RUNTIME_DATABASE_URL="postgresql+pg8000://pmcloud_app:${runtime_password}@127.0.0.1:${port}/pmcloud_workflow"
-export PMC_LOGIN_TRANSACTION_KEY="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')"
+login_transaction_key="$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')"
+export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
 
 (
   cd apps/api

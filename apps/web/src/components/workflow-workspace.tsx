@@ -39,7 +39,10 @@ export function WorkflowWorkspace({ role }: Props) {
     if (definitionResponse.ok) setDefinitions((await definitionResponse.json()) as Definition[]);
     if (instanceResponse.ok) setInstances((await instanceResponse.json()) as Instance[]);
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function choose(definition: Definition) {
     setSelected(definition); setVersion(null); setSteps([]);
