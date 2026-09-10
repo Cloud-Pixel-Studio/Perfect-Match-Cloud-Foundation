@@ -558,6 +558,7 @@ def test_step_transition_assignment_mutations_emit_audit_in_same_transaction() -
                 "target_application_role": "member",
             },
         )
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         actions = db.scalars(
             text("SELECT action FROM audit_events WHERE resource_id IN (:step,:edge,:assignment)"),
             {"step": step.id, "edge": edge.id, "assignment": assignment.id},
