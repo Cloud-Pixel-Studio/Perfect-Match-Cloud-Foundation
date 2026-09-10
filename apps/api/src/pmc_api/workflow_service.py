@@ -82,6 +82,43 @@ def _instance_values(row: WorkflowInstance) -> dict[str, object]:
     }
 
 
+def _step_values(row: WorkflowStep) -> dict[str, object]:
+    return {
+        "step_id": str(row.id),
+        "workflow_version_id": str(row.workflow_version_id),
+        "step_key": row.step_key,
+        "name": row.name,
+        "step_type": row.step_type,
+        "is_start": row.is_start,
+        "position": row.position,
+    }
+
+
+def _transition_values(row: WorkflowTransition) -> dict[str, object]:
+    return {
+        "transition_id": str(row.id),
+        "workflow_version_id": str(row.workflow_version_id),
+        "from_step_id": str(row.from_step_id),
+        "to_step_id": str(row.to_step_id),
+        "transition_key": row.transition_key,
+        "label": row.label,
+    }
+
+
+def _assignment_values(row: WorkflowStepAssignment) -> dict[str, object]:
+    return {
+        "assignment_id": str(row.id),
+        "workflow_version_id": str(row.workflow_version_id),
+        "step_id": str(row.step_id),
+        "target_type": row.target_type,
+        "target_user_id": str(row.target_user_id) if row.target_user_id else None,
+        "target_organization_unit_id": (
+            str(row.target_organization_unit_id) if row.target_organization_unit_id else None
+        ),
+        "target_application_role": row.target_application_role,
+    }
+
+
 def _audit(
     db: Session,
     actor: WorkflowActor,
@@ -91,9 +128,26 @@ def _audit(
     old: dict[str, object] | None,
     new: dict[str, object] | None,
 ) -> None:
-    audit_service.record_workflow_event(
+    writers = {
+        "workflow.definition_created": audit_service.record_workflow_definition_created,
+        "workflow.definition_updated": audit_service.record_workflow_definition_updated,
+        "workflow.definition_retired": audit_service.record_workflow_definition_retired,
+        "workflow.version_created": audit_service.record_workflow_version_created,
+        "workflow.version_updated": audit_service.record_workflow_version_updated,
+        "workflow.version_published": audit_service.record_workflow_version_published,
+        "workflow.step_created": audit_service.record_workflow_step_created,
+        "workflow.step_updated": audit_service.record_workflow_step_updated,
+        "workflow.transition_created": audit_service.record_workflow_transition_created,
+        "workflow.transition_updated": audit_service.record_workflow_transition_updated,
+        "workflow.assignment_created": audit_service.record_workflow_assignment_created,
+        "workflow.assignment_updated": audit_service.record_workflow_assignment_updated,
+        "workflow.instance_started": audit_service.record_workflow_instance_started,
+        "workflow.instance_transitioned": audit_service.record_workflow_instance_transitioned,
+        "workflow.instance_completed": audit_service.record_workflow_instance_completed,
+        "workflow.instance_cancelled": audit_service.record_workflow_instance_cancelled,
+    }
+    writers[action](
         db,
-        action=action,
         tenant_id=actor.tenant_id,
         actor_user_id=actor.user_id,
         actor_display_name=actor.display_name,
@@ -114,6 +168,13 @@ def create_definition(
     description: str | None,
 ) -> WorkflowDefinition:
     _write(actor)
+    if db.scalar(
+        select(WorkflowDefinition.id).where(
+            WorkflowDefinition.tenant_id == actor.tenant_id,
+            WorkflowDefinition.code.ilike(code.strip()),
+        )
+    ):
+        raise HTTPException(status.HTTP_409_CONFLICT, "workflow definition code already exists")
     now = _now()
     row = WorkflowDefinition(
         id=uuid4(),
@@ -126,11 +187,21 @@ def create_definition(
         updated_at=now,
     )
     db.add(row)
-    db.flush()
-    _audit(
-        db, actor, request_id, "workflow.definition_created", row.id, None, _definition_values(row)
-    )
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.definition_created",
+            row.id,
+            None,
+            _definition_values(row),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -146,12 +217,18 @@ def update_definition(
     for key, value in changes.items():
         setattr(row, key, value)
     row.updated_at = _now()
-    db.flush()
-    action = (
-        "workflow.definition_retired" if row.status == "retired" else "workflow.definition_updated"
-    )
-    _audit(db, actor, request_id, action, row.id, before, _definition_values(row))
-    db.commit()
+    try:
+        db.flush()
+        action = (
+            "workflow.definition_retired"
+            if row.status == "retired"
+            else "workflow.definition_updated"
+        )
+        _audit(db, actor, request_id, action, row.id, before, _definition_values(row))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -159,6 +236,15 @@ def create_version(
     db: Session, actor: WorkflowActor, request_id: UUID, definition: WorkflowDefinition
 ) -> WorkflowVersion:
     _write(actor)
+    if db.scalar(
+        select(WorkflowVersion.id).where(
+            WorkflowVersion.definition_id == definition.id,
+            WorkflowVersion.status == "draft",
+        )
+    ):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "workflow definition already has a draft version"
+        )
     latest = db.scalar(
         select(WorkflowVersion.version_number)
         .where(WorkflowVersion.definition_id == definition.id)
@@ -177,9 +263,15 @@ def create_version(
         updated_at=now,
     )
     db.add(row)
-    db.flush()
-    _audit(db, actor, request_id, "workflow.version_created", row.id, None, _version_values(row))
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db, actor, request_id, "workflow.version_created", row.id, None, _version_values(row)
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -200,6 +292,7 @@ def upsert_step(
     _draft(version)
     now = _now()
     row = db.get(WorkflowStep, step_id) if step_id else None
+    before = _step_values(row) if row is not None else None
     if row is None:
         row = WorkflowStep(
             id=uuid4(),
@@ -216,8 +309,21 @@ def upsert_step(
         for key, value in values.items():
             setattr(row, key, value)
         row.updated_at = now
-    db.flush()
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.step_updated" if step_id else "workflow.step_created",
+            row.id,
+            before,
+            _step_values(row),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -233,6 +339,7 @@ def upsert_transition(
     _draft(version)
     now = _now()
     row = db.get(WorkflowTransition, transition_id) if transition_id else None
+    before = _transition_values(row) if row is not None else None
     if row is None:
         row = WorkflowTransition(
             id=uuid4(),
@@ -249,8 +356,21 @@ def upsert_transition(
         for key, value in values.items():
             setattr(row, key, value)
         row.updated_at = now
-    db.flush()
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.transition_updated" if transition_id else "workflow.transition_created",
+            row.id,
+            before,
+            _transition_values(row),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -266,6 +386,7 @@ def upsert_assignment(
     _draft(version)
     now = _now()
     row = db.get(WorkflowStepAssignment, assignment_id) if assignment_id else None
+    before = _assignment_values(row) if row is not None else None
     if row is None:
         row = WorkflowStepAssignment(
             id=uuid4(),
@@ -282,8 +403,21 @@ def upsert_assignment(
         for key, value in values.items():
             setattr(row, key, value)
         row.updated_at = now
-    db.flush()
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.assignment_updated" if assignment_id else "workflow.assignment_created",
+            row.id,
+            before,
+            _assignment_values(row),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -385,17 +519,21 @@ def publish_version(
     version.status = "published"
     version.published_at = _now()
     version.updated_at = _now()
-    db.flush()
-    _audit(
-        db,
-        actor,
-        request_id,
-        "workflow.version_published",
-        version.id,
-        {"status": "draft"},
-        _version_values(version),
-    )
-    db.commit()
+    try:
+        db.flush()
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.version_published",
+            version.id,
+            {"status": "draft"},
+            _version_values(version),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return version
 
 
@@ -438,6 +576,28 @@ def _eligible(db: Session, actor: WorkflowActor, step_id: UUID, version_id: UUID
     return False
 
 
+def eligible_actions(
+    db: Session, actor: WorkflowActor, row: WorkflowInstance
+) -> list[WorkflowTransition]:
+    if row.status != "active" or actor.role == "auditor":
+        return []
+    transitions = list(
+        db.scalars(
+            select(WorkflowTransition)
+            .where(
+                WorkflowTransition.tenant_id == actor.tenant_id,
+                WorkflowTransition.workflow_version_id == row.workflow_version_id,
+                WorkflowTransition.from_step_id == row.current_step_id,
+            )
+            .order_by(WorkflowTransition.transition_key, WorkflowTransition.id)
+            .limit(100)
+        )
+    )
+    if not _eligible(db, actor, row.current_step_id, row.workflow_version_id):
+        return []
+    return transitions
+
+
 def start_instance(
     db: Session,
     actor: WorkflowActor,
@@ -478,6 +638,7 @@ def start_instance(
             id=uuid4(),
             tenant_id=actor.tenant_id,
             instance_id=row.id,
+            workflow_version_id=version.id,
             event_type="started",
             to_step_id=start.id,
             actor_user_id=actor.user_id,
@@ -486,8 +647,14 @@ def start_instance(
             event_metadata={"row_version": 1},
         )
     )
-    _audit(db, actor, request_id, "workflow.instance_started", row.id, None, _instance_values(row))
-    db.commit()
+    try:
+        _audit(
+            db, actor, request_id, "workflow.instance_started", row.id, None, _instance_values(row)
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return row
 
 
@@ -538,6 +705,7 @@ def transition_instance(
             id=uuid4(),
             tenant_id=actor.tenant_id,
             instance_id=locked.id,
+            workflow_version_id=locked.workflow_version_id,
             event_type="transitioned",
             from_step_id=edge.from_step_id,
             to_step_id=edge.to_step_id,
@@ -548,48 +716,53 @@ def transition_instance(
             event_metadata={"row_version": locked.row_version},
         )
     )
-    _audit(
-        db,
-        actor,
-        request_id,
-        "workflow.instance_transitioned",
-        locked.id,
-        before,
-        _instance_values(locked),
-    )
-    if destination.step_type == "end":
-        locked.status = "completed"
-        locked.completed_at = now
-        db.add(
-            WorkflowInstanceEvent(
-                id=uuid4(),
-                tenant_id=actor.tenant_id,
-                instance_id=locked.id,
-                event_type="completed",
-                from_step_id=edge.from_step_id,
-                to_step_id=edge.to_step_id,
-                transition_id=edge.id,
-                actor_user_id=actor.user_id,
-                request_id=request_id,
-                occurred_at=now,
-                event_metadata={"row_version": locked.row_version},
-            )
-        )
+    try:
         _audit(
             db,
             actor,
             request_id,
-            "workflow.instance_completed",
+            "workflow.instance_transitioned",
             locked.id,
             before,
             _instance_values(locked),
         )
-    db.commit()
+        if destination.step_type == "end":
+            locked.status = "completed"
+            locked.completed_at = now
+            db.add(
+                WorkflowInstanceEvent(
+                    id=uuid4(),
+                    tenant_id=actor.tenant_id,
+                    instance_id=locked.id,
+                    workflow_version_id=locked.workflow_version_id,
+                    event_type="completed",
+                    from_step_id=edge.from_step_id,
+                    to_step_id=edge.to_step_id,
+                    transition_id=edge.id,
+                    actor_user_id=actor.user_id,
+                    request_id=request_id,
+                    occurred_at=now,
+                    event_metadata={"row_version": locked.row_version},
+                )
+            )
+            _audit(
+                db,
+                actor,
+                request_id,
+                "workflow.instance_completed",
+                locked.id,
+                before,
+                _instance_values(locked),
+            )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return locked
 
 
 def cancel_instance(
-    db: Session, actor: WorkflowActor, request_id: UUID, row: WorkflowInstance
+    db: Session, actor: WorkflowActor, request_id: UUID, row: WorkflowInstance, reason: str
 ) -> WorkflowInstance:
     _write(actor)
     locked = db.scalar(
@@ -601,6 +774,11 @@ def cancel_instance(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "workflow instance not found")
     if locked.status != "active":
         raise HTTPException(status.HTTP_409_CONFLICT, "workflow instance is no longer active")
+    reason = reason.strip()
+    if not 1 <= len(reason) <= 500:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "cancellation reason must be 1 to 500 characters"
+        )
     before = _instance_values(locked)
     now = _now()
     locked.status = "cancelled"
@@ -612,21 +790,27 @@ def cancel_instance(
             id=uuid4(),
             tenant_id=actor.tenant_id,
             instance_id=locked.id,
+            workflow_version_id=locked.workflow_version_id,
             event_type="cancelled",
             actor_user_id=actor.user_id,
             request_id=request_id,
             occurred_at=now,
             event_metadata={"row_version": locked.row_version},
+            reason=reason,
         )
     )
-    _audit(
-        db,
-        actor,
-        request_id,
-        "workflow.instance_cancelled",
-        locked.id,
-        before,
-        _instance_values(locked),
-    )
-    db.commit()
+    try:
+        _audit(
+            db,
+            actor,
+            request_id,
+            "workflow.instance_cancelled",
+            locked.id,
+            before,
+            _instance_values(locked),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     return locked

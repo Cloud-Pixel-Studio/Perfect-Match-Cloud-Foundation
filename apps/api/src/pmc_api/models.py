@@ -259,6 +259,7 @@ class WorkflowInstanceEvent(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
     instance_id: Mapped[UUID] = mapped_column(nullable=False)
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
     event_type: Mapped[str] = mapped_column(String(20), nullable=False)
     from_step_id: Mapped[UUID | None] = mapped_column()
     to_step_id: Mapped[UUID | None] = mapped_column()
@@ -269,3 +270,4 @@ class WorkflowInstanceEvent(Base):
     event_metadata: Mapped[dict[str, object]] = mapped_column(
         "metadata", JSON, nullable=False, default=dict
     )
+    reason: Mapped[str | None] = mapped_column(String(500))

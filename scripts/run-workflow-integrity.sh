@@ -35,5 +35,11 @@ export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
   done
   test "$ready" = true
   uv run --no-sync alembic upgrade head
+  uv run --no-sync alembic downgrade 0004_organization_structure
+  uv run --no-sync alembic upgrade 0005_workflow_engine
   uv run --no-sync pytest -m workflow_integrity tests/test_workflow_integrity.py
+  if uv run --no-sync alembic downgrade 0004_organization_structure; then
+    echo "workflow audit downgrade unexpectedly succeeded" >&2
+    exit 1
+  fi
 )

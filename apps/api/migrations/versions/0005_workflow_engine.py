@@ -23,6 +23,9 @@ def upgrade() -> None:
           'organization.assignment_deactivated', 'organization.assignment_reactivated',
           'workflow.definition_created', 'workflow.definition_updated', 'workflow.definition_retired',
           'workflow.version_created', 'workflow.version_updated', 'workflow.version_published',
+          'workflow.step_created', 'workflow.step_updated',
+          'workflow.transition_created', 'workflow.transition_updated',
+          'workflow.assignment_created', 'workflow.assignment_updated',
           'workflow.instance_started', 'workflow.instance_transitioned',
           'workflow.instance_completed', 'workflow.instance_cancelled'
         ));
@@ -72,6 +75,7 @@ def upgrade() -> None:
           created_at timestamptz NOT NULL,
           updated_at timestamptz NOT NULL,
           UNIQUE (id, tenant_id), UNIQUE (workflow_version_id, step_key),
+          UNIQUE (id, tenant_id, workflow_version_id),
           FOREIGN KEY (workflow_version_id, tenant_id) REFERENCES workflow_versions(id, tenant_id)
             ON DELETE CASCADE
         );
@@ -88,12 +92,17 @@ def upgrade() -> None:
           created_at timestamptz NOT NULL,
           updated_at timestamptz NOT NULL,
           UNIQUE (id, tenant_id), UNIQUE (workflow_version_id, from_step_id, transition_key),
+          UNIQUE (id, tenant_id, workflow_version_id),
           FOREIGN KEY (workflow_version_id, tenant_id) REFERENCES workflow_versions(id, tenant_id)
             ON DELETE CASCADE,
           FOREIGN KEY (from_step_id, tenant_id) REFERENCES workflow_steps(id, tenant_id)
             ON DELETE CASCADE,
           FOREIGN KEY (to_step_id, tenant_id) REFERENCES workflow_steps(id, tenant_id)
             ON DELETE CASCADE,
+          FOREIGN KEY (from_step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE CASCADE,
+          FOREIGN KEY (to_step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE CASCADE,
           CHECK (from_step_id <> to_step_id)
         );
 
@@ -109,9 +118,12 @@ def upgrade() -> None:
           created_at timestamptz NOT NULL,
           updated_at timestamptz NOT NULL,
           UNIQUE (id, tenant_id),
+          UNIQUE (id, tenant_id, workflow_version_id),
           FOREIGN KEY (workflow_version_id, tenant_id) REFERENCES workflow_versions(id, tenant_id)
             ON DELETE CASCADE,
           FOREIGN KEY (step_id, tenant_id) REFERENCES workflow_steps(id, tenant_id) ON DELETE CASCADE,
+          FOREIGN KEY (step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE CASCADE,
           FOREIGN KEY (target_organization_unit_id, tenant_id)
             REFERENCES organization_units(id, tenant_id) ON DELETE RESTRICT,
           CHECK ((target_type = 'user' AND target_user_id IS NOT NULL AND target_organization_unit_id IS NULL AND target_application_role IS NULL)
@@ -135,16 +147,20 @@ def upgrade() -> None:
           created_at timestamptz NOT NULL,
           updated_at timestamptz NOT NULL,
           UNIQUE (id, tenant_id),
+          UNIQUE (id, tenant_id, workflow_version_id),
           FOREIGN KEY (workflow_version_id, tenant_id) REFERENCES workflow_versions(id, tenant_id)
             ON DELETE RESTRICT,
           FOREIGN KEY (current_step_id, tenant_id) REFERENCES workflow_steps(id, tenant_id)
             ON DELETE RESTRICT
+          ,FOREIGN KEY (current_step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE RESTRICT
         );
 
         CREATE TABLE workflow_instance_events (
           id uuid PRIMARY KEY,
           tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
           instance_id uuid NOT NULL,
+          workflow_version_id uuid NOT NULL,
           event_type varchar(20) NOT NULL CHECK (event_type IN ('started', 'transitioned', 'completed', 'cancelled')),
           from_step_id uuid,
           to_step_id uuid,
@@ -153,8 +169,20 @@ def upgrade() -> None:
           request_id uuid NOT NULL,
           occurred_at timestamptz NOT NULL,
           metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+          reason varchar(500),
           FOREIGN KEY (instance_id, tenant_id) REFERENCES workflow_instances(id, tenant_id)
             ON DELETE CASCADE,
+          FOREIGN KEY (instance_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_instances(id, tenant_id, workflow_version_id) ON DELETE CASCADE,
+          FOREIGN KEY (from_step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE RESTRICT,
+          FOREIGN KEY (to_step_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_steps(id, tenant_id, workflow_version_id) ON DELETE RESTRICT,
+          FOREIGN KEY (transition_id, tenant_id, workflow_version_id)
+            REFERENCES workflow_transitions(id, tenant_id, workflow_version_id) ON DELETE RESTRICT,
+          CHECK (reason IS NULL OR (length(btrim(reason)) BETWEEN 1 AND 500)),
+          CHECK ((event_type = 'cancelled' AND reason IS NOT NULL)
+             OR (event_type <> 'cancelled' AND reason IS NULL)),
           UNIQUE (id, tenant_id)
         );
         CREATE INDEX workflow_instances_tenant_status_idx ON workflow_instances(tenant_id, status, updated_at DESC);
@@ -162,8 +190,13 @@ def upgrade() -> None:
 
         CREATE FUNCTION reject_published_workflow_configuration() RETURNS trigger
         LANGUAGE plpgsql SECURITY INVOKER SET search_path = public, pg_catalog AS $$
+        DECLARE version_id uuid;
         BEGIN
-          IF EXISTS (SELECT 1 FROM workflow_versions WHERE id = COALESCE(NULLIF(to_jsonb(OLD)->>'workflow_version_id', '')::uuid, OLD.id) AND status = 'published') THEN
+          version_id := CASE WHEN TG_OP = 'DELETE' THEN
+            COALESCE(NULLIF(to_jsonb(OLD)->>'workflow_version_id', '')::uuid, OLD.id)
+            ELSE COALESCE(NULLIF(to_jsonb(NEW)->>'workflow_version_id', '')::uuid, NEW.id)
+          END;
+          IF EXISTS (SELECT 1 FROM workflow_versions WHERE id = version_id AND status = 'published') THEN
             RAISE EXCEPTION 'published workflow configuration is immutable' USING ERRCODE = '23514';
           END IF;
           RETURN COALESCE(NEW, OLD);
@@ -171,11 +204,11 @@ def upgrade() -> None:
         $$;
         CREATE TRIGGER workflow_versions_immutable BEFORE UPDATE OR DELETE ON workflow_versions
           FOR EACH ROW WHEN (OLD.status = 'published') EXECUTE FUNCTION reject_published_workflow_configuration();
-        CREATE TRIGGER workflow_steps_published_guard BEFORE UPDATE OR DELETE ON workflow_steps
+        CREATE TRIGGER workflow_steps_published_guard BEFORE INSERT OR UPDATE OR DELETE ON workflow_steps
           FOR EACH ROW EXECUTE FUNCTION reject_published_workflow_configuration();
-        CREATE TRIGGER workflow_transitions_published_guard BEFORE UPDATE OR DELETE ON workflow_transitions
+        CREATE TRIGGER workflow_transitions_published_guard BEFORE INSERT OR UPDATE OR DELETE ON workflow_transitions
           FOR EACH ROW EXECUTE FUNCTION reject_published_workflow_configuration();
-        CREATE TRIGGER workflow_assignments_published_guard BEFORE UPDATE OR DELETE ON workflow_step_assignments
+        CREATE TRIGGER workflow_assignments_published_guard BEFORE INSERT OR UPDATE OR DELETE ON workflow_step_assignments
           FOR EACH ROW EXECUTE FUNCTION reject_published_workflow_configuration();
 
         CREATE FUNCTION validate_workflow_instance_start() RETURNS trigger
@@ -295,6 +328,14 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute(
         r"""
+        DO $$
+        BEGIN
+          IF EXISTS (SELECT 1 FROM audit_events WHERE action LIKE 'workflow.%') THEN
+            RAISE EXCEPTION 'cannot downgrade 0005: workflow audit history would be destroyed'
+              USING ERRCODE = '55000';
+          END IF;
+        END;
+        $$;
         DROP TRIGGER IF EXISTS workflow_instance_events_immutable ON workflow_instance_events;
         DROP TRIGGER IF EXISTS workflow_instances_start_guard ON workflow_instances;
         DROP TRIGGER IF EXISTS workflow_assignments_published_guard ON workflow_step_assignments;

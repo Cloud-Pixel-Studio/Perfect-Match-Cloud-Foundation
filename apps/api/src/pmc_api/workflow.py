@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Annotated, Any, cast
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,7 @@ from pmc_api.workflow_service import (
     cancel_instance,
     create_definition,
     create_version,
+    eligible_actions,
     publish_version,
     require_context,
     start_instance,
@@ -86,6 +87,18 @@ class TransitionCommand(BaseModel):
     expected_version: int = Field(ge=1)
 
 
+class CancelCommand(BaseModel):
+    reason: str = Field(min_length=1, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def non_blank_reason(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("cancellation reason must not be blank")
+        return value
+
+
 class Row(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -133,6 +146,7 @@ class EventResponse(Row):
     id: UUID
     tenant_id: UUID
     instance_id: UUID
+    workflow_version_id: UUID
     event_type: str
     from_step_id: UUID | None
     to_step_id: UUID | None
@@ -141,6 +155,7 @@ class EventResponse(Row):
     request_id: UUID
     occurred_at: datetime
     event_metadata: dict[str, object]
+    reason: str | None
 
 
 class AssignmentResponse(Row):
@@ -152,6 +167,13 @@ class AssignmentResponse(Row):
     target_user_id: UUID | None
     target_organization_unit_id: UUID | None
     target_application_role: str | None
+
+
+class ActionResponse(Row):
+    id: UUID
+    transition_key: str
+    label: str
+    to_step_id: UUID
 
 
 class InstanceResponse(Row):
@@ -194,7 +216,7 @@ def definitions(
         db.scalars(
             select(WorkflowDefinition)
             .where(WorkflowDefinition.tenant_id == actor.tenant_id)
-            .order_by(WorkflowDefinition.name)
+            .order_by(WorkflowDefinition.name, WorkflowDefinition.id)
             .limit(100)
         )
     )
@@ -246,7 +268,8 @@ def versions(
                 WorkflowVersion.tenant_id == actor.tenant_id,
                 WorkflowVersion.definition_id == workflow_id,
             )
-            .order_by(WorkflowVersion.version_number.desc())
+            .order_by(WorkflowVersion.version_number.desc(), WorkflowVersion.id)
+            .limit(100)
         )
     )
 
@@ -283,7 +306,8 @@ def steps(
         db.scalars(
             select(WorkflowStep)
             .where(WorkflowStep.workflow_version_id == version_id)
-            .order_by(WorkflowStep.position)
+            .order_by(WorkflowStep.position, WorkflowStep.id)
+            .limit(100)
         )
     )
 
@@ -298,7 +322,8 @@ def transitions(
         db.scalars(
             select(WorkflowTransition)
             .where(WorkflowTransition.workflow_version_id == version_id)
-            .order_by(WorkflowTransition.transition_key)
+            .order_by(WorkflowTransition.transition_key, WorkflowTransition.id)
+            .limit(100)
         )
     )
 
@@ -391,6 +416,45 @@ def add_assignment(
     return upsert_assignment(db, actor, request.state.request_id, version, None, body.model_dump())
 
 
+@router.get("/workflows/versions/{version_id}/assignments", response_model=list[AssignmentResponse])
+def assignments(
+    version_id: UUID, request: Request, db: DBSession, authenticated: Authenticated
+) -> list[WorkflowStepAssignment]:
+    actor = _actor(request, db, authenticated)
+    _owned(db, WorkflowVersion, version_id, actor.tenant_id)
+    return list(
+        db.scalars(
+            select(WorkflowStepAssignment)
+            .where(
+                WorkflowStepAssignment.tenant_id == actor.tenant_id,
+                WorkflowStepAssignment.workflow_version_id == version_id,
+            )
+            .order_by(WorkflowStepAssignment.step_id, WorkflowStepAssignment.id)
+            .limit(100)
+        )
+    )
+
+
+@router.patch(
+    "/workflows/versions/{version_id}/assignments/{assignment_id}",
+    response_model=AssignmentResponse,
+    dependencies=[Depends(require_csrf)],
+)
+def edit_assignment(
+    version_id: UUID,
+    assignment_id: UUID,
+    request: Request,
+    body: AssignmentInput,
+    db: DBSession,
+    authenticated: Authenticated,
+) -> WorkflowStepAssignment:
+    actor = _actor(request, db, authenticated)
+    version = _owned(db, WorkflowVersion, version_id, actor.tenant_id)
+    return upsert_assignment(
+        db, actor, request.state.request_id, version, assignment_id, body.model_dump()
+    )
+
+
 @router.post(
     "/workflows/versions/{version_id}/publish",
     response_model=VersionResponse,
@@ -413,10 +477,19 @@ def instances(
         db.scalars(
             select(WorkflowInstance)
             .where(WorkflowInstance.tenant_id == actor.tenant_id)
-            .order_by(WorkflowInstance.updated_at.desc())
+            .order_by(WorkflowInstance.updated_at.desc(), WorkflowInstance.id)
             .limit(100)
         )
     )
+
+
+@router.get("/workflow-instances/{instance_id}/actions", response_model=list[ActionResponse])
+def actions(
+    instance_id: UUID, request: Request, db: DBSession, authenticated: Authenticated
+) -> list[WorkflowTransition]:
+    actor = _actor(request, db, authenticated)
+    row = cast(WorkflowInstance, _owned(db, WorkflowInstance, instance_id, actor.tenant_id))
+    return eligible_actions(db, actor, row)
 
 
 @router.get("/workflow-instances/{instance_id}", response_model=InstanceResponse)
@@ -466,16 +539,24 @@ def transition(
     dependencies=[Depends(require_csrf)],
 )
 def cancel(
-    instance_id: UUID, request: Request, db: DBSession, authenticated: Authenticated
+    instance_id: UUID,
+    request: Request,
+    body: CancelCommand,
+    db: DBSession,
+    authenticated: Authenticated,
 ) -> WorkflowInstance:
     actor = _actor(request, db, authenticated)
     row = _owned(db, WorkflowInstance, instance_id, actor.tenant_id)
-    return cancel_instance(db, actor, request.state.request_id, row)
+    return cancel_instance(db, actor, request.state.request_id, row, body.reason)
 
 
 @router.get("/workflow-instances/{instance_id}/history", response_model=list[EventResponse])
 def history(
-    instance_id: UUID, request: Request, db: DBSession, authenticated: Authenticated
+    instance_id: UUID,
+    request: Request,
+    db: DBSession,
+    authenticated: Authenticated,
+    limit: int = Query(default=100, ge=1, le=100),
 ) -> list[WorkflowInstanceEvent]:
     actor = _actor(request, db, authenticated)
     _owned(db, WorkflowInstance, instance_id, actor.tenant_id)
@@ -487,5 +568,6 @@ def history(
                 WorkflowInstanceEvent.tenant_id == actor.tenant_id,
             )
             .order_by(WorkflowInstanceEvent.occurred_at, WorkflowInstanceEvent.id)
+            .limit(limit)
         )
     )
