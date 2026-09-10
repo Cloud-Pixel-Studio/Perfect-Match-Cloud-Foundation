@@ -243,6 +243,7 @@ def test_instance_pins_version_and_member_transition_completes() -> None:
         set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
         completed = transition_instance(db, member, uuid4(), instance, transition.id, 1)
         assert completed.status == "completed" and completed.row_version == 2
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
         assert (
             db.scalar(
                 text(
@@ -261,6 +262,19 @@ def test_assignment_and_archive_protection() -> None:
     version, _, start = build_published(role_target="member")
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         context(connection, OWNER, TENANT_A)
+        draft_id = uuid4()
+        connection.execute(
+            text(
+                "INSERT INTO workflow_versions (id,tenant_id,definition_id,version_number,status,created_by_user_id,created_at,updated_at) VALUES (:id,:tenant,:definition,2,'draft',:user,:now,:now)"
+            ),
+            {
+                "id": draft_id,
+                "tenant": TENANT_A,
+                "definition": version.definition_id,
+                "user": OWNER,
+                "now": datetime.now(UTC),
+            },
+        )
         with pytest.raises(DBAPIError):
             connection.execute(
                 text(
@@ -269,7 +283,7 @@ def test_assignment_and_archive_protection() -> None:
                 {
                     "id": uuid4(),
                     "tenant": TENANT_A,
-                    "version": version.id,
+                    "version": draft_id,
                     "step": start.id,
                     "user": OWNER,
                     "now": datetime.now(UTC),
