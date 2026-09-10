@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -21,6 +22,106 @@ ORGANIZATION_ACTIONS = {
     "organization.assignment_updated": "organization_assignment",
     "organization.assignment_deactivated": "organization_assignment",
     "organization.assignment_reactivated": "organization_assignment",
+}
+WORKFLOW_ACTIONS = {
+    "workflow.definition_created": "workflow_definition",
+    "workflow.definition_updated": "workflow_definition",
+    "workflow.definition_retired": "workflow_definition",
+    "workflow.version_created": "workflow_version",
+    "workflow.version_updated": "workflow_version",
+    "workflow.version_published": "workflow_version",
+    "workflow.step_created": "workflow_step",
+    "workflow.step_updated": "workflow_step",
+    "workflow.transition_created": "workflow_transition",
+    "workflow.transition_updated": "workflow_transition",
+    "workflow.assignment_created": "workflow_assignment",
+    "workflow.assignment_updated": "workflow_assignment",
+    "workflow.instance_started": "workflow_instance",
+    "workflow.instance_transitioned": "workflow_instance",
+    "workflow.instance_completed": "workflow_instance",
+    "workflow.instance_cancelled": "workflow_instance",
+}
+WORKFLOW_ACTION_FIELDS = {
+    "workflow.definition_created": frozenset({"workflow_definition_id", "status"}),
+    "workflow.definition_updated": frozenset({"workflow_definition_id", "status"}),
+    "workflow.definition_retired": frozenset({"workflow_definition_id", "status"}),
+    "workflow.version_created": frozenset(
+        {"workflow_version_id", "workflow_definition_id", "version_number", "status"}
+    ),
+    "workflow.version_updated": frozenset(
+        {"workflow_version_id", "workflow_definition_id", "version_number", "status"}
+    ),
+    "workflow.version_published": frozenset(
+        {"workflow_version_id", "workflow_definition_id", "version_number", "status"}
+    ),
+    "workflow.step_created": frozenset(
+        {"step_id", "workflow_version_id", "step_key", "name", "step_type", "is_start", "position"}
+    ),
+    "workflow.step_updated": frozenset(
+        {"step_id", "workflow_version_id", "step_key", "name", "step_type", "is_start", "position"}
+    ),
+    "workflow.transition_created": frozenset(
+        {
+            "transition_id",
+            "workflow_version_id",
+            "from_step_id",
+            "to_step_id",
+            "transition_key",
+            "label",
+        }
+    ),
+    "workflow.transition_updated": frozenset(
+        {
+            "transition_id",
+            "workflow_version_id",
+            "from_step_id",
+            "to_step_id",
+            "transition_key",
+            "label",
+        }
+    ),
+    "workflow.assignment_created": frozenset(
+        {
+            "assignment_id",
+            "workflow_version_id",
+            "step_id",
+            "target_type",
+            "target_user_id",
+            "target_organization_unit_id",
+            "target_application_role",
+        }
+    ),
+    "workflow.assignment_updated": frozenset(
+        {
+            "assignment_id",
+            "workflow_version_id",
+            "step_id",
+            "target_type",
+            "target_user_id",
+            "target_organization_unit_id",
+            "target_application_role",
+        }
+    ),
+    "workflow.instance_started": frozenset(
+        {"workflow_instance_id", "workflow_version_id", "to_step_id", "status", "row_version"}
+    ),
+    "workflow.instance_transitioned": frozenset(
+        {
+            "workflow_instance_id",
+            "workflow_version_id",
+            "from_step_id",
+            "to_step_id",
+            "transition_id",
+            "status",
+            "row_version",
+        }
+    ),
+    "workflow.instance_completed": frozenset(
+        {"workflow_instance_id", "workflow_version_id", "to_step_id", "status", "row_version"}
+    ),
+    "workflow.instance_cancelled": frozenset(
+        {"workflow_instance_id", "workflow_version_id", "to_step_id", "status", "row_version"}
+    ),
 }
 ORGANIZATION_UNIT_FIELDS = frozenset(
     {"unit_id", "code", "name", "unit_type", "parent_id", "status"}
@@ -98,7 +199,7 @@ def _record(
     new_values: dict[str, object] | None = None,
     metadata: dict[str, object] | None = None,
 ) -> AuditEvent:
-    expected_resource = ORGANIZATION_ACTIONS.get(action)
+    expected_resource = {**ORGANIZATION_ACTIONS, **WORKFLOW_ACTIONS}.get(action)
     if action != ACTION_TENANT_SELECTED and expected_resource != resource_type:
         raise AuditPayloadError("audit action or resource type is invalid")
     if not resource_type or len(resource_type) > 80:
@@ -227,3 +328,63 @@ def record_organization_assignment_deactivated(db: Session, **kwargs: object) ->
 
 def record_organization_assignment_reactivated(db: Session, **kwargs: object) -> AuditEvent:
     return _record_organization(db, action="organization.assignment_reactivated", **kwargs)  # type: ignore[arg-type]
+
+
+def _record_workflow(
+    db: Session,
+    *,
+    action: str,
+    tenant_id: UUID,
+    actor_user_id: UUID,
+    actor_display_name: str,
+    actor_role: str,
+    resource_id: UUID,
+    request_id: UUID,
+    old_values: dict[str, object] | None = None,
+    new_values: dict[str, object] | None = None,
+) -> AuditEvent:
+    allowed = WORKFLOW_ACTION_FIELDS.get(action)
+    if allowed is None:
+        raise AuditPayloadError("unsupported workflow audit action")
+    for payload in (old_values, new_values):
+        if payload is not None and not set(payload).issubset(allowed):
+            raise AuditPayloadError("workflow audit payload contains an unsupported field")
+    return _record(
+        db,
+        tenant_id=tenant_id,
+        actor_user_id=actor_user_id,
+        actor_display_name=actor_display_name,
+        actor_role=actor_role,
+        action=action,
+        resource_type=WORKFLOW_ACTIONS[action],
+        resource_id=resource_id,
+        request_id=request_id,
+        old_values=old_values,
+        new_values=new_values,
+        metadata={"source": "workflow_service"},
+    )
+
+
+def _workflow_builder(action: str) -> Callable[..., AuditEvent]:
+    def record(db: Session, **kwargs: object) -> AuditEvent:
+        return _record_workflow(db, action=action, **kwargs)  # type: ignore[arg-type]
+
+    return record
+
+
+record_workflow_definition_created = _workflow_builder("workflow.definition_created")
+record_workflow_definition_updated = _workflow_builder("workflow.definition_updated")
+record_workflow_definition_retired = _workflow_builder("workflow.definition_retired")
+record_workflow_version_created = _workflow_builder("workflow.version_created")
+record_workflow_version_updated = _workflow_builder("workflow.version_updated")
+record_workflow_version_published = _workflow_builder("workflow.version_published")
+record_workflow_step_created = _workflow_builder("workflow.step_created")
+record_workflow_step_updated = _workflow_builder("workflow.step_updated")
+record_workflow_transition_created = _workflow_builder("workflow.transition_created")
+record_workflow_transition_updated = _workflow_builder("workflow.transition_updated")
+record_workflow_assignment_created = _workflow_builder("workflow.assignment_created")
+record_workflow_assignment_updated = _workflow_builder("workflow.assignment_updated")
+record_workflow_instance_started = _workflow_builder("workflow.instance_started")
+record_workflow_instance_transitioned = _workflow_builder("workflow.instance_transitioned")
+record_workflow_instance_completed = _workflow_builder("workflow.instance_completed")
+record_workflow_instance_cancelled = _workflow_builder("workflow.instance_cancelled")

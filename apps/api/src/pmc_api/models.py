@@ -166,3 +166,108 @@ class OrganizationUnitAssignment(TimestampMixin, Base):
     is_primary: Mapped[bool] = mapped_column(nullable=False, default=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowDefinition(TimestampMixin, Base):
+    __tablename__ = "workflow_definitions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(1000))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowVersion(TimestampMixin, Base):
+    __tablename__ = "workflow_versions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    definition_id: Mapped[UUID] = mapped_column(nullable=False)
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowStep(TimestampMixin, Base):
+    __tablename__ = "workflow_steps"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
+    step_key: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    description: Mapped[str | None] = mapped_column(String(1000))
+    step_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    is_start: Mapped[bool] = mapped_column(nullable=False, default=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowTransition(TimestampMixin, Base):
+    __tablename__ = "workflow_transitions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
+    from_step_id: Mapped[UUID] = mapped_column(nullable=False)
+    to_step_id: Mapped[UUID] = mapped_column(nullable=False)
+    transition_key: Mapped[str] = mapped_column(String(40), nullable=False)
+    label: Mapped[str] = mapped_column(String(160), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowStepAssignment(TimestampMixin, Base):
+    __tablename__ = "workflow_step_assignments"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
+    step_id: Mapped[UUID] = mapped_column(nullable=False)
+    target_type: Mapped[str] = mapped_column(String(24), nullable=False)
+    target_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    target_organization_unit_id: Mapped[UUID | None] = mapped_column()
+    target_application_role: Mapped[str | None] = mapped_column(String(20))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowInstance(TimestampMixin, Base):
+    __tablename__ = "workflow_instances"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    reference: Mapped[str | None] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    current_step_id: Mapped[UUID] = mapped_column(nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    started_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class WorkflowInstanceEvent(Base):
+    __tablename__ = "workflow_instance_events"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id", ondelete="RESTRICT"))
+    instance_id: Mapped[UUID] = mapped_column(nullable=False)
+    workflow_version_id: Mapped[UUID] = mapped_column(nullable=False)
+    event_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    from_step_id: Mapped[UUID | None] = mapped_column()
+    to_step_id: Mapped[UUID | None] = mapped_column()
+    transition_id: Mapped[UUID | None] = mapped_column()
+    actor_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
+    request_id: Mapped[UUID] = mapped_column(nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    event_metadata: Mapped[dict[str, object]] = mapped_column(
+        "metadata", JSON, nullable=False, default=dict
+    )
+    reason: Mapped[str | None] = mapped_column(String(500))
