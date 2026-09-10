@@ -403,8 +403,13 @@ def _draft_pair() -> tuple[
 
 
 def _expect_rejected(connection: Connection, statement: str, params: dict[str, object]) -> None:
-    with connection.begin_nested(), pytest.raises(DBAPIError):
+    try:
         connection.execute(text(statement), params)
+    except DBAPIError:
+        connection.rollback()
+        context(connection, OWNER, TENANT_A)
+        return
+    pytest.fail("expected PostgreSQL statement to be rejected")
 
 
 def test_published_insert_guards_cover_all_configuration_tables() -> None:
@@ -491,20 +496,21 @@ def test_event_references_are_pinned_and_history_is_append_only() -> None:
         )
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
         context(connection, OWNER, TENANT_A)
-        with connection.begin_nested(), pytest.raises(DBAPIError):
-            connection.execute(
-                text("UPDATE workflow_instance_events SET workflow_version_id=:bad WHERE id=:id"),
-                {"bad": uuid4(), "id": event_id},
-            )
-        with connection.begin_nested(), pytest.raises(DBAPIError):
-            connection.execute(
-                text("DELETE FROM workflow_instance_events WHERE id=:id"), {"id": event_id}
-            )
+        _expect_rejected(
+            connection,
+            "UPDATE workflow_instance_events SET workflow_version_id=:bad WHERE id=:id",
+            {"bad": uuid4(), "id": event_id},
+        )
+        _expect_rejected(
+            connection,
+            "DELETE FROM workflow_instance_events WHERE id=:id",
+            {"id": event_id},
+        )
     assert transition.id and start.id
 
 
 def test_step_transition_assignment_mutations_emit_audit_in_same_transaction() -> None:
-    version, start, end, _, _, _ = _draft_pair()
+    _, _, _, version, start, end = _draft_pair()
     actor = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
         set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
@@ -562,7 +568,7 @@ def test_step_transition_assignment_mutations_emit_audit_in_same_transaction() -
 
 
 def test_configuration_rolls_back_when_audit_writer_fails(monkeypatch: pytest.MonkeyPatch) -> None:
-    version, _, _, _, _, _ = _draft_pair()
+    _, _, _, version, _, _ = _draft_pair()
     actor = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
 
     def fail(*args: object, **kwargs: object) -> None:
@@ -601,6 +607,7 @@ def test_cancellation_reason_is_bounded_and_stored_as_domain_event() -> None:
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
         set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         instance = start_instance(db, actor, uuid4(), version, "Cancel", None)
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         cancelled = cancel_instance(db, actor, uuid4(), instance, "  no longer needed  ")
         reason = db.scalar(
             text(
@@ -612,7 +619,7 @@ def test_cancellation_reason_is_bounded_and_stored_as_domain_event() -> None:
 
 
 def test_actor_specific_actions_use_pinned_current_step_and_assignment() -> None:
-    version, transition, _ = build_published(role_target="member")
+    version, transition, _ = build_published(role_target=str(MEMBER), target_type="user")
     member = WorkflowActor(MEMBER, str(MEMBER), "member", TENANT_A)
     owner = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
