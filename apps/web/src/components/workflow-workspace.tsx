@@ -3,6 +3,8 @@
 import { CheckCircle2, GitBranch, ListChecks, Plus, Rocket, Workflow } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
+import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+
 type Props = { role: string };
 type Definition = { id: string; code: string; name: string; description: string | null; status: string };
 type Version = { id: string; definition_id: string; version_number: number; status: string };
@@ -52,15 +54,21 @@ export function WorkflowWorkspace({ role }: Props) {
   const [newAssignment, setNewAssignment] = useState({ step_id: "", target_type: "application_role", target_user_id: "", target_application_role: "member" });
   const [newInstance, setNewInstance] = useState({ workflow_version_id: "", title: "", reference: "" });
   const [cancelReason, setCancelReason] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [definitionResponse, instanceResponse, memberResponse] = await Promise.all([call("/workflows"), call("/workflow-instances"), call("/organization/members")]);
-    if (definitionResponse.ok) setDefinitions((await definitionResponse.json()) as Definition[]);
-    if (memberResponse.ok) setMembers((await memberResponse.json()) as Member[]);
-    if (instanceResponse.ok) {
+    try {
+      const [definitionResponse, instanceResponse, memberResponse] = await Promise.all([call("/workflows"), call("/workflow-instances"), call("/organization/members")]);
+      if (!definitionResponse.ok || !instanceResponse.ok || !memberResponse.ok) throw new Error("Workflow workspace could not be loaded.");
+      setDefinitions((await definitionResponse.json()) as Definition[]);
+      setMembers((await memberResponse.json()) as Member[]);
       const rows = (await instanceResponse.json()) as Instance[]; setInstances(rows);
       const pairs = await Promise.all(rows.map(async (item) => { const response = await call(`/workflow-instances/${item.id}/actions`); return [item.id, response.ok ? (await response.json()) as Action[] : []] as const; }));
       setActionsByInstance(Object.fromEntries(pairs));
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Workflow workspace is unavailable.");
+    } finally {
+      setInitialLoading(false);
     }
   }, []);
 
@@ -161,6 +169,7 @@ export function WorkflowWorkspace({ role }: Props) {
     <section className="workflow-workspace" aria-labelledby="workflow-heading">
       <div className="workspace-heading"><div><p className="eyebrow">Controlled operations</p><h2 id="workflow-heading"><Workflow aria-hidden="true" size={21} /> Workflow Engine</h2><p className="workspace-subtitle">Versioned approvals and tasks for this organization.</p></div><span className="status-note"><CheckCircle2 aria-hidden="true" size={16} /> {canWrite ? "Configuration access" : "Read-only access"}</span></div>
       {message && <p className="workflow-message" role="status">{message}</p>}
+      {initialLoading ? <RecordWorkspaceSkeleton label="Loading workflow workspace" /> : <>
       <div className="workflow-grid">
         <div className="workflow-list"><h3><ListChecks aria-hidden="true" size={18} /> Definitions</h3>{definitions.length === 0 ? <p className="empty-state">No workflow definitions yet.</p> : <ul>{definitions.map((item) => <li key={item.id}><button type="button" className={selected?.id === item.id ? "selected" : ""} onClick={() => void choose(item)}><strong>{item.name}</strong><small>{item.code} · {item.status}</small></button></li>)}</ul>}
           {canWrite && <form className="workflow-form" onSubmit={(event) => void submitDefinition(event)}><h4>New definition</h4><label>Code<input required maxLength={40} value={newDefinition.code} onChange={(event) => setNewDefinition({ ...newDefinition, code: event.target.value })} /></label><label>Name<input required maxLength={160} value={newDefinition.name} onChange={(event) => setNewDefinition({ ...newDefinition, name: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Plus aria-hidden="true" size={17} /> Create definition</button></form>}
@@ -171,6 +180,7 @@ export function WorkflowWorkspace({ role }: Props) {
       {canWrite && <form className="workflow-form" onSubmit={(event) => void startInstance(event)}><h3>Start instance</h3><label>Published version<select required value={newInstance.workflow_version_id} onChange={(event) => setNewInstance({ ...newInstance, workflow_version_id: event.target.value })}><option value="">Select published version</option>{versions.filter((item) => item.status === "published").map((item) => <option key={item.id} value={item.id}>v{item.version_number}</option>)}</select></label><label>Title<input required maxLength={200} value={newInstance.title} onChange={(event) => setNewInstance({ ...newInstance, title: event.target.value })} /></label><label>Reference<input maxLength={200} value={newInstance.reference} onChange={(event) => setNewInstance({ ...newInstance, reference: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Rocket aria-hidden="true" size={16} /> Start instance</button></form>}
       <div className="workflow-instances"><div className="assignment-heading"><h3>Instances</h3><span>{instances.length} visible</span></div>{instances.length === 0 ? <p className="empty-state">No active or completed instances.</p> : <ul className="step-list">{instances.map((item) => <li key={item.id}><button type="button" className="secondary-action compact-action" onClick={() => void inspectInstance(item)}>Inspect</button><strong>{item.title}</strong><small>{item.status} · step {item.current_step_id.slice(0, 8)} · version {item.row_version}</small>{item.status === "active" && role !== "auditor" && <div className="instance-actions">{(actionsByInstance[item.id] ?? []).map((action) => <button key={action.id} className="secondary-action compact-action" type="button" onClick={() => void transitionInstance(item, action)}><GitBranch aria-hidden="true" size={16} /> {action.label}</button>)}</div>}</li>)}</ul>}</div>
       {selectedInstance && <div className="workflow-instances"><div className="detail-heading"><div><h3>{selectedInstance.title}</h3><p>{selectedInstance.status} · version {selectedInstance.workflow_version_id.slice(0, 8)}</p></div></div><h4>History</h4><ul className="step-list">{history.map((event) => <li key={event.id}><strong>{event.event_type}</strong><small>{new Date(event.occurred_at).toLocaleString()}{event.reason ? ` · ${event.reason}` : ""}</small></li>)}</ul>{canWrite && selectedInstance.status === "active" && <div className="instance-actions"><input aria-label="Cancellation reason" required maxLength={500} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="Cancellation reason" /><button className="secondary-action compact-action" type="button" onClick={() => void cancelSelected()}>Cancel instance</button></div>}</div>}
+      </>}
     </section>
   );
 }

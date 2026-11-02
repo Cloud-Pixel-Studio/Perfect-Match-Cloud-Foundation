@@ -15,6 +15,7 @@ version comment remains beside every SHA for human review.
 | `pnpm/action-setup` | `v4.3.0` | `b906affcce14559ad1aafd4ab0e942779e9f58b1` |
 | `astral-sh/setup-uv` | `v6.8.0` | `d0cc045d04ccac9d8b7881df0226f9e82c39688e` |
 | `aquasecurity/trivy-action` | `v0.36.0` | `ed142fd0673e97e23eac54620cfb913e5ce36c25` |
+| `github/codeql-action` | `v4` | `793b778da9c9275a0f276522b27cb5fc14bba279` |
 
 The SHAs were resolved from each canonical upstream Git tag. Annotated tags
 were dereferenced to the underlying commit before pinning.
@@ -50,3 +51,33 @@ Dependabot, Renovate, and equivalent automated dependency or action updates are
 not authorized unless the Product Owner approves them separately. Hosted runner
 labels remain managed by GitHub; their exact image versions are recorded in CI
 logs because GitHub-hosted runner labels cannot be pinned to an image digest.
+
+## Runtime malware scanner
+
+The document-upload scanner uses the official Cisco Talos ClamAV Alpine image
+`clamav/clamav:1.5.4`, pinned to manifest digest
+`sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d`.
+The digest was inspected from Docker Hub on 2026-10-28 and scanned with Trivy;
+that run reported no vulnerabilities. CI generates a CycloneDX SBOM and blocks
+critical/high findings for this image. The selected manifest currently provides
+`linux/amd64`; local Apple Silicon uses emulation, so an ARM deployment needs a
+separately reviewed multi-architecture image.
+
+ClamD is reachable only on the internal platform network. A separate network is
+attached solely to ClamAV for FreshClam signature updates. No host port is
+published. ClamD's TCP protocol has no authentication or encryption, so network
+isolation is required; see the [ClamD protocol guide](https://docs.clamav.net/manual/Usage/ClamdProtocol.html)
+and [official Docker guidance](https://docs.clamav.net/manual/Installing/Docker.html).
+
+## Multi-architecture application images
+
+The API runtime installs the hash-locked `requirements-runtime.txt` with the
+installer already provided by the pinned, target-architecture Python image. The
+installer and its metadata are removed before the final image is exported. This
+avoids copying an `amd64` executable into an `arm64` runtime while preserving
+`--require-hashes`, optional offline wheel installation and a non-root final user.
+
+The local 2026-11-02 ARM build completed natively. Trivy reported zero High or
+Critical vulnerabilities in the resulting API and web images. CI still rebuilds
+and scans commit-bound images; support for an additional production architecture
+must be demonstrated by a matrix build before that architecture is approved.

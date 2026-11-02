@@ -11,7 +11,361 @@ from sqlalchemy.orm import Session
 from pmc_api.models import AuditEvent
 
 AUDIT_SCHEMA_VERSION = 1
+PROCESS_ACTIONS = {
+    action: "qms_process"
+    for action in (
+        "process.created",
+        "process.updated",
+        "process.archived",
+        "process.restored",
+    )
+}
+CONTROL_ACTIONS = {
+    **{
+        action: "qms_control"
+        for action in ("control.created", "control.updated", "control.activated", "control.retired")
+    },
+    **{
+        action: "qms_control_instance"
+        for action in (
+            "control_instance.created",
+            "control_instance.updated",
+            "control_instance.transitioned",
+        )
+    },
+    **{
+        action: "qms_control_activity"
+        for action in (
+            "control.activity_created",
+            "control.activity_updated",
+            "control.activity_deactivated",
+        )
+    },
+    **{
+        action: "qms_control_evidence_requirement"
+        for action in (
+            "control.evidence_requirement_created",
+            "control.evidence_requirement_updated",
+            "control.evidence_requirement_deactivated",
+        )
+    },
+    **{
+        action: "qms_control_instance_activity"
+        for action in (
+            "control_instance_activity.created",
+            "control_instance_activity.updated",
+            "control_instance_activity.transitioned",
+        )
+    },
+    **{
+        action: "qms_control_instance_evidence"
+        for action in (
+            "control_instance_evidence.created",
+            "control_instance_evidence.updated",
+            "control_instance_evidence.submitted",
+            "control_instance_evidence.accepted",
+            "control_instance_evidence.rejected",
+        )
+    },
+}
+QMS_ACCESS_ACTIONS = {
+    "qms.access_granted": "qms_access_grant",
+    "qms.access_revoked": "qms_access_grant",
+}
 ACTION_TENANT_SELECTED = "auth.tenant_selected"
+RISK_ACTIONS = {
+    action: "qms_risk"
+    for action in ("risk.created", "risk.updated", "risk.transitioned", "risk.reviewed")
+}
+NCR_ACTIONS = {
+    action: "qms_nonconformity" for action in ("ncr.created", "ncr.updated", "ncr.transitioned")
+}
+CAPA_ACTIONS = {
+    action: "qms_capa"
+    for action in (
+        "capa.created",
+        "capa.updated",
+        "capa.analysis_started",
+        "capa.analysis_updated",
+        "capa.plan_started",
+        "capa.implementation_started",
+        "capa.effectiveness_review_started",
+        "capa.effectiveness_decided",
+        "capa.closed",
+        "capa.cancelled",
+    )
+}
+CAPA_ITEM_ACTIONS = {
+    action: "qms_capa_action"
+    for action in ("capa.action_created", "capa.action_updated", "capa.action_transitioned")
+}
+CAPA_EFFECTIVENESS_ACTIONS = {"capa.effectiveness_recorded": "qms_capa_effectiveness_review"}
+CAPA_EFFECTIVENESS_AUDIT_FIELDS = frozenset(
+    {
+        "capa_id",
+        "unit_id",
+        "cycle_number",
+        "decision",
+        "notes_hash",
+        "reviewer_user_id",
+        "reviewed_at",
+        "implementation_started_by_user_id",
+        "implementation_started_at",
+        "review_started_by_user_id",
+        "review_started_at",
+        "active_action_count",
+        "verified_action_count",
+        "cancelled_action_count",
+    }
+)
+CAPA_ITEM_AUDIT_FIELDS = frozenset(
+    {
+        "capa_id",
+        "unit_id",
+        "title_hash",
+        "description_hash",
+        "owner_user_id",
+        "due_date",
+        "state",
+        "completed_by_user_id",
+        "completed_at",
+        "verified_by_user_id",
+        "verified_at",
+        "verification_notes_hash",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "cancellation_reason_hash",
+        "row_version",
+        "created_by_user_id",
+        "created_at",
+        "updated_at",
+    }
+)
+CAPA_AUDIT_FIELDS = frozenset(
+    {
+        "unit_id",
+        "process_id",
+        "code",
+        "name",
+        "source_type",
+        "source_ncr_id",
+        "source_risk_id",
+        "source_code",
+        "source_state",
+        "source_reference_hash",
+        "owner_user_id",
+        "target_date",
+        "root_cause_method",
+        "state",
+        "row_version",
+        "problem_statement_hash",
+        "analysis_data_hash",
+        "analysis_summary_hash",
+        "verified_root_cause_hash",
+        "other_method_name_hash",
+        "analysis_started_by_user_id",
+        "analysis_started_at",
+        "plan_summary_hash",
+        "planned_by_user_id",
+        "planned_at",
+        "implementation_started_by_user_id",
+        "implementation_started_at",
+        "review_started_by_user_id",
+        "review_started_at",
+        "effective_by_user_id",
+        "effective_at",
+        "closed_by_user_id",
+        "closed_at",
+        "closure_notes_hash",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "cancellation_reason_hash",
+    }
+)
+NCR_AUDIT_FIELDS = frozenset(
+    {
+        "unit_id",
+        "process_id",
+        "code",
+        "name",
+        "source_type",
+        "severity",
+        "detected_date",
+        "detected_by_user_id",
+        "owner_user_id",
+        "containment_required",
+        "containment_owner_user_id",
+        "containment_date",
+        "containment_completed",
+        "disposition",
+        "target_date",
+        "state",
+        "opened_by_user_id",
+        "opened_at",
+        "reviewed_by_user_id",
+        "reviewed_at",
+        "closed_by_user_id",
+        "closed_at",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "row_version",
+        "description_hash",
+        "containment_action_hash",
+        "disposition_notes_hash",
+        "root_cause_summary_hash",
+        "closure_notes_hash",
+        "cancellation_reason_hash",
+    }
+)
+RISK_LINK_ACTIONS = {
+    action: "qms_risk_link"
+    for action in (
+        "risk.control_linked",
+        "risk.control_unlinked",
+        "risk.document_linked",
+        "risk.document_unlinked",
+    )
+}
+RISK_LINK_COMMON_FIELDS = frozenset(
+    {
+        "risk_id",
+        "unit_id",
+        "risk_row_version",
+        "status",
+        "row_version",
+        "created_by_user_id",
+        "created_at",
+        "removed_by_user_id",
+        "removed_at",
+        "removal_reason_hash",
+        "target_process_id",
+        "snapshot_code",
+        "snapshot_name",
+        "linked_target_version",
+    }
+)
+NCR_LINK_ACTIONS = {
+    action: "qms_ncr_link"
+    for action in (
+        "ncr.risk_linked",
+        "ncr.risk_unlinked",
+        "ncr.control_linked",
+        "ncr.control_unlinked",
+        "ncr.evidence_linked",
+        "ncr.evidence_unlinked",
+        "ncr.document_linked",
+        "ncr.document_unlinked",
+    )
+}
+NCR_LINK_COMMON_FIELDS = frozenset(
+    {
+        "nonconformity_id",
+        "unit_id",
+        "ncr_row_version",
+        "status",
+        "row_version",
+        "created_by_user_id",
+        "created_at",
+        "removed_by_user_id",
+        "removed_at",
+        "removal_reason_hash",
+        "target_process_id",
+        "snapshot_code",
+        "snapshot_name",
+        "linked_target_version",
+    }
+)
+CAPA_DOCUMENT_LINK_ACTIONS = {
+    action: "qms_capa_document_link"
+    for action in ("capa.document_linked", "capa.document_unlinked")
+}
+CAPA_DOCUMENT_LINK_AUDIT_FIELDS = frozenset(
+    {
+        "capa_id",
+        "unit_id",
+        "capa_row_version",
+        "document_id",
+        "document_revision_id",
+        "target_process_id",
+        "snapshot_code",
+        "snapshot_name",
+        "snapshot_revision",
+        "file_sha256",
+        "linked_target_version",
+        "status",
+        "row_version",
+        "created_by_user_id",
+        "created_at",
+        "removed_by_user_id",
+        "removed_at",
+        "removal_reason_hash",
+    }
+)
+CAPA_TRACE_LINK_ACTIONS = {
+    action: "qms_capa_trace_link"
+    for action in (
+        "capa.control_linked",
+        "capa.control_unlinked",
+        "capa.evidence_linked",
+        "capa.evidence_unlinked",
+    )
+}
+CAPA_TRACE_LINK_COMMON_FIELDS = frozenset(
+    {
+        "capa_id",
+        "unit_id",
+        "capa_row_version",
+        "target_process_id",
+        "snapshot_code",
+        "snapshot_name",
+        "linked_target_version",
+        "status",
+        "row_version",
+        "created_by_user_id",
+        "created_at",
+        "removed_by_user_id",
+        "removed_at",
+        "removal_reason_hash",
+    }
+)
+RISK_AUDIT_FIELDS = frozenset(
+    {
+        "unit_id",
+        "process_id",
+        "code",
+        "name",
+        "risk_type",
+        "category",
+        "source_hash",
+        "description_hash",
+        "cause_hash",
+        "potential_effect_hash",
+        "benefit_hash",
+        "opportunity_action_hash",
+        "mitigation_plan_hash",
+        "closure_notes_hash",
+        "owner_user_id",
+        "likelihood",
+        "impact",
+        "residual_likelihood",
+        "residual_impact",
+        "response_strategy",
+        "target_date",
+        "review_date",
+        "state",
+        "scoring_model",
+        "threshold_moderate",
+        "threshold_high",
+        "threshold_critical",
+        "assessed_by_user_id",
+        "assessed_at",
+        "reviewed_by_user_id",
+        "reviewed_at",
+        "closed_by_user_id",
+        "closed_at",
+        "row_version",
+    }
+)
 ORGANIZATION_ACTIONS = {
     "organization.unit_created": "organization_unit",
     "organization.unit_updated": "organization_unit",
@@ -199,7 +553,23 @@ def _record(
     new_values: dict[str, object] | None = None,
     metadata: dict[str, object] | None = None,
 ) -> AuditEvent:
-    expected_resource = {**ORGANIZATION_ACTIONS, **WORKFLOW_ACTIONS}.get(action)
+    expected_resource = {
+        **ORGANIZATION_ACTIONS,
+        **WORKFLOW_ACTIONS,
+        **QMS_ACCESS_ACTIONS,
+        **PROCESS_ACTIONS,
+        **CONTROL_ACTIONS,
+        **RISK_ACTIONS,
+        **NCR_ACTIONS,
+        **CAPA_ACTIONS,
+        **CAPA_ITEM_ACTIONS,
+        **CAPA_EFFECTIVENESS_ACTIONS,
+        **NCR_LINK_ACTIONS,
+        **CAPA_DOCUMENT_LINK_ACTIONS,
+        **CAPA_TRACE_LINK_ACTIONS,
+        **RISK_LINK_ACTIONS,
+        **{name: definition[0] for name, definition in DOCUMENT_ACTIONS.items()},
+    }.get(action)
     if action != ACTION_TENANT_SELECTED and expected_resource != resource_type:
         raise AuditPayloadError("audit action or resource type is invalid")
     if not resource_type or len(resource_type) > 80:
@@ -372,6 +742,313 @@ def _workflow_builder(action: str) -> Callable[..., AuditEvent]:
     return record
 
 
+def record_qms_access(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in QMS_ACCESS_ACTIONS:
+        raise AuditPayloadError("unsupported QMS access audit action")
+    payload = kwargs.get("new_values")
+    allowed = {"user_id", "unit_id", "capability", "status"}
+    if not isinstance(payload, dict) or set(payload) != allowed:
+        raise AuditPayloadError("QMS access audit payload fields are invalid")
+    return _record(db, resource_type="qms_access_grant", **kwargs)  # type: ignore[arg-type]
+
+
+def record_process(db: Session, **kwargs: object) -> AuditEvent:
+    if kwargs.get("action") not in PROCESS_ACTIONS:
+        raise AuditPayloadError("unsupported process audit action")
+    allowed = {
+        "unit_id",
+        "code",
+        "name",
+        "process_type",
+        "parent_id",
+        "owner_user_id",
+        "sequence",
+        "department",
+        "status",
+        "row_version",
+        "description_hash",
+        "inputs_hash",
+        "outputs_hash",
+        "site_ids",
+    }
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != allowed):
+            raise AuditPayloadError("process audit payload fields are invalid")
+    return _record(db, resource_type="qms_process", **kwargs)  # type: ignore[arg-type]
+
+
+def record_ncr(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in NCR_ACTIONS:
+        raise AuditPayloadError("unsupported nonconformity audit action")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        expected = NCR_AUDIT_FIELDS | (
+            {"decision"} if field == "new_values" and action == "ncr.transitioned" else set()
+        )
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != expected):
+            raise AuditPayloadError("nonconformity audit payload fields are invalid")
+    return _record(db, resource_type="qms_nonconformity", **kwargs)  # type: ignore[arg-type]
+
+
+def record_capa(db: Session, **kwargs: object) -> AuditEvent:
+    if kwargs.get("action") not in CAPA_ACTIONS:
+        raise AuditPayloadError("unsupported CAPA audit action")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or set(payload) != CAPA_AUDIT_FIELDS
+        ):
+            raise AuditPayloadError("CAPA audit payload fields are invalid")
+    return _record(db, resource_type="qms_capa", **kwargs)  # type: ignore[arg-type]
+
+
+def record_capa_action(db: Session, **kwargs: object) -> AuditEvent:
+    if kwargs.get("action") not in CAPA_ITEM_ACTIONS:
+        raise AuditPayloadError("unsupported CAPA action audit event")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or set(payload) != CAPA_ITEM_AUDIT_FIELDS
+        ):
+            raise AuditPayloadError("CAPA action audit payload fields are invalid")
+    return _record(db, resource_type="qms_capa_action", **kwargs)  # type: ignore[arg-type]
+
+
+def record_capa_effectiveness_review(db: Session, **kwargs: object) -> AuditEvent:
+    if kwargs.get("action") not in CAPA_EFFECTIVENESS_ACTIONS:
+        raise AuditPayloadError("unsupported CAPA effectiveness audit event")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or set(payload) != CAPA_EFFECTIVENESS_AUDIT_FIELDS
+        ):
+            raise AuditPayloadError("CAPA effectiveness audit payload fields are invalid")
+    return _record(db, resource_type="qms_capa_effectiveness_review", **kwargs)  # type: ignore[arg-type]
+
+
+def record_risk(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in RISK_ACTIONS:
+        raise AuditPayloadError("unsupported risk audit action")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        expected = RISK_AUDIT_FIELDS
+        if field == "new_values" and action in {"risk.transitioned", "risk.reviewed"}:
+            expected = expected | {"decision"}
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != expected):
+            raise AuditPayloadError("risk audit payload fields are invalid")
+    return _record(db, resource_type="qms_risk", **kwargs)  # type: ignore[arg-type]
+
+
+def record_risk_link(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in RISK_LINK_ACTIONS:
+        raise AuditPayloadError("unsupported risk link audit action")
+    allowed = RISK_LINK_COMMON_FIELDS | (
+        {"control_instance_id"}
+        if action.startswith("risk.control_")
+        else {"document_id", "document_revision_id", "snapshot_revision", "file_sha256"}
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != allowed):
+            raise AuditPayloadError("risk link audit payload fields are invalid")
+    return _record(db, resource_type="qms_risk_link", **kwargs)  # type: ignore[arg-type]
+
+
+def record_ncr_link(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in NCR_LINK_ACTIONS:
+        raise AuditPayloadError("unsupported NCR link audit action")
+    allowed = NCR_LINK_COMMON_FIELDS | (
+        {"risk_id"}
+        if action.startswith("ncr.risk_")
+        else (
+            {"control_instance_id"}
+            if action.startswith("ncr.control_")
+            else (
+                {"evidence_id", "control_instance_id"}
+                if action.startswith("ncr.evidence_")
+                else {"document_id", "document_revision_id", "snapshot_revision", "file_sha256"}
+            )
+        )
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != allowed):
+            raise AuditPayloadError("NCR link audit payload fields are invalid")
+    return _record(db, resource_type="qms_ncr_link", **kwargs)  # type: ignore[arg-type]
+
+
+def record_capa_document_link(db: Session, **kwargs: object) -> AuditEvent:
+    if kwargs.get("action") not in CAPA_DOCUMENT_LINK_ACTIONS:
+        raise AuditPayloadError("unsupported CAPA document link action")
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or set(payload) != CAPA_DOCUMENT_LINK_AUDIT_FIELDS
+        ):
+            raise AuditPayloadError("CAPA document link audit fields are invalid")
+    return _record(db, resource_type="qms_capa_document_link", **kwargs)  # type: ignore[arg-type]
+
+
+def record_capa_trace_link(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in CAPA_TRACE_LINK_ACTIONS:
+        raise AuditPayloadError("unsupported CAPA trace link action")
+    allowed = CAPA_TRACE_LINK_COMMON_FIELDS | (
+        {"control_instance_id"}
+        if action.startswith("capa.control_")
+        else {"evidence_id", "control_instance_id"}
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != allowed):
+            raise AuditPayloadError("CAPA trace link audit fields are invalid")
+    return _record(db, resource_type="qms_capa_trace_link", **kwargs)  # type: ignore[arg-type]
+
+
+def record_control(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    if action not in CONTROL_ACTIONS:
+        raise AuditPayloadError("unsupported control audit action")
+    resource_type = CONTROL_ACTIONS[action]
+    allowed = (
+        {
+            "unit_id",
+            "process_id",
+            "code",
+            "name",
+            "objective_hash",
+            "description_hash",
+            "category",
+            "guidance_hashes",
+            "owner_user_id",
+            "state",
+            "row_version",
+        }
+        if resource_type == "qms_control"
+        else {
+            "unit_id",
+            "process_id",
+            "control_id",
+            "control_instance_id",
+            "requirement_definition_id",
+            "sequence",
+            "name",
+            "description_hash",
+            "acceptance_criteria_hash",
+            "evidence_type",
+            "mandatory",
+            "document_id",
+            "document_revision_id",
+            "evidence_summary_hash",
+            "status",
+            "submitted_by_user_id",
+            "submitted_at",
+            "reviewed_by_user_id",
+            "reviewed_at",
+            "review_decision_hash",
+            "row_version",
+        }
+        if resource_type == "qms_control_instance_evidence"
+        else {
+            "unit_id",
+            "process_id",
+            "control_id",
+            "control_instance_id",
+            "activity_definition_id",
+            "sequence",
+            "name",
+            "description_hash",
+            "objective_hash",
+            "why_it_matters_hash",
+            "implementation_steps_hash",
+            "success_criteria_hash",
+            "activity_kind",
+            "readiness_required",
+            "responsible_role",
+            "expected_output_hash",
+            "evidence_expectations_hash",
+            "assigned_to_user_id",
+            "status",
+            "target_date",
+            "completion_summary_hash",
+            "notes_hash",
+            "completed_by_user_id",
+            "completed_at",
+            "row_version",
+        }
+        if resource_type == "qms_control_instance_activity"
+        else {
+            "unit_id",
+            "process_id",
+            "control_id",
+            "code",
+            "name",
+            "owner_user_id",
+            "implementation_status",
+            "applicability",
+            "justification_hash",
+            "target_date",
+            "implementation_date",
+            "review_date",
+            "notes_hash",
+            "status",
+            "row_version",
+        }
+        if resource_type == "qms_control_instance"
+        else {
+            "unit_id",
+            "process_id",
+            "control_id",
+            "sequence",
+            "name",
+            "description_hash",
+            "objective_hash",
+            "why_it_matters_hash",
+            "implementation_steps_hash",
+            "success_criteria_hash",
+            "activity_kind",
+            "readiness_required",
+            "responsible_role",
+            "expected_output_hash",
+            "evidence_expectations_hash",
+            "definition_key",
+            "active",
+            "row_version",
+        }
+        if resource_type == "qms_control_activity"
+        else {
+            "unit_id",
+            "process_id",
+            "control_id",
+            "sequence",
+            "name",
+            "description_hash",
+            "acceptance_criteria_hash",
+            "evidence_type",
+            "mandatory",
+            "definition_key",
+            "active",
+            "row_version",
+        }
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        expected = allowed
+        if field == "new_values" and action == "control_instance.transitioned":
+            expected = allowed | {"decision"}
+        if field == "new_values" and action == "control_instance_activity.transitioned":
+            expected = allowed | {"decision"}
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != expected):
+            raise AuditPayloadError("control audit payload fields are invalid")
+    return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
+
+
 record_workflow_definition_created = _workflow_builder("workflow.definition_created")
 record_workflow_definition_updated = _workflow_builder("workflow.definition_updated")
 record_workflow_definition_retired = _workflow_builder("workflow.definition_retired")
@@ -388,3 +1065,74 @@ record_workflow_instance_started = _workflow_builder("workflow.instance_started"
 record_workflow_instance_transitioned = _workflow_builder("workflow.instance_transitioned")
 record_workflow_instance_completed = _workflow_builder("workflow.instance_completed")
 record_workflow_instance_cancelled = _workflow_builder("workflow.instance_cancelled")
+
+DOCUMENT_REVISION_AUDIT_FIELDS = frozenset(
+    {
+        "document_id",
+        "revision",
+        "status",
+        "prepared_by_user_id",
+        "reviewed_by_user_id",
+        "approved_by_user_id",
+        "file_state",
+        "row_version",
+        "file_sha256",
+        "file_size",
+        "effective_date",
+        "review_date",
+    }
+)
+
+DOCUMENT_ACTIONS = {
+    "document.created": (
+        "qms_document",
+        frozenset(
+            {
+                "unit_id",
+                "process_id",
+                "code",
+                "title",
+                "document_type",
+                "owner_user_id",
+                "status",
+                "current_revision_id",
+                "row_version",
+            }
+        ),
+    ),
+    "document.obsoleted": (
+        "qms_document",
+        frozenset(
+            {
+                "unit_id",
+                "process_id",
+                "code",
+                "title",
+                "document_type",
+                "owner_user_id",
+                "status",
+                "current_revision_id",
+                "row_version",
+            }
+        ),
+    ),
+    "revision.created": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+    "revision.updated": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+    "revision.submitted": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+    "revision.rejected": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+    "revision.approved": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+    "revision.released": ("qms_document_revision", DOCUMENT_REVISION_AUDIT_FIELDS),
+}
+
+
+def record_document(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    definition = DOCUMENT_ACTIONS.get(action)
+    if definition is None:
+        raise AuditPayloadError("unsupported document audit action")
+    resource_type, fields = definition
+    for key in ("old_values", "new_values"):
+        value = kwargs.get(key)
+        if value is not None and (not isinstance(value, dict) or set(value) != fields):
+            raise AuditPayloadError("document audit fields are invalid")
+    return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]

@@ -6,7 +6,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   security:
@@ -72,6 +71,8 @@ jobs:
           docker tag "pmcloud-api:${IMAGE_TAG}" pmcloud-identity-bootstrap:latest
           docker tag "pmcloud-web:${IMAGE_TAG}" pmcloud-web:latest
           docker image inspect "pmcloud-api:${IMAGE_TAG}" "pmcloud-web:${IMAGE_TAG}" > artifacts/application-images.json
+      - name: Build hardened PostgreSQL image
+        run: ./scripts/build-test-postgres.sh
       - name: Prepare disposable CI runtime
         run: |
           ./scripts/prepare-local.sh "${RUNNER_TEMP}/pmcloud/dev.env"
@@ -81,9 +82,9 @@ jobs:
           chmod 644 "${PMC_RUNTIME_DIR}/seaweedfs-s3.json"
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build
           for url in http://127.0.0.1:8000/health http://127.0.0.1:3000; do
-            for attempt in $(seq 1 30); do
+            for attempt in $(seq 1 120); do
               if curl --fail --silent --show-error "$url" >/dev/null; then break; fi
-              sleep 2
+              sleep 3
             done
             curl --fail --silent --show-error "$url" >/dev/null
           done
@@ -92,22 +93,38 @@ jobs:
         if: failure()
         run: |
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps --all
-          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color seaweedfs keycloak api web || true
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color seaweedfs clamav keycloak api web || true
+      - name: Install visual QA browser
+        run: pnpm --filter @perfect-match/web exec playwright install --with-deps chromium
+      - name: Responsive visual and accessibility regression
+        run: ./scripts/run-web-visual-qa.sh "${RUNNER_TEMP}/pmcloud/dev.env"
       - name: Final application image scans
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          set -o pipefail
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-api-image.json "pmcloud-api:${IMAGE_TAG}"
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-web-image.json "pmcloud-web:${IMAGE_TAG}"
-          for report in artifacts/trivy-api-image.json artifacts/trivy-web-image.json; do
-            test "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' "$report")" -eq 0
-          done
+          jq -n \
+            --argjson api "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-api-image.json)" \
+            --argjson web "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-web-image.json)" \
+            '{api: $api, web: $web}' > artifacts/application-image-gate.json
       - name: Third-party image scans
+        id: third-party-images
         run: |
-          trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
-          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.45@sha256:fc9f76fa993ad69966ffeb2f65d0318fcae39c6f8e20cf68ef7b3a5cb97769e5
-          trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+          trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json pmcloud-postgres:local
+          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.51@sha256:f7a49e3f3972ebed5be2ed4befa4a0c68eb7bdddba6e692d42729ceb545134b8
+          trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
+          trivy image --format json --scanners vuln --output artifacts/trivy-clamav-image.json clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
+          for report in artifacts/trivy-postgres-image.json artifacts/trivy-seaweedfs-image.json artifacts/trivy-keycloak-image.json artifacts/trivy-clamav-image.json; do
+            jq -e '.Results | type == "array"' "$report" >/dev/null
+          done
+          jq -n \
+            --argjson postgres "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-postgres-image.json)" \
+            --argjson seaweedfs "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-seaweedfs-image.json)" \
+            --argjson keycloak "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-keycloak-image.json)" \
+            --argjson clamav "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-clamav-image.json)" \
+            '{postgres: $postgres, seaweedfs: $seaweedfs, keycloak: $keycloak, clamav: $clamav}' \
+            > artifacts/third-party-image-gate.json
       - name: Generate and validate CycloneDX SBOMs
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -115,7 +132,8 @@ jobs:
           trivy fs --format cyclonedx --output artifacts/sbom-repository.json .
           trivy image --format cyclonedx --output artifacts/sbom-api.json "pmcloud-api:${IMAGE_TAG}"
           trivy image --format cyclonedx --output artifacts/sbom-web.json "pmcloud-web:${IMAGE_TAG}"
-          trivy image --format cyclonedx --output artifacts/sbom-keycloak.json quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+          trivy image --format cyclonedx --output artifacts/sbom-keycloak.json quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
+          trivy image --format cyclonedx --output artifacts/sbom-clamav.json clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
           for sbom in artifacts/sbom-*.json; do
             jq -e '.bomFormat == "CycloneDX" and (.metadata | type == "object") and (.components | length > 0)' "$sbom" >/dev/null
           done
@@ -133,24 +151,38 @@ jobs:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          SBOM_COUNT=$(find artifacts -maxdepth 1 -name 'sbom-*.json' -print0 | xargs -0 -r -n1 jq '.components | length' | jq -s 'length')
-          SBOM_REPOSITORY=$(jq '.components | length' artifacts/sbom-repository.json)
-          SBOM_API=$(jq '.components | length' artifacts/sbom-api.json)
-          SBOM_WEB=$(jq '.components | length' artifacts/sbom-web.json)
-          SBOM_KEYCLOAK=$(jq '.components | length' artifacts/sbom-keycloak.json)
+          component_count() {
+            if test -f "$1"; then jq '.components | length' "$1"; else printf '%s\n' -1; fi
+          }
+          SBOM_COUNT=$(find artifacts -maxdepth 1 -name 'sbom-*.json' | wc -l | tr -d ' ')
+          SBOM_REPOSITORY=$(component_count artifacts/sbom-repository.json)
+          SBOM_API=$(component_count artifacts/sbom-api.json)
+          SBOM_WEB=$(component_count artifacts/sbom-web.json)
+          SBOM_KEYCLOAK=$(component_count artifacts/sbom-keycloak.json)
+          SBOM_CLAMAV=$(component_count artifacts/sbom-clamav.json)
           jq -n \
             --arg sha "$IMAGE_TAG" \
             --arg run "$RUN_ID" \
             --argjson images "$(cat artifacts/application-images.json 2>/dev/null || echo '[]')" \
             --argjson zap "$(cat artifacts/zap-summary.json 2>/dev/null || echo '{}')" \
             --argjson licenses "$(cat artifacts/licenses/summary.json 2>/dev/null || echo '{}')" \
+            --argjson application_image_findings "$(cat artifacts/application-image-gate.json 2>/dev/null || echo '{}')" \
+            --argjson third_party_images "$(cat artifacts/third-party-image-gate.json 2>/dev/null || echo '{}')" \
             --argjson sboms "$SBOM_COUNT" \
             --argjson repository_components "$SBOM_REPOSITORY" \
             --argjson api_components "$SBOM_API" \
             --argjson web_components "$SBOM_WEB" \
             --argjson keycloak_components "$SBOM_KEYCLOAK" \
-            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, licenses: $licenses, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components}}' \
+            --argjson clamav_components "$SBOM_CLAMAV" \
+            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, licenses: $licenses, application_image_high_or_critical: $application_image_findings, third_party_image_high_or_critical: $third_party_images, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components, clamav_components: $clamav_components}}' \
             /dev/null > artifacts/release-evidence-manifest.json
+      - name: Enforce final release gates
+        if: always()
+        run: |
+          test -f artifacts/release-evidence-manifest.json
+          jq -e 'to_entries | all(.value == 0)' artifacts/application-image-gate.json >/dev/null
+          jq -e 'to_entries | all(.value == 0)' artifacts/third-party-image-gate.json >/dev/null
+          jq -e '.sboms.count == 5 and ([.sboms.repository_components,.sboms.api_components,.sboms.web_components,.sboms.keycloak_components,.sboms.clamav_components] | all(. > 0))' artifacts/release-evidence-manifest.json >/dev/null
       - name: Stop disposable CI runtime
         if: always()
         run: |

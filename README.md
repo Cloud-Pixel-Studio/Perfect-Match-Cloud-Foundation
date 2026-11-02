@@ -4,9 +4,20 @@ Perfect Match Cloud is a proprietary, greenfield, SaaS-first quality management
 and compliance platform owned by Perfect Match Investments, LLC. It is being
 built as an independent multi-tenant product and is not an Odoo or ERP project.
 
-PMC-00 establishes the local engineering, security, governance, and executable
-application foundation. It does not implement QMS business modules or claim
-regulatory certification.
+The development foundation includes local OIDC identity and tenant isolation
+(PMC-01), an append-only event audit service (PMC-02), organization structure
+(PMC-03), and a versioned workflow engine (PMC-04). The event audit service is
+distinct from the planned QMS internal-audit module. QMS business modules and
+regulatory certification are not delivered by this foundation.
+
+The commercial model is a complete QMS per company tenant, user seats within
+that tenant, and ISO standard/edition addons. Functional QMS modules are included
+in the base product; they are not sold individually. This describes the intended
+product, not capabilities already available for purchase.
+
+The current local checkpoint and release blockers are documented in
+[`docs/product/SECURITY_CHECKPOINT_2026-10-26.md`](docs/product/SECURITY_CHECKPOINT_2026-10-26.md).
+Passing development tests does not imply production security approval.
 
 ## Roadmap namespace
 

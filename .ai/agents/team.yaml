@@ -1,0 +1,73 @@
+version: 1
+engine:
+  primary: codex
+  orchestration_phase_1: github-issues-and-actions
+  future_pilot: openai-agents-sdk-isolated-from-product-runtime
+defaults:
+  repository: Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation
+  production_access: denied
+  merge_access: denied
+  secret_access: denied
+  issue_content_trust: untrusted
+  require_dedicated_branch: true
+  require_checkpoint: true
+roles:
+  chief_architect:
+    mode: plan-review
+    writes: [docs/architecture, .ai]
+    owns: [scope-contract, dependency-map, architectural-consistency]
+  full_stack_developer:
+    mode: implementation
+    writes: [apps/api, apps/web, packages, tests]
+    requires: [approved-scope, cp-02-or-later]
+  database_engineer:
+    mode: review-test
+    writes: [apps/api/migrations, apps/api/tests]
+    owns: [rls, tenant-isolation, migration-reversibility, restore-evidence]
+  saas_platform_engineer:
+    mode: plan-review
+    writes: [docs/architecture, apps/api, apps/web]
+    owns: [tenant-lifecycle, seats, subscriptions, entitlements]
+  ui_ux_creative_director:
+    mode: plan-review
+    writes: [docs/design-system, apps/web]
+    owns: [hierarchy, interaction-model, premium-visual-direction]
+  design_system_engineer:
+    mode: implementation
+    writes: [packages/design-system, apps/web]
+    owns: [tokens, primitives, accessibility-contracts]
+  security_engineer:
+    mode: read-review
+    writes: [docs/security, security, .github/workflows]
+    owns: [threat-model, sast, dependencies, secrets, defensive-testing]
+  qa_automation_engineer:
+    mode: test
+    writes: [apps/api/tests, apps/web, tests, scripts]
+    owns: [unit, integration, regression, negative-tests]
+  visual_qa_engineer:
+    mode: test
+    writes: [tests/visual, docs/design-system]
+    owns: [screenshots, responsive-matrix, axe, keyboard]
+  devops_engineer:
+    mode: plan-review
+    writes: [.github/workflows, infrastructure, docs/recovery]
+    owns: [ci, environments, observability, rollback]
+  independent_code_reviewer:
+    mode: read-review
+    writes: []
+    owns: [regression-review, security-review, evidence-verification]
+    must_not_review_own_changes: true
+  recovery_checkpoint_engineer:
+    mode: checkpoint
+    writes: [.ai/checkpoints, docs/recovery, scripts]
+    owns: [encrypted-backup, manifest, restore-test, rollback-readiness]
+human_approval_required:
+  - pull-request-merge
+  - any-deployment
+  - authentication-or-authorization-change
+  - database-migration
+  - new-runtime-dependency
+  - billing-or-license-change
+  - security-policy-change
+  - visual-baseline-acceptance
+  - destructive-operation

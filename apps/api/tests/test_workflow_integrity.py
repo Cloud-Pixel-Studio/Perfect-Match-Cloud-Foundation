@@ -17,6 +17,7 @@ from pmc_api import audit_service
 from pmc_api.database import set_request_context
 from pmc_api.models import (
     WorkflowDefinition,
+    WorkflowInstance,
     WorkflowStep,
     WorkflowTransition,
     WorkflowVersion,
@@ -249,6 +250,91 @@ def test_published_configuration_and_history_are_immutable() -> None:
         )
         _expect_rejected(
             connection, "DELETE FROM workflow_versions WHERE id=:id", {"id": version.id}
+        )
+
+
+def test_publication_refreshes_a_preloaded_version() -> None:
+    _, _, _, version, _, _ = _draft_pair()
+    actor = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
+    runtime = engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    with Session(runtime, expire_on_commit=False) as stale:
+        set_request_context(stale, user_id=OWNER, tenant_id=TENANT_A)
+        loaded = stale.get(WorkflowVersion, version.id)
+        assert loaded is not None and loaded.status == "draft"
+        with Session(runtime, expire_on_commit=False) as winner:
+            set_request_context(winner, user_id=OWNER, tenant_id=TENANT_A)
+            publish_version(winner, actor, uuid4(), version)
+        with pytest.raises(HTTPException) as error:
+            publish_version(stale, actor, uuid4(), loaded)
+        assert error.value.status_code == 409
+
+
+@pytest.mark.parametrize("operation", ["insert", "update"])
+def test_configuration_edits_serialize_with_publication(operation: str) -> None:
+    _, _, _, version, start, _ = _draft_pair()
+    runtime = engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    with runtime.begin() as publisher:
+        context(publisher, OWNER, TENANT_A)
+        publisher.execute(
+            text("SELECT id FROM workflow_versions WHERE id=:id FOR UPDATE"),
+            {"id": version.id},
+        )
+        with pytest.raises(DBAPIError) as error, runtime.begin() as editor:
+            context(editor, OWNER, TENANT_A)
+            editor.execute(text("SET LOCAL lock_timeout = '150ms'"))
+            if operation == "insert":
+                editor.execute(
+                    text(
+                        "INSERT INTO workflow_steps (id,tenant_id,workflow_version_id,step_key,name,step_type,is_start,position,created_at,updated_at) VALUES (:id,:tenant,:version,'late','Late','task',false,2,:now,:now)"
+                    ),
+                    {
+                        "id": uuid4(),
+                        "tenant": TENANT_A,
+                        "version": version.id,
+                        "now": datetime.now(UTC),
+                    },
+                )
+            else:
+                editor.execute(
+                    text("UPDATE workflow_steps SET name='Changed' WHERE id=:id"),
+                    {"id": start.id},
+                )
+        # Require a lock timeout, not an unrelated FK, permission or SQL error.
+        original = error.value.orig
+        assert original is not None
+        assert original.args[0]["C"] == "55P03"
+
+
+def test_published_assignment_cannot_be_moved_into_a_draft() -> None:
+    version, _, start = build_published()
+    draft_id, step_id = uuid4(), uuid4()
+    now = datetime.now(UTC)
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
+        context(connection, OWNER, TENANT_A)
+        connection.execute(
+            text(
+                "INSERT INTO workflow_versions (id,tenant_id,definition_id,version_number,status,created_by_user_id,created_at,updated_at) VALUES (:id,:tenant,:definition,2,'draft',:owner,:now,:now)"
+            ),
+            {
+                "id": draft_id,
+                "tenant": TENANT_A,
+                "definition": version.definition_id,
+                "owner": OWNER,
+                "now": now,
+            },
+        )
+        connection.execute(
+            text(
+                "INSERT INTO workflow_steps (id,tenant_id,workflow_version_id,step_key,name,step_type,is_start,position,created_at,updated_at) VALUES (:id,:tenant,:version,'draft','Draft','task',true,0,:now,:now)"
+            ),
+            {"id": step_id, "tenant": TENANT_A, "version": draft_id, "now": now},
+        )
+    with engine("PMC_TEST_RUNTIME_DATABASE_URL").connect() as connection:
+        context(connection, OWNER, TENANT_A)
+        _expect_rejected(
+            connection,
+            "UPDATE workflow_step_assignments SET workflow_version_id=:draft,step_id=:target WHERE workflow_version_id=:published AND step_id=:source",
+            {"draft": draft_id, "target": step_id, "published": version.id, "source": start.id},
         )
 
 
@@ -907,6 +993,29 @@ def test_optimistic_concurrency_allows_one_transition_and_rejects_stale_writer()
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(lambda _: attempt(), (1, 2)))
     assert sorted(results) == ["conflict", "success"]
+
+
+@pytest.mark.parametrize("command", ["transition", "cancel"])
+def test_locked_instance_refreshes_an_already_loaded_session(command: str) -> None:
+    version, transition, _ = build_published(role_target="owner")
+    actor = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
+    runtime = engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    with Session(runtime, expire_on_commit=False) as db:
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        instance = start_instance(db, actor, uuid4(), version, "Preloaded request", None)
+    with Session(runtime, expire_on_commit=False) as stale:
+        set_request_context(stale, user_id=OWNER, tenant_id=TENANT_A)
+        loaded = stale.get(WorkflowInstance, instance.id)
+        assert loaded is not None and loaded.row_version == 1
+        with Session(runtime, expire_on_commit=False) as winner:
+            set_request_context(winner, user_id=OWNER, tenant_id=TENANT_A)
+            transition_instance(winner, actor, uuid4(), instance, transition.id, 1)
+        with pytest.raises(HTTPException) as error:
+            if command == "transition":
+                transition_instance(stale, actor, uuid4(), loaded, transition.id, 1)
+            else:
+                cancel_instance(stale, actor, uuid4(), loaded, "Late cancellation")
+        assert error.value.status_code == 409
 
 
 def test_disabled_user_target_is_rejected_without_deleting_configuration() -> None:

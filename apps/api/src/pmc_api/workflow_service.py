@@ -511,6 +511,15 @@ def publish_version(
     db: Session, actor: WorkflowActor, request_id: UUID, version: WorkflowVersion
 ) -> WorkflowVersion:
     _write(actor)
+    locked = db.scalar(
+        select(WorkflowVersion)
+        .where(WorkflowVersion.id == version.id, WorkflowVersion.tenant_id == actor.tenant_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if locked is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "workflow version not found")
+    version = locked
     _draft(version)
     _validate_graph(db, version)
     version.status = "published"
@@ -669,6 +678,7 @@ def transition_instance(
         select(WorkflowInstance)
         .where(WorkflowInstance.id == row.id, WorkflowInstance.tenant_id == actor.tenant_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     if locked is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "workflow instance not found")
@@ -766,6 +776,7 @@ def cancel_instance(
         select(WorkflowInstance)
         .where(WorkflowInstance.id == row.id, WorkflowInstance.tenant_id == actor.tenant_id)
         .with_for_update()
+        .execution_options(populate_existing=True)
     )
     if locked is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "workflow instance not found")
