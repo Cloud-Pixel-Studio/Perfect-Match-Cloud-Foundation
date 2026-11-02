@@ -166,7 +166,7 @@ jobs:
             jq -e '.bomFormat == "CycloneDX" and (.metadata | type == "object") and (.components | length > 0)' "$sbom" >/dev/null
           done
       - name: OWASP ZAP passive baseline
-        if: steps.runtime.outcome == 'success'
+        if: always() && steps.runtime.outcome == 'success'
         run: |
           chmod -R a+rwX artifacts
           docker run --rm --network host \
