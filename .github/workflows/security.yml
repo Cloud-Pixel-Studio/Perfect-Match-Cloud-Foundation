@@ -74,31 +74,56 @@ jobs:
       - name: Build hardened PostgreSQL image
         run: ./scripts/build-test-postgres.sh
       - name: Prepare disposable CI runtime
+        id: runtime
+        continue-on-error: true
         run: |
           ./scripts/prepare-local.sh "${RUNNER_TEMP}/pmcloud/dev.env"
           set -a
           source "${RUNNER_TEMP}/pmcloud/dev.env"
           set +a
           chmod 644 "${PMC_RUNTIME_DIR}/seaweedfs-s3.json"
-          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build
-          for url in http://127.0.0.1:8000/health http://127.0.0.1:3000; do
+
+          wait_for_url() {
+            local label=$1
+            local url=$2
             for attempt in $(seq 1 120); do
-              if curl --fail --silent --show-error "$url" >/dev/null; then break; fi
+              if curl --fail --silent --show-error "$url" >/dev/null; then
+                printf '%s is ready after %s attempt(s).\n' "$label" "$attempt"
+                return 0
+              fi
               sleep 3
             done
-            curl --fail --silent --show-error "$url" >/dev/null
-          done
+            printf '::error::%s did not become ready at %s\n' "$label" "$url"
+            curl --silent --show-error "$url" | head -c 4096 || true
+            printf '\n'
+            return 1
+          }
+
+          # Start the API dependency chain first. Starting every service in one
+          # command makes Compose block on the API health condition and hides
+          # the readiness response that explains the failure.
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build api
+          wait_for_url "API readiness" http://127.0.0.1:8000/health
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" up -d --no-build web
+          wait_for_url "Web readiness" http://127.0.0.1:3000
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps
       - name: Dump disposable runtime diagnostics
-        if: failure()
+        if: steps.runtime.outcome == 'failure'
         run: |
-          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps --all
-          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color seaweedfs clamav keycloak api web || true
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" ps --all || true
+          docker inspect --format '{{json .State.Health}}' pmcloud-api-1 || true
+          curl --silent --show-error http://127.0.0.1:8000/health || true
+          printf '\n'
+          docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color \
+            postgres database-bootstrap migrate keycloak identity-bootstrap seaweedfs clamav api web || true
       - name: Install visual QA browser
+        if: steps.runtime.outcome == 'success'
         run: pnpm --filter @perfect-match/web exec playwright install --with-deps chromium
       - name: Responsive visual and accessibility regression
+        if: steps.runtime.outcome == 'success'
         run: ./scripts/run-web-visual-qa.sh "${RUNNER_TEMP}/pmcloud/dev.env"
       - name: Final application image scans
+        if: always()
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
@@ -109,6 +134,7 @@ jobs:
             --argjson web "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-web-image.json)" \
             '{api: $api, web: $web}' > artifacts/application-image-gate.json
       - name: Third-party image scans
+        if: always()
         id: third-party-images
         run: |
           trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json pmcloud-postgres:local
@@ -126,6 +152,7 @@ jobs:
             '{postgres: $postgres, seaweedfs: $seaweedfs, keycloak: $keycloak, clamav: $clamav}' \
             > artifacts/third-party-image-gate.json
       - name: Generate and validate CycloneDX SBOMs
+        if: always()
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
@@ -138,6 +165,7 @@ jobs:
             jq -e '.bomFormat == "CycloneDX" and (.metadata | type == "object") and (.components | length > 0)' "$sbom" >/dev/null
           done
       - name: OWASP ZAP passive baseline
+        if: steps.runtime.outcome == 'success'
         run: |
           chmod -R a+rwX artifacts
           docker run --rm --network host \
@@ -150,6 +178,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
           RUN_ID: ${{ github.run_id }}
+          RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
         run: |
           component_count() {
             if test -f "$1"; then jq '.components | length' "$1"; else printf '%s\n' -1; fi
@@ -163,6 +192,7 @@ jobs:
           jq -n \
             --arg sha "$IMAGE_TAG" \
             --arg run "$RUN_ID" \
+            --arg runtime "$RUNTIME_OUTCOME" \
             --argjson images "$(cat artifacts/application-images.json 2>/dev/null || echo '[]')" \
             --argjson zap "$(cat artifacts/zap-summary.json 2>/dev/null || echo '{}')" \
             --argjson licenses "$(cat artifacts/licenses/summary.json 2>/dev/null || echo '{}')" \
@@ -174,11 +204,14 @@ jobs:
             --argjson web_components "$SBOM_WEB" \
             --argjson keycloak_components "$SBOM_KEYCLOAK" \
             --argjson clamav_components "$SBOM_CLAMAV" \
-            '{github_sha: $sha, workflow_run_id: $run, application_images: $images, zap: $zap, licenses: $licenses, application_image_high_or_critical: $application_image_findings, third_party_image_high_or_critical: $third_party_images, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components, clamav_components: $clamav_components}}' \
+            '{github_sha: $sha, workflow_run_id: $run, runtime_outcome: $runtime, application_images: $images, zap: $zap, licenses: $licenses, application_image_high_or_critical: $application_image_findings, third_party_image_high_or_critical: $third_party_images, sboms: {count: $sboms, repository_components: $repository_components, api_components: $api_components, web_components: $web_components, keycloak_components: $keycloak_components, clamav_components: $clamav_components}}' \
             /dev/null > artifacts/release-evidence-manifest.json
       - name: Enforce final release gates
         if: always()
+        env:
+          RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
         run: |
+          test "$RUNTIME_OUTCOME" = success
           test -f artifacts/release-evidence-manifest.json
           jq -e 'to_entries | all(.value == 0)' artifacts/application-image-gate.json >/dev/null
           jq -e 'to_entries | all(.value == 0)' artifacts/third-party-image-gate.json >/dev/null
