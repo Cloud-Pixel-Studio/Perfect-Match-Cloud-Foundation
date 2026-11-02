@@ -133,15 +133,27 @@ services:
       - platform
       - edge
 
+  clamav-database-bootstrap:
+    image: clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
+    platform: linux/amd64
+    command: ["freshclam", "--foreground", "--stdout"]
+    restart: "no"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - clamav_egress
+
   clamav:
     image: clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
     platform: linux/amd64
     mem_limit: 3g
     environment:
-      # FreshClam can update the bundled database before clamd exposes its
-      # socket, so its immediate reload notification may fail. Re-check soon
-      # enough for the API's fail-closed signature-freshness gate to recover.
+      # Bound later reloads if FreshClam cannot deliver its immediate
+      # notification. The bootstrap below prevents a stale cold start.
       CLAMD_CONF_SelfCheck: "60"
+    depends_on:
+      clamav-database-bootstrap:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "clamdscan --ping=1 >/dev/null 2>&1"]
       interval: 15s
