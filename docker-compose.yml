@@ -137,6 +137,11 @@ services:
     image: clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
     platform: linux/amd64
     mem_limit: 3g
+    environment:
+      # FreshClam can update the bundled database before clamd exposes its
+      # socket, so its immediate reload notification may fail. Re-check soon
+      # enough for the API's fail-closed signature-freshness gate to recover.
+      CLAMD_CONF_SelfCheck: "60"
     healthcheck:
       test: ["CMD-SHELL", "clamdscan --ping=1 >/dev/null 2>&1"]
       interval: 15s
