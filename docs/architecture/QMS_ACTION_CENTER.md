@@ -47,14 +47,18 @@ Implemented and locally verified:
 
 - deterministic urgency and summary unit tests;
 - API import and route registration;
+- disposable PostgreSQL integration coverage for assignment, exclusion of unrelated
+  work and isolation of the same user across two tenants;
 - Ruff formatting/lint and strict mypy for changed backend sources;
 - web unit tests, lint, typecheck and production build;
-- responsive, accessible loading, empty, error, personal and team states in code.
+- responsive, accessible loading, empty, error, personal and team states in code; and
+- authenticated Linux Playwright/axe coverage for the responsive empty state, with
+  no accessibility violations or horizontal overflow. The reviewed desktop and
+  mobile captures are the accepted Linux baselines.
 
 Pending before acceptance:
 
-- disposable PostgreSQL integration coverage for the unified endpoint across two
-  tenants and two units;
 - authenticated browser visual regression for populated personal/team queues;
+- regenerated Darwin baselines from a source runtime;
 - real-user, keyboard and screen-reader acceptance;
 - source-record deep linking to the exact selected record rather than only its module.
