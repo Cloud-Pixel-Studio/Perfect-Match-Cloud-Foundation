@@ -7,6 +7,7 @@ import { CAPASourceTraceability } from "./capa-source-traceability";
 import { CAPATraceLinks } from "./capa-trace-links";
 import { FishboneCauses } from "./fishbone-causes";
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+import type { WorkspaceTarget } from "../lib/workspace-navigation";
 
 type Unit = { id: string; code: string; name: string; status: string };
 type Process = { id: string; code: string; name: string; status: string };
@@ -57,8 +58,9 @@ function message(cause: unknown): string {
   return "The corrective action register could not be reached. Try refreshing.";
 }
 
-export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }: { onAccessDenied?: () => void; preferredUnitId?: string; onUnitChange?: (unitId: string) => void }) {
+export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange, target }: { onAccessDenied?: () => void; preferredUnitId?: string; onUnitChange?: (unitId: string) => void; target?: WorkspaceTarget | null }) {
   const [initialPreferredUnitId] = useState(preferredUnitId ?? "");
+  const [initialTarget] = useState(target?.source === "capa" ? target : null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState("");
   const [caps, setCaps] = useState<string[]>([]);
@@ -93,6 +95,7 @@ export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }:
   const [notice, setNotice] = useState("");
   const [refresh, setRefresh] = useState(0);
   const epoch = useRef(0);
+  const targetFocused = useRef(false);
   const selected = rows.find((row) => row.id === selectedId);
   const actionOffset = actionPage.id === selectedId ? actionPage.offset : 0;
   const reviewOffset = reviewPage.id === selectedId ? reviewPage.offset : 0;
@@ -108,10 +111,23 @@ export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }:
     const controller = new AbortController();
     if (!selectedId || !canRead) return () => controller.abort();
     void read<CAPAAction[]>(`/capas/${selectedId}/actions?limit=${pageSize}&offset=${actionOffset}`, controller.signal)
-      .then((data) => { if (!controller.signal.aborted) setActions(data); })
+      .then(async (data) => {
+        if (initialTarget?.recordId === selectedId && initialTarget.subrecordId && !data.some((item) => item.id === initialTarget.subrecordId)) {
+          const requested = await read<CAPAAction>(`/capas/${selectedId}/actions/${initialTarget.subrecordId}`, controller.signal);
+          data = [...data, requested];
+        }
+        if (!controller.signal.aborted) setActions(data);
+      })
       .catch((cause) => { if (!controller.signal.aborted) setError(message(cause)); });
     return () => controller.abort();
-  }, [selectedId, selected?.row_version, actionOffset, canRead]);
+  }, [selectedId, selected?.row_version, actionOffset, canRead, initialTarget]);
+
+  useEffect(() => {
+    if (!initialTarget?.subrecordId || targetFocused.current || !actions.some((item) => item.id === initialTarget.subrecordId)) return;
+    targetFocused.current = true;
+    const timer = window.setTimeout(() => document.getElementById(`capa-action-${initialTarget.subrecordId}`)?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [actions, initialTarget]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,10 +162,15 @@ export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }:
         setCaps(access.capabilities);
         if (!access.capabilities.includes("capa.read")) { setRows([]); setSelectedId(""); return; }
         const params = new URLSearchParams({ unit_id: unitId, q: query.q, limit: String(pageSize), offset: String(query.offset) });
-        const data = await read<CAPA[]>(`/capas?${params}`, controller.signal);
+        let data = await read<CAPA[]>(`/capas?${params}`, controller.signal);
+        if (initialTarget && !data.some((item) => item.id === initialTarget.recordId)) {
+          const requested = await read<CAPA>(`/capas/${initialTarget.recordId}`, controller.signal);
+          if (requested.unit_id === unitId) data = [...data, requested];
+        }
         if (controller.signal.aborted || revision !== epoch.current) return;
         setRows(data);
-        setSelectedId((current) => data.some((item) => item.id === current) ? current : data[0]?.id ?? "");
+        setSelectedId((current) => initialTarget && data.some((item) => item.id === initialTarget.recordId)
+          ? initialTarget.recordId : data.some((item) => item.id === current) ? current : data[0]?.id ?? "");
       }).catch((cause) => {
         if (controller.signal.aborted || revision !== epoch.current) return;
         setRows([]); setSelectedId(""); setError(message(cause));
@@ -157,7 +178,7 @@ export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }:
       }).finally(() => { if (!controller.signal.aborted && revision === epoch.current) setLoading(false); });
     }, 0);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [unitId, query, refresh, onAccessDenied]);
+  }, [unitId, query, refresh, onAccessDenied, initialTarget]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -445,7 +466,7 @@ export function CAPAWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }:
     const visibleActions = actions.filter((item) => item.capa_id === record.id);
     const action = visibleActions.find((item) => item.id === actionEditingId);
     return <section className="ncr-editor" aria-label="Action plan register"><div className="ncr-detail-heading"><div><p className="eyebrow">Plan execution</p><h4>Actions</h4></div>{canManage && record.state === "action_planned" && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => setActionEditingId(actionEditingId === "new" ? "" : "new")}>{actionEditingId === "new" ? "Cancel" : "Add action"}</button>}</div>
-      {visibleActions.length ? <ul className="ncr-record-list capa-action-list">{visibleActions.map((item) => <li key={item.id}><div className="ncr-list-heading"><strong>{item.title}</strong><span className="process-status">{label(item.state)}</span></div><p>{item.description}</p><small>Due {item.due_date} · {members.find((member) => member.id === item.owner_user_id)?.display_name ?? "Assigned owner"}</small>{item.verified_at && <small>Verified {new Date(item.verified_at).toLocaleString()} · {item.verification_notes}</small>}{item.cancelled_at && <small>Cancelled {new Date(item.cancelled_at).toLocaleString()} · {item.cancellation_reason}</small>}{canManage && record.state === "action_planned" && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => setActionEditingId(actionEditingId === item.id ? "" : item.id)}>{actionEditingId === item.id ? "Cancel" : "Edit action"}</button>}{record.state === "implementation" && <div className="ncr-form-actions">{canManage && item.state === "open" && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => void transitionAction(record, item, "in_progress")}>Start</button>}{canManage && ["open", "in_progress"].includes(item.state) && <button className="primary-action compact-action" type="button" disabled={busy} onClick={() => void transitionAction(record, item, "completed")}>Mark completed</button>}{canReview && item.state === "completed" && <button className="primary-action compact-action" type="button" disabled={busy} onClick={() => setActionTransition({ id: item.id, target: "verified" })}>Verify</button>}{canReview && ["open", "in_progress", "completed"].includes(item.state) && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => setActionTransition({ id: item.id, target: "cancelled" })}>Cancel action</button>}</div>}{transitionForm(record, item)}</li>)}</ul> : <p className="qms-history-caption">No actions have been assigned yet.</p>}
+      {visibleActions.length ? <ul className="ncr-record-list capa-action-list">{visibleActions.map((item) => <li id={`capa-action-${item.id}`} className={initialTarget?.subrecordId === item.id ? "action-target-record" : undefined} tabIndex={-1} key={item.id}><div className="ncr-list-heading"><strong>{item.title}</strong><span className="process-status">{label(item.state)}</span></div><p>{item.description}</p><small>Due {item.due_date} · {members.find((member) => member.id === item.owner_user_id)?.display_name ?? "Assigned owner"}</small>{item.verified_at && <small>Verified {new Date(item.verified_at).toLocaleString()} · {item.verification_notes}</small>}{item.cancelled_at && <small>Cancelled {new Date(item.cancelled_at).toLocaleString()} · {item.cancellation_reason}</small>}{canManage && record.state === "action_planned" && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => setActionEditingId(actionEditingId === item.id ? "" : item.id)}>{actionEditingId === item.id ? "Cancel" : "Edit action"}</button>}{record.state === "implementation" && <div className="ncr-form-actions">{canManage && item.state === "open" && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => void transitionAction(record, item, "in_progress")}>Start</button>}{canManage && ["open", "in_progress"].includes(item.state) && <button className="primary-action compact-action" type="button" disabled={busy} onClick={() => void transitionAction(record, item, "completed")}>Mark completed</button>}{canReview && item.state === "completed" && <button className="primary-action compact-action" type="button" disabled={busy} onClick={() => setActionTransition({ id: item.id, target: "verified" })}>Verify</button>}{canReview && ["open", "in_progress", "completed"].includes(item.state) && <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => setActionTransition({ id: item.id, target: "cancelled" })}>Cancel action</button>}</div>}{transitionForm(record, item)}</li>)}</ul> : <p className="qms-history-caption">No actions have been assigned yet.</p>}
       <nav className="ncr-pagination" aria-label="Action pages"><button type="button" disabled={busy || actionOffset === 0} onClick={() => setActionPage({ id: record.id, offset: Math.max(0, actionOffset - pageSize) })}>Previous</button><span>Page {Math.floor(actionOffset / pageSize) + 1}</span><button type="button" disabled={busy || visibleActions.length < pageSize} onClick={() => setActionPage({ id: record.id, offset: actionOffset + pageSize })}>Next</button></nav>
       {canManage && record.state === "action_planned" && actionEditingId && <form key={action?.id ?? "new-action"} onSubmit={(event) => void saveAction(event, record, action)}><fieldset className="ncr-editor-content" disabled={busy}><div className="ncr-form-grid"><label className="ncr-wide">Action title<input name="title" defaultValue={action?.title ?? ""} maxLength={160} required /></label><label className="ncr-wide">Description<textarea name="description" defaultValue={action?.description ?? ""} maxLength={4000} rows={3} required /></label><label>Responsible person<select name="owner_user_id" defaultValue={action?.owner_user_id ?? ""} required><option value="">Select a person</option>{action && !members.some((member) => member.id === action.owner_user_id) && <option value={action.owner_user_id}>Current owner</option>}{members.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label><label>Due date<input name="due_date" type="date" defaultValue={action?.due_date ?? ""} required /></label></div><div className="ncr-form-actions"><button className="primary-action compact-action" type="submit">{action ? "Save action" : "Add action"}</button></div></fieldset></form>}
       {canManage && record.state === "action_planned" && visibleActions.length > 0 && <div className="ncr-form-actions"><button className="primary-action compact-action" type="button" disabled={busy} onClick={() => void command(record, "implementation/start", "POST", { expected_version: record.row_version }, "Implementation started. Planned action details are locked.")}>Start implementation</button></div>}

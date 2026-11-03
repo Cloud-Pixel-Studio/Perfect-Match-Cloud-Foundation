@@ -16,7 +16,7 @@ import { CAPAWorkspace } from "./capa-workspace";
 import { WorkspaceOverview } from "./workspace-overview";
 import { ActionCenterWorkspace } from "./action-center-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
-import { workspaceFromHash, workspaceItems, workspaceSections, type WorkspaceId } from "../lib/workspace-navigation";
+import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
 type Identity = {
   id: string;
@@ -57,6 +57,7 @@ export function IdentityShell() {
   const [events, setEvents] = useState<AuditEvent[]>([]);
   const [auditError, setAuditError] = useState<string | null>(null);
   const [activeModule, setActiveModule] = useState<WorkspaceId>("overview");
+  const [activeTarget, setActiveTarget] = useState<WorkspaceTarget | null>(null);
   const [unitByTenant, setUnitByTenant] = useState<Record<string, string>>({});
   const contextRevision = useRef(0);
   const contextKey = useRef<string | null>(null);
@@ -93,19 +94,28 @@ export function IdentityShell() {
   }, [loadIdentity]);
 
   useEffect(() => {
-    const sync = () => setActiveModule(workspaceFromHash(window.location.hash));
+    const sync = () => {
+      setActiveModule(workspaceFromHash(window.location.hash));
+      setActiveTarget(workspaceTargetFromSearch(window.location.search));
+    };
     const frame = window.requestAnimationFrame(sync);
     window.addEventListener("hashchange", sync);
     window.addEventListener("popstate", sync);
     return () => { window.cancelAnimationFrame(frame); window.removeEventListener("hashchange", sync); window.removeEventListener("popstate", sync); };
   }, []);
 
-  function navigateWorkspace(id: WorkspaceId) {
+  function navigateWorkspace(id: WorkspaceId, target: WorkspaceTarget | null = null) {
     if (busy) return;
     const item = workspaceItems.find((entry) => entry.id === id);
     if (!item) return;
-    window.history.pushState(null, "", `#${item.hash}`);
+    const url = setWorkspaceTarget(new URL(window.location.pathname, window.location.origin), target);
+    url.hash = item.hash;
+    window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
     setActiveModule(id);
+    setActiveTarget(target);
+    if (target?.unitId && current) {
+      setUnitByTenant((previous) => ({ ...previous, [current.id]: target.unitId as string }));
+    }
     window.scrollTo({ top: 0, behavior: "auto" });
     if (id === "audit" && !showAudit) void loadAudit();
   }
@@ -204,7 +214,7 @@ export function IdentityShell() {
   const canAudit = ["owner", "admin", "auditor"].includes(current?.role ?? "");
   const selectedItem = workspaceItems.find((item) => item.id === activeModule) ?? workspaceItems[0];
   const selectedSection = workspaceSections.find((section) => section.items.some((item) => item.id === activeModule));
-  const preferredUnitId = current ? unitByTenant[current.id] ?? "" : "";
+  const preferredUnitId = current ? activeTarget?.unitId ?? unitByTenant[current.id] ?? "" : "";
   const onUnitChange = (unitId: string) => {
     if (current) setUnitByTenant((previous) => ({ ...previous, [current.id]: unitId }));
   };
@@ -253,12 +263,12 @@ export function IdentityShell() {
           {activeModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {activeModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
           {activeModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
-          {activeModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
+          {activeModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
           {activeModule === "risks" && <RisksWorkspace key={`risks-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
           {activeModule === "nonconformities" && <NonconformitiesWorkspace key={`ncr-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "capa" && <CAPAWorkspace key={`capa-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
+          {activeModule === "capa" && <CAPAWorkspace key={`capa-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
           {activeModule === "documents" && <DocumentsWorkspace key={`documents-${current.id}-${current.role}`} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "workflows" && <WorkflowWorkspace key={`workflows-${current.id}-${current.role}`} role={current.role} />}
+          {activeModule === "workflows" && <WorkflowWorkspace key={`workflows-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} role={current.role} target={activeTarget} />}
           {activeModule === "audit" && (canAudit ? <section className="audit-panel" aria-labelledby="audit-heading"><div className="audit-heading"><div><p className="eyebrow">Compliance history</p><h2 id="audit-heading">Audit trail</h2></div><button className="secondary-action compact-action" disabled={busy} onClick={() => void loadAudit()} type="button">Refresh history</button></div>{auditError ? <p className="denied-state">{auditError}</p> : !showAudit ? <p className="empty-state">Select refresh to load the latest history.</p> : events.length === 0 ? <p className="empty-state">No audit events for this organization.</p> : <div className="audit-list">{events.map((event) => <details className="audit-event" key={event.id}><summary><span><strong>{event.action}</strong><small>{event.actor_display_name} · {event.actor_role} · {event.resource_type}</small></span><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString()}</time></summary><dl><dt>Request ID</dt><dd>{event.request_id}</dd><dt>Changed fields</dt><dd>{event.changed_fields.join(", ") || "None"}</dd><dt>Before</dt><dd>{event.old_values ? JSON.stringify(event.old_values) : "None"}</dd><dt>After</dt><dd>{event.new_values ? JSON.stringify(event.new_values) : "None"}</dd></dl></details>)}</div>}</section> : <p className="denied-state">Audit Trail access is restricted to authorized roles.</p>)}
         </fieldset>}
       </div>

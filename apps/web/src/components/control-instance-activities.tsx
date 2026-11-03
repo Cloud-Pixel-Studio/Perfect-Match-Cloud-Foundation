@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Activity = {
   id: string; sequence: number; name: string; description: string; objective: string;
@@ -20,14 +20,15 @@ function csrf(): string {
 }
 
 export function ControlInstanceActivities({
-  instanceId, canManage, busy,
-}: { instanceId: string; canManage: boolean; busy: boolean }) {
+  instanceId, canManage, busy, targetActivityId,
+}: { instanceId: string; canManage: boolean; busy: boolean; targetActivityId?: string }) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [assignees, setAssignees] = useState<Record<string, string>>({});
   const [completion, setCompletion] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const targetFocused = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -46,6 +47,13 @@ export function ControlInstanceActivities({
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  useEffect(() => {
+    if (!targetActivityId || targetFocused.current || !activities.some((item) => item.id === targetActivityId)) return;
+    targetFocused.current = true;
+    const timer = window.setTimeout(() => document.getElementById(`control-activity-${targetActivityId}`)?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [activities, targetActivityId]);
 
   async function update(activity: Activity, body: object, transition: boolean) {
     setSaving(true); setError("");
@@ -76,12 +84,12 @@ export function ControlInstanceActivities({
     under_review: "Under review", completed: "Completed",
   };
 
-  return <details className="control-guidance-read control-instance-activities">
+  return <details className="control-guidance-read control-instance-activities" open={Boolean(targetActivityId)}>
     <summary>Implementation activities <span className="qms-grant-status assigned">{activities.length}</span></summary>
     {error && <p role="alert" className="denied-state">{error}</p>}
     {!activities.length && !error && <p>No activities were defined for this control.</p>}
     <ol className="control-instance-activity-list">
-      {activities.map((activity) => <li key={activity.id}>
+      {activities.map((activity) => <li id={`control-activity-${activity.id}`} className={targetActivityId === activity.id ? "action-target-record" : undefined} tabIndex={-1} key={activity.id}>
         <div className="control-instance-activity-heading">
           <strong>{activity.sequence}. {activity.name}</strong>
           <span className="qms-grant-status assigned">{labels[activity.status] ?? activity.status}</span>

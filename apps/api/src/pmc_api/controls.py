@@ -588,6 +588,20 @@ def list_controls(
     return list(db.scalars(query.order_by(QMSControl.code, QMSControl.id).limit(limit)))
 
 
+@router.get("/controls/{control_id}", response_model=ControlResponse)
+def get_control(control_id: UUID, db: DBSession, authenticated: Authenticated) -> QMSControl:
+    actor = actor_context(db, authenticated)
+    row = db.scalar(
+        select(QMSControl).where(
+            QMSControl.id == control_id, QMSControl.tenant_id == actor.tenant_id
+        )
+    )
+    if row is None:
+        raise HTTPException(404, "control not found")
+    require_capability(db, "controls.read", row.unit_id)
+    return row
+
+
 @router.post(
     "/controls",
     response_model=ControlResponse,
@@ -697,6 +711,24 @@ def list_instances(
             .offset(offset)
         )
     )
+
+
+@router.get("/control-instances/{instance_id}", response_model=InstanceResponse)
+def get_instance(
+    instance_id: UUID, db: DBSession, authenticated: Authenticated
+) -> QMSControlInstance:
+    actor = actor_context(db, authenticated)
+    row = db.scalar(
+        select(QMSControlInstance).where(
+            QMSControlInstance.id == instance_id,
+            QMSControlInstance.tenant_id == actor.tenant_id,
+            QMSControlInstance.status == "active",
+        )
+    )
+    if row is None:
+        raise HTTPException(404, "control implementation not found")
+    require_capability(db, "control_instances.read", row.unit_id)
+    return row
 
 
 @router.post(

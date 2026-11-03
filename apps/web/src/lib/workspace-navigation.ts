@@ -19,6 +19,20 @@ export type WorkspaceItem = {
   hash: string;
 };
 
+export type WorkspaceTargetSource = "workflow" | "capa" | "control_activity" | "evidence_review";
+
+export type WorkspaceTarget = {
+  recordId: string;
+  subrecordId?: string;
+  source: WorkspaceTargetSource;
+  unitId?: string;
+  processId?: string;
+};
+
+const targetKeys = ["pm_record", "pm_subrecord", "pm_source", "pm_unit", "pm_process"] as const;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const targetSources = new Set<WorkspaceTargetSource>(["workflow", "capa", "control_activity", "evidence_review"]);
+
 export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
   {
     label: "Workspace",
@@ -59,4 +73,33 @@ export const workspaceItems = workspaceSections.flatMap((section) => section.ite
 export function workspaceFromHash(hash: string): WorkspaceId {
   const fragment = hash.replace(/^#/, "");
   return workspaceItems.find((item) => item.hash === fragment)?.id ?? "overview";
+}
+
+export function workspaceTargetFromSearch(search: string): WorkspaceTarget | null {
+  const params = new URLSearchParams(search);
+  const recordId = params.get("pm_record") ?? "";
+  const source = params.get("pm_source") as WorkspaceTargetSource | null;
+  if (!uuidPattern.test(recordId) || !source || !targetSources.has(source)) return null;
+  const optionalUuid = (key: "pm_subrecord" | "pm_unit" | "pm_process") => {
+    const value = params.get(key) ?? "";
+    return uuidPattern.test(value) ? value : undefined;
+  };
+  return {
+    recordId,
+    source,
+    subrecordId: optionalUuid("pm_subrecord"),
+    unitId: optionalUuid("pm_unit"),
+    processId: optionalUuid("pm_process"),
+  };
+}
+
+export function setWorkspaceTarget(url: URL, target: WorkspaceTarget | null): URL {
+  for (const key of targetKeys) url.searchParams.delete(key);
+  if (!target) return url;
+  url.searchParams.set("pm_record", target.recordId);
+  url.searchParams.set("pm_source", target.source);
+  if (target.subrecordId) url.searchParams.set("pm_subrecord", target.subrecordId);
+  if (target.unitId) url.searchParams.set("pm_unit", target.unitId);
+  if (target.processId) url.searchParams.set("pm_process", target.processId);
+  return url;
 }

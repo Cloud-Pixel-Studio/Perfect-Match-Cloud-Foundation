@@ -956,7 +956,9 @@ def test_action_center_workflow_projection_respects_assignment_and_tenant() -> N
             OrganizationActor(MEMBER, str(MEMBER), "member", TENANT_A),
             team=False,
         )
-        assert any(item.source_id == instance.id for item in member_items)
+        projected = next(item for item in member_items if item.source_id == instance.id)
+        assert projected.target_record_id == instance.id
+        assert projected.target_subrecord_id is None
 
     with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
         set_request_context(db, user_id=OTHER, tenant_id=TENANT_A)

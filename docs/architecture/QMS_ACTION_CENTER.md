@@ -13,7 +13,9 @@ truth. `GET /action-center` combines:
 
 Each item retains its source identifier, current state, owning unit where applicable,
 responsible user when one exists, due date, urgency and destination workspace. The
-dashboard and full Action Center consume the same API.
+dashboard and full Action Center consume the same API. Destination metadata separates
+the actionable child from its parent record, process and unit so navigation can open
+the exact authorized record rather than only its module.
 
 ## Authorization and isolation
 
@@ -54,11 +56,13 @@ Implemented and locally verified:
 - responsive, accessible loading, empty, error, personal and team states in code; and
 - authenticated Linux Playwright/axe coverage for the responsive empty state, with
   no accessibility violations or horizontal overflow. The reviewed desktop and
-  mobile captures are the accepted Linux baselines.
+  mobile captures are the accepted Linux baselines; and
+- exact, refreshable URL targets for workflow instances, CAPA actions, control
+  activities and evidence reviews. Point reads remain tenant-scoped and capability
+  protected; PostgreSQL integration tests cover cross-tenant hiding.
 
 Pending before acceptance:
 
 - authenticated browser visual regression for populated personal/team queues;
 - regenerated Darwin baselines from a source runtime;
-- real-user, keyboard and screen-reader acceptance;
-- source-record deep linking to the exact selected record rather than only its module.
+- real-user, keyboard and screen-reader acceptance.

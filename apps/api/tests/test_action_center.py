@@ -22,6 +22,9 @@ def item(*, identifier: str, urgency: str, assigned: bool = True) -> ActionItem:
             ),
             "assignee_name": "Quality lead" if assigned else None,
             "target_workspace": "capa",
+            "target_record_id": UUID("40000000-0000-4000-8000-000000000001"),
+            "target_subrecord_id": UUID("10000000-0000-4000-8000-000000000001"),
+            "target_process_id": UUID("50000000-0000-4000-8000-000000000001"),
             "updated_at": "2026-11-02T12:00:00Z",
         }
     )

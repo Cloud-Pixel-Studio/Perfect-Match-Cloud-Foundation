@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Evidence = {
   id: string; control_instance_id: string; requirement_definition_id: string; sequence: number;
@@ -18,8 +18,8 @@ const api = "/api/identity";
 const csrf = () => decodeURIComponent(document.cookie.split("; ").find((item) => item.startsWith("pm_csrf="))?.slice(8) ?? "");
 
 export function ControlInstanceEvidence({
-  instanceId, unitId, processId, canManage, canReadDocuments,
-}: { instanceId: string; unitId: string; processId: string; canManage: boolean; canReadDocuments: boolean }) {
+  instanceId, unitId, processId, canManage, canReadDocuments, targetEvidenceId,
+}: { instanceId: string; unitId: string; processId: string; canManage: boolean; canReadDocuments: boolean; targetEvidenceId?: string }) {
   const [items, setItems] = useState<Evidence[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [revisions, setRevisions] = useState<Record<string, Revision[]>>({});
@@ -30,6 +30,7 @@ export function ControlInstanceEvidence({
   const [revisionIds, setRevisionIds] = useState<Record<string, string>>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const targetFocused = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -52,6 +53,13 @@ export function ControlInstanceEvidence({
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
   }, [load]);
+
+  useEffect(() => {
+    if (!targetEvidenceId || targetFocused.current || !items.some((item) => item.id === targetEvidenceId)) return;
+    targetFocused.current = true;
+    const timer = window.setTimeout(() => document.getElementById(`control-evidence-${targetEvidenceId}`)?.focus(), 0);
+    return () => window.clearTimeout(timer);
+  }, [items, targetEvidenceId]);
 
   async function loadRevisions(documentId: string) {
     if (!documentId || revisions[documentId]) return;
@@ -85,7 +93,7 @@ export function ControlInstanceEvidence({
 
   const label: Record<string, string> = { draft: "Draft", submitted: "Submitted", accepted: "Accepted", rejected: "Changes requested" };
 
-  return <details className="control-guidance-read control-instance-evidence">
+  return <details className="control-guidance-read control-instance-evidence" open={Boolean(targetEvidenceId)}>
     <summary>Required evidence <span className="qms-grant-status assigned">{items.filter((item) => item.mandatory).length} required</span></summary>
     {error && <p role="alert" className="denied-state">{error}</p>}
     {!items.length && <p>No evidence requirements were defined for this control.</p>}
@@ -96,7 +104,7 @@ export function ControlInstanceEvidence({
         || (documentIds[item.id] !== undefined && documentIds[item.id] !== (item.document_id ?? ""))
         || (revisionIds[item.id] !== undefined && revisionIds[item.id] !== (item.document_revision_id ?? ""));
       const reviewAllowed = item.status === "submitted" && item.submitted_by_user_id !== currentUserId;
-      return <li key={item.id}>
+      return <li id={`control-evidence-${item.id}`} className={targetEvidenceId === item.id ? "action-target-record" : undefined} tabIndex={-1} key={item.id}>
         <div className="control-instance-activity-heading"><strong>{item.sequence}. {item.name}</strong>
           <span className={`qms-grant-status ${item.status === "accepted" ? "assigned" : "pending"}`}>{label[item.status] ?? item.status}</span>
         </div>

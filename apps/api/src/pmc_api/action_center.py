@@ -52,6 +52,9 @@ class ActionItem(BaseModel):
     assigned_to_user_id: UUID | None
     assignee_name: str | None
     target_workspace: Literal["workflows", "capa", "controls"]
+    target_record_id: UUID
+    target_subrecord_id: UUID | None = None
+    target_process_id: UUID | None = None
     updated_at: datetime
 
 
@@ -191,6 +194,7 @@ def _workflow_items(
                 assigned_to_user_id=direct_user,
                 assignee_name=None,
                 target_workspace="workflows",
+                target_record_id=instance.id,
                 updated_at=instance.updated_at,
             )
         )
@@ -254,6 +258,9 @@ def _capa_items(
                 assigned_to_user_id=(None if waiting_review else action.owner_user_id),
                 assignee_name=None,
                 target_workspace="capa",
+                target_record_id=capa.id,
+                target_subrecord_id=action.id,
+                target_process_id=capa.process_id,
                 updated_at=action.updated_at,
             )
         )
@@ -315,6 +322,9 @@ def _control_items(
                 assigned_to_user_id=activity.assigned_to_user_id,
                 assignee_name=None,
                 target_workspace="controls",
+                target_record_id=instance.id,
+                target_subrecord_id=activity.id,
+                target_process_id=instance.process_id,
                 updated_at=activity.updated_at,
             )
         )
@@ -363,6 +373,9 @@ def _control_items(
                 assigned_to_user_id=None,
                 assignee_name=None,
                 target_workspace="controls",
+                target_record_id=instance.id,
+                target_subrecord_id=evidence.id,
+                target_process_id=instance.process_id,
                 updated_at=evidence.updated_at,
             )
         )

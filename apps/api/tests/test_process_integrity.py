@@ -48,6 +48,8 @@ from pmc_api.controls import (
     change_control_state,
     create_control,
     create_instance,
+    get_control,
+    get_instance,
     transition_instance,
 )
 from pmc_api.database import set_request_context
@@ -963,6 +965,30 @@ def test_control_catalog_and_instance_workflow_are_scoped_versioned_and_audited(
         )
         assert instance.implementation_date is not None
         assert instance.row_version == 4
+        authenticated = cast(
+            AuthenticatedSession,
+            SimpleNamespace(
+                user=SimpleNamespace(id=MEMBER),
+                record=SimpleNamespace(current_tenant_id=TENANT_A),
+            ),
+        )
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        assert get_control(control.id, db, authenticated).id == control.id
+        assert get_instance(instance.id, db, authenticated).id == instance.id
+        foreign = cast(
+            AuthenticatedSession,
+            SimpleNamespace(
+                user=SimpleNamespace(id=OTHER),
+                record=SimpleNamespace(current_tenant_id=TENANT_B),
+            ),
+        )
+        set_request_context(db, user_id=OTHER, tenant_id=TENANT_B)
+        with pytest.raises(HTTPException) as hidden_control:
+            get_control(control.id, db, foreign)
+        with pytest.raises(HTTPException) as hidden_instance:
+            get_instance(instance.id, db, foreign)
+        assert hidden_control.value.status_code == 404
+        assert hidden_instance.value.status_code == 404
         set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
         events = list(
             db.scalars(

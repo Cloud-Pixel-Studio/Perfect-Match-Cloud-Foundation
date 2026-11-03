@@ -6,6 +6,7 @@ import { ControlMethodDefinitions } from "./control-method-definitions";
 import { ControlInstanceActivities } from "./control-instance-activities";
 import { ControlInstanceEvidence } from "./control-instance-evidence";
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+import type { WorkspaceTarget } from "../lib/workspace-navigation";
 
 type Unit = { id: string; name: string; code: string; status: string };
 type Process = { id: string; code: string; name: string; status: string };
@@ -74,8 +75,9 @@ function message(error: unknown): string {
   return "The control workspace is unavailable. Try refreshing.";
 }
 
-export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }: { onAccessDenied?: () => void; preferredUnitId?: string; onUnitChange?: (unitId: string) => void }) {
+export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChange, target }: { onAccessDenied?: () => void; preferredUnitId?: string; onUnitChange?: (unitId: string) => void; target?: WorkspaceTarget | null }) {
   const [initialPreferredUnitId] = useState(preferredUnitId ?? "");
+  const [initialTarget] = useState(target && ["control_activity", "evidence_review"].includes(target.source) ? target : null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState("");
   const [processes, setProcesses] = useState<Process[]>([]);
@@ -123,19 +125,30 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
       if (signal?.aborted) return;
       setCapabilities(effective.capabilities);
       setProcesses(processRows);
-      const currentProcess = processRows.some((process) => process.id === processId && process.status === "active")
-        ? processId : processRows.find((process) => process.status === "active")?.id ?? "";
+      const currentProcess = initialTarget?.processId && processRows.some((process) => process.id === initialTarget.processId && process.status === "active")
+        ? initialTarget.processId : processRows.some((process) => process.id === processId && process.status === "active")
+          ? processId : processRows.find((process) => process.status === "active")?.id ?? "";
       setProcessId(currentProcess);
-      if (!effective.capabilities.includes("controls.read")) setControls([]);
-      else {
+      let controlRows: Control[] = [];
+      let instanceRows: Instance[] = [];
+      if (effective.capabilities.includes("controls.read")) {
         const query = `/controls?unit_id=${encodeURIComponent(unitId)}${currentProcess ? `&process_id=${encodeURIComponent(currentProcess)}` : ""}&limit=100`;
-        setControls(await json<Control[]>(query));
+        controlRows = await json<Control[]>(query);
       }
-      if (!effective.capabilities.includes("control_instances.read")) setInstances([]);
-      else {
+      if (effective.capabilities.includes("control_instances.read")) {
         const query = `/control-instances?unit_id=${encodeURIComponent(unitId)}${currentProcess ? `&process_id=${encodeURIComponent(currentProcess)}` : ""}&limit=100`;
-        setInstances(await json<Instance[]>(query));
+        instanceRows = await json<Instance[]>(query);
+        if (initialTarget && !instanceRows.some((item) => item.id === initialTarget.recordId)) {
+          const requested = await json<Instance>(`/control-instances/${initialTarget.recordId}`);
+          if (requested.unit_id === unitId) instanceRows = [...instanceRows, requested];
+        }
+        const requestedInstance = initialTarget ? instanceRows.find((item) => item.id === initialTarget.recordId) : undefined;
+        if (requestedInstance && effective.capabilities.includes("controls.read") && !controlRows.some((item) => item.id === requestedInstance.control_id)) {
+          controlRows = [...controlRows, await json<Control>(`/controls/${requestedInstance.control_id}`)];
+        }
       }
+      setControls(controlRows);
+      setInstances(instanceRows);
     } catch (cause) {
       if (!signal?.aborted) {
         setError(message(cause));
@@ -144,7 +157,7 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [onAccessDenied, processId, unitId]);
+  }, [initialTarget, onAccessDenied, processId, unitId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -285,7 +298,7 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
       {processId && !controls.length && <p className="empty-state">No controls are assigned to {process?.name ?? "this process"} yet.</p>}
       <div className="control-card-list">{controls.map((control) => {
         const implementation = instances.find((item) => item.control_id === control.id);
-        return <article className="control-card" key={control.id}>
+        return <article id={implementation ? `control-implementation-${implementation.id}` : undefined} className={`control-card${implementation?.id === initialTarget?.recordId ? " action-target-record" : ""}`} key={control.id}>
           <div className="control-card-heading"><span className={`process-status ${control.state === "active" ? "active" : control.state === "retired" ? "archived" : "draft"}`}>{control.state}</span><span className="eyebrow">{control.code} · {control.category.replaceAll("_", " ")}</span>
             <h3>{control.name}</h3><p>{processes.find((item) => item.id === control.process_id)?.name ?? "Process"}</p></div>
           <p>{control.objective}</p>
@@ -315,10 +328,12 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
             {implementation.implementation_date && <small>Implemented {implementation.implementation_date}</small>}
           </div>}
           {implementation && canReadInstances && <ControlInstanceActivities
-            instanceId={implementation.id} canManage={canManageInstances} busy={busy} />}
+            instanceId={implementation.id} canManage={canManageInstances} busy={busy}
+            targetActivityId={initialTarget?.source === "control_activity" && initialTarget.recordId === implementation.id ? initialTarget.subrecordId : undefined} />}
           {implementation && canReadInstances && <ControlInstanceEvidence
             instanceId={implementation.id} unitId={unitId} processId={processId}
-            canManage={canManageInstances} canReadDocuments={capabilities.includes("documents.read")} />}
+            canManage={canManageInstances} canReadDocuments={capabilities.includes("documents.read")}
+            targetEvidenceId={initialTarget?.source === "evidence_review" && initialTarget.recordId === implementation.id ? initialTarget.subrecordId : undefined} />}
           {!canReadInstances && <small>Implementation status is hidden: no read access assigned.</small>}
         </article>;
       })}</div>

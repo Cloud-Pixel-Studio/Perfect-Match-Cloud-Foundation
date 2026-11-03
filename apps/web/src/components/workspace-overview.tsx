@@ -2,10 +2,10 @@
 
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
-import { workspaceSections, type WorkspaceId } from "../lib/workspace-navigation";
+import { workspaceSections, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 import { ActionCenterWorkspace } from "./action-center-workspace";
 
-export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { tenantName: string; role: string; canAudit: boolean; onNavigate: (id: WorkspaceId) => void }) {
+export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { tenantName: string; role: string; canAudit: boolean; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
   return <section className="qms-overview" aria-labelledby="overview-heading">
     <div className="qms-overview-hero">
       <div>

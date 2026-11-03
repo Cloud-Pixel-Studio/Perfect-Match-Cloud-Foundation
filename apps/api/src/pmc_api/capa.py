@@ -1117,6 +1117,28 @@ def list_capa_actions(
     )
 
 
+@router.get("/{capa_id}/actions/{action_id}", response_model=CAPAActionResponse)
+def get_capa_action(
+    capa_id: UUID,
+    action_id: UUID,
+    db: DBSession,
+    authenticated: Authenticated,
+) -> QMSCAPAAction:
+    actor = actor_context(db, authenticated)
+    parent = _row(db, actor, capa_id)
+    row = db.scalar(
+        select(QMSCAPAAction).where(
+            QMSCAPAAction.id == action_id,
+            QMSCAPAAction.capa_id == parent.id,
+            QMSCAPAAction.tenant_id == actor.tenant_id,
+            QMSCAPAAction.unit_id == parent.unit_id,
+        )
+    )
+    if row is None:
+        raise HTTPException(404, "CAPA action not found")
+    return row
+
+
 @router.post(
     "/{capa_id}/actions",
     response_model=CAPAActionResponse,

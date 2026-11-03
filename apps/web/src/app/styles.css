@@ -243,6 +243,8 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .action-item dd { margin: 3px 0 0; overflow: hidden; font-size: var(--pm-text-sm); font-weight: var(--pm-weight-semibold); text-overflow: ellipsis; white-space: nowrap; }
 .action-item > button, .action-center-link { display: inline-flex; align-items: center; justify-content: center; gap: var(--pm-space-2); min-height: 40px; padding-inline: var(--pm-space-3); color: var(--pm-primary-strong); background: transparent; border: 1px solid var(--pm-border-strong); border-radius: var(--pm-radius-md); cursor: pointer; font-weight: var(--pm-weight-semibold); }
 .action-center-link { margin-top: var(--pm-space-4); }
+.action-target-record { outline: 3px solid color-mix(in srgb, var(--pm-focus) 70%, transparent); outline-offset: 3px; scroll-margin-top: var(--pm-space-6); }
+.action-target-record:focus { outline-color: var(--pm-focus); }
 .action-empty { display: flex; align-items: flex-start; gap: var(--pm-space-3); margin-top: var(--pm-space-5); padding: var(--pm-space-5); background: color-mix(in srgb, var(--pm-success) 6%, var(--pm-surface)); border: 1px solid color-mix(in srgb, var(--pm-success) 24%, var(--pm-border)); border-radius: var(--pm-radius-md); }
 .action-empty svg { flex: 0 0 auto; color: var(--pm-success); }
 .action-empty p { margin: 4px 0 0; color: var(--pm-text-muted); }

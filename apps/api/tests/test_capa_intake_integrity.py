@@ -21,7 +21,7 @@ from test_process_integrity import create as create_process
 from test_risk_integrity import authenticated, current, grant
 from test_risk_integrity import create as create_risk
 from test_risk_integrity import seed_risks as seed_risks
-from test_workflow_integrity import MEMBER, OTHER, OWNER, UNIT, engine
+from test_workflow_integrity import MEMBER, OTHER, OWNER, TENANT_B, UNIT, engine
 
 from pmc_api import audit_service, capa
 from pmc_api.models import QMSCAPA, QMSAccessGrant, QMSCAPAAction
@@ -709,6 +709,12 @@ def test_capa_action_register_versions_owner_and_audit() -> None:
         assert [item.id for item in capa.list_capa_actions(parent.id, db, authenticated())] == [
             action.id
         ]
+        assert capa.get_capa_action(parent.id, action.id, db, authenticated()).id == action.id
+        current(db, OTHER, TENANT_B)
+        with pytest.raises(HTTPException) as hidden_action:
+            capa.get_capa_action(parent.id, action.id, db, authenticated(OTHER, TENANT_B))
+        assert hidden_action.value.status_code == 404
+        current(db)
         with pytest.raises(HTTPException) as stale:
             capa.create_capa_action(
                 request(),

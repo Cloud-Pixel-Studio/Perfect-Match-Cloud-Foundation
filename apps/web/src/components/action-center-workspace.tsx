@@ -3,7 +3,7 @@
 import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, ClipboardList, RefreshCw, UserRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { WorkspaceId } from "../lib/workspace-navigation";
+import type { WorkspaceId, WorkspaceTarget } from "../lib/workspace-navigation";
 
 type ActionItem = {
   id: string;
@@ -19,6 +19,9 @@ type ActionItem = {
   assigned_to_user_id: string | null;
   assignee_name: string | null;
   target_workspace: "workflows" | "capa" | "controls";
+  target_record_id: string;
+  target_subrecord_id: string | null;
+  target_process_id: string | null;
   updated_at: string;
 };
 
@@ -47,7 +50,7 @@ function readable(value: string): string {
   return value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export function ActionCenterWorkspace({ role, compact = false, onNavigate }: { role: string; compact?: boolean; onNavigate: (id: WorkspaceId) => void }) {
+export function ActionCenterWorkspace({ role, compact = false, onNavigate }: { role: string; compact?: boolean; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
   const [scope, setScope] = useState<"mine" | "team">("mine");
   const [data, setData] = useState<ActionCenterResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +119,13 @@ export function ActionCenterWorkspace({ role, compact = false, onNavigate }: { r
             <div><dt>Due</dt><dd>{item.due_date ? new Date(`${item.due_date}T12:00:00`).toLocaleDateString() : "No date"}</dd></div>
             {!compact && <div><dt>Owner</dt><dd>{item.assignee_name ?? (item.assigned_to_user_id ? "Assigned member" : "Authorized reviewer")}</dd></div>}
           </dl>
-          <button aria-label={`Open ${item.title}`} onClick={() => onNavigate(item.target_workspace)} type="button">Open <ArrowRight aria-hidden="true" size={16} /></button>
+          <button aria-label={`Open ${item.title}`} onClick={() => onNavigate(item.target_workspace, {
+            recordId: item.target_record_id,
+            subrecordId: item.target_subrecord_id ?? undefined,
+            source: item.source,
+            unitId: item.unit_id ?? undefined,
+            processId: item.target_process_id ?? undefined,
+          })} type="button">Open <ArrowRight aria-hidden="true" size={16} /></button>
         </li>)}
       </ol>}
       {compact && <button className="action-center-link" onClick={() => onNavigate("actions")} type="button">Open action center <ArrowRight aria-hidden="true" size={16} /></button>}
