@@ -14,6 +14,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from pmc_api import audit_service
+from pmc_api.action_center import _workflow_items
 from pmc_api.database import set_request_context
 from pmc_api.models import (
     WorkflowDefinition,
@@ -22,6 +23,7 @@ from pmc_api.models import (
     WorkflowTransition,
     WorkflowVersion,
 )
+from pmc_api.organization_service import OrganizationActor
 from pmc_api.workflow_service import (
     WorkflowActor,
     _validate_graph,
@@ -938,6 +940,41 @@ def test_cross_tenant_runtime_visibility_remains_empty() -> None:
     with engine("PMC_TEST_RUNTIME_DATABASE_URL").begin() as connection:
         context(connection, OTHER, TENANT_B)
         assert connection.scalar(text("SELECT count(*) FROM workflow_definitions")) == 0
+
+
+def test_action_center_workflow_projection_respects_assignment_and_tenant() -> None:
+    version, _, _ = build_published(role_target=str(MEMBER), target_type="user")
+    owner = WorkflowActor(OWNER, str(OWNER), "owner", TENANT_A)
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        instance = start_instance(db, owner, uuid4(), version, "Action center", "AC-001")
+
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        member_items = _workflow_items(
+            db,
+            OrganizationActor(MEMBER, str(MEMBER), "member", TENANT_A),
+            team=False,
+        )
+        assert any(item.source_id == instance.id for item in member_items)
+
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        set_request_context(db, user_id=OTHER, tenant_id=TENANT_A)
+        unassigned_items = _workflow_items(
+            db,
+            OrganizationActor(OTHER, str(OTHER), "member", TENANT_A),
+            team=False,
+        )
+        assert all(item.source_id != instance.id for item in unassigned_items)
+
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        set_request_context(db, user_id=OTHER, tenant_id=TENANT_B)
+        other_tenant_items = _workflow_items(
+            db,
+            OrganizationActor(OTHER, str(OTHER), "member", TENANT_B),
+            team=False,
+        )
+        assert all(item.source_id != instance.id for item in other_tenant_items)
 
 
 def test_member_and_auditor_cannot_mutate_configuration_or_cancel() -> None:
