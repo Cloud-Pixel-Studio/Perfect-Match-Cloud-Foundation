@@ -15,6 +15,7 @@ pmcloud configuration directory.
 | `CP-05-20261102T151100Z` | Visual system and screenshot baselines | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
+| `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
 
 CP-00 database restoration produced Alembic `0038_capa_document_links`, 46 public
 tables and 25 CAPA rows in an isolated disposable PostgreSQL container. The restore
@@ -46,6 +47,14 @@ not approval to publish, merge or deploy.
 The later CP-06 instance adds only the recorded authorization to commit, push the
 dedicated branch and open a Pull Request. It is the recovery point immediately
 before those GitHub actions. Merge and deployment remain outside that authorization.
+
+CP-06 `20261103T032216Z` preserves PR #13 at `8930aa6` after official CI. Its
+isolated restore reproduces Alembic `0039_capa_trace_links`, 48 public tables,
+28 CAPA rows and one active direct control link. The Git bundle verifies complete
+history with 19 refs; the visual archive contains twelve Darwin/Linux baselines.
+Quality, CodeQL, runtime, six Playwright/axe regressions, five SBOMs and ZAP pass.
+The release gate intentionally remains FAIL because pinned Keycloak and SeaweedFS
+images retain five and one High findings respectively.
 
 This document contains identifiers and outcomes only. It intentionally excludes
 keys, secrets, environment values, database content and customer data.
