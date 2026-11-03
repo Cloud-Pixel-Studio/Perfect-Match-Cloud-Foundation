@@ -122,6 +122,9 @@ jobs:
       - name: Install visual QA browser
         if: steps.runtime.outcome == 'success'
         run: pnpm --filter @perfect-match/web exec playwright install --with-deps chromium
+      - name: Seed synthetic visual QMS records
+        if: steps.runtime.outcome == 'success'
+        run: cd apps/api && uv run python ../../scripts/seed-demo-qms.py "${RUNNER_TEMP}/pmcloud/dev.env"
       - name: Responsive visual and accessibility regression
         if: steps.runtime.outcome == 'success'
         run: ./scripts/run-web-visual-qa.sh "${RUNNER_TEMP}/pmcloud/dev.env"

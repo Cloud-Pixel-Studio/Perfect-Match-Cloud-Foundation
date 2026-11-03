@@ -13,6 +13,7 @@ pmcloud configuration directory.
 | `CP-04-20261102T133000Z` | Focused security hardening | Source/Git verified; DB restored successfully |
 | `CP-04-20261102T150500Z` | Post-hardening runtime at 0039 | Source/Git verified; DB restored successfully |
 | `CP-05-20261102T151100Z` | Visual system and screenshot baselines | Source/Git/visuals verified; DB restored successfully |
+| `CP-05-20261103T172255Z` | Premium product catalog and workspace milestone | Source/Git/6 Darwin visuals verified; DB restored successfully |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -36,6 +37,14 @@ CP-05 independently restored Alembic `0039_capa_trace_links`, 48 public tables,
 28 CAPA rows and one direct control link. Its separate visual archive contains six
 PNG baselines covering the public catalog and authenticated workspace across
 mobile, tablet, desktop and dark-theme states.
+
+CP-05 `20261103T172255Z` preserves the updated premium product catalog and
+authenticated workspace presentation. Its encrypted source, complete Git bundle
+and six reviewed Darwin baselines were decrypted and listed; the database was
+restored into an isolated PostgreSQL container at Alembic 0039 with 48 public
+tables and 28 CAPA rows. Seven local Playwright/axe scenarios pass. Linux
+baselines and broader human UX acceptance remain pending, so this checkpoint is
+a recovery point rather than release approval.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and

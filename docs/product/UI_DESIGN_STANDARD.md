@@ -1,6 +1,6 @@
 # Estándar visual y de interacción del QMS
 
-Actualizado el 2 de noviembre de 2026. Las nueve referencias visuales aportadas
+Actualizado el 3 de noviembre de 2026. Las nueve referencias visuales aportadas
 por el usuario el 30 de octubre y reafirmadas el 1 de noviembre se mantienen como
 requisitos activos. La identidad del producto sigue siendo sobria y profesional;
 los colores de las referencias son ilustrativos y no sustituyen la marca propia.
@@ -35,6 +35,15 @@ edición. Se verificó en 375, 768 y 1280 px, claro y oscuro, sin desbordamiento
 estados de catálogo distinguen preparación y planificación para no presentar
 como vendible lo que aún carece de licencias, precios o evidencia de release.
 
+El hito visual local del 3 de noviembre eleva la presentación sin cambiar el
+alcance funcional: el catálogo incorpora una demostración ilustrativa rotulada,
+una progresión comercial tenant→seats→addons y una explicación visual del ciclo
+Define→Operate→Prove. El workspace usa un encabezado ejecutivo, contexto privado
+del tenant, iconografía consistente por área y un Centro de Acciones poblado.
+Las seis capturas Darwin fueron inspeccionadas y actualizadas; las equivalentes
+Linux deben regenerarse y revisarse en CI antes de cerrar la regresión
+multiplataforma.
+
 Objetivo de aceptación: WCAG 2.2 AA. El [criterio de contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
 exige 4.5:1 para texto normal y 3:1 para texto grande. El [contraste de controles](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast)
 requiere 3:1 para las señales visuales necesarias; el [criterio de
@@ -56,3 +65,10 @@ Los baselines están bajo `apps/web/e2e/__screenshots__`; traces, videos, report
 y capturas de fallo permanecen en `artifacts/` y no se versionan. Una actualización
 de baseline requiere inspección humana y debe corresponder a un cambio visual
 intencional.
+
+La ejecución local posterior al hito cubrió siete escenarios: los cuatro del
+catálogo, workspace autenticado en móvil y escritorio, y navegación desde una
+acción al registro autorizado exacto. Todos pasaron Playwright; las vistas que
+ejecutan axe conservaron cero hallazgos WCAG A/AA y no presentaron overflow. Esto
+es evidencia automatizada y visual acotada, no una declaración de conformidad
+WCAG ni sustituto de pruebas con lector de pantalla y usuarios reales.

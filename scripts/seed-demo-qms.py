@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from contextlib import ExitStack
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -58,7 +59,14 @@ def find(rows: list[dict[str, Any]], code: str) -> dict[str, Any] | None:
 
 def main() -> None:
     global phase
-    env = dotenv_values(Path.home() / ".config/pmcloud/dev.env")
+    if len(sys.argv) > 2:
+        raise RuntimeError("provide at most one development environment file")
+    env_path = (
+        Path(sys.argv[1]).expanduser()
+        if len(sys.argv) == 2
+        else Path.home() / ".config/pmcloud/dev.env"
+    )
+    env = dotenv_values(env_path)
     if env.get("PMC_ENVIRONMENT") != "development":
         raise RuntimeError(
             "demo data can only be loaded into the local development environment"

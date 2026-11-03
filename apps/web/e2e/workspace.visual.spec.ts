@@ -46,3 +46,18 @@ for (const viewport of [
     });
   });
 }
+
+test("action center opens the exact authorized record", async ({ page }) => {
+  test.skip(!password, "Local development credential was not provided");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await authenticate(page);
+  const action = page.locator(".action-item").first();
+  await expect(action).toBeVisible();
+  await action.getByRole("button", { name: /^Open / }).click();
+  await expect(page).toHaveURL(/pm_record=[0-9a-f-]+/i);
+  await expect(page.locator(".action-target-record").first()).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
+});
