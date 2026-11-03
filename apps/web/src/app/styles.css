@@ -540,7 +540,7 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .qms-nav-section a[aria-current="page"] { color: var(--pm-primary-strong); background: color-mix(in srgb, var(--pm-primary) 9%, var(--pm-surface)); border-color: color-mix(in srgb, var(--pm-primary) 18%, var(--pm-border)); }
 .qms-nav-section a[aria-current="page"]::before { content: ""; position: absolute; left: 0; width: 3px; height: 27px; border-radius: 0 3px 3px 0; background: var(--pm-primary); }
 .qms-nav-section a:focus-visible, .qms-overview-card:focus-visible { outline: 2px solid var(--pm-focus); outline-offset: 2px; }
-.qms-nav-section a[aria-disabled="true"] { pointer-events: none; opacity: .6; }
+.qms-nav-section a[aria-disabled="true"] { pointer-events: none; cursor: wait; }
 .qms-sidebar-assurance { display: flex; align-items: flex-start; gap: 9px; margin: 36px 10px 0; padding: 13px; color: var(--pm-text-muted); background: var(--pm-surface-muted); border: 1px solid var(--pm-border); border-radius: 10px; font-size: .74rem; line-height: 1.45; }
 .qms-sidebar-assurance svg { flex: 0 0 auto; color: var(--pm-primary-strong); }
 .qms-app-main { min-width: 0; background: var(--pm-bg); }

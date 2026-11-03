@@ -10,6 +10,8 @@ permissions:
 jobs:
   security:
     runs-on: ubuntu-24.04
+    env:
+      TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -123,6 +125,12 @@ jobs:
       - name: Responsive visual and accessibility regression
         if: steps.runtime.outcome == 'success'
         run: ./scripts/run-web-visual-qa.sh "${RUNNER_TEMP}/pmcloud/dev.env"
+      - name: Reclaim ephemeral build cache for security analysis
+        if: always()
+        run: |
+          docker builder prune --all --force
+          docker system df
+          df -h /
       - name: Final application image scans
         if: always()
         env:

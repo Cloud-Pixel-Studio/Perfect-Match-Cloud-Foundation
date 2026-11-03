@@ -4,6 +4,7 @@ import { isAllowedIdentityPath } from "./identity-path";
 
 test("resource UUIDs are accepted for organization and workflow routes", () => {
   const id = "60000000-0000-4000-8000-000000000001";
+  expect(isAllowedIdentityPath(["action-center"])).toBe(true);
   expect(isAllowedIdentityPath(["organization", "units", id])).toBe(true);
   expect(isAllowedIdentityPath(["workflows", id, "versions"])).toBe(true);
   expect(isAllowedIdentityPath(["workflow-instances", id, "transitions"])).toBe(true);
