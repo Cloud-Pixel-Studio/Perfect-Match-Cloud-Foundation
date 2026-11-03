@@ -22,7 +22,7 @@ La referencia Odoo verificada es
 | Addon Odoo | Capacidades actuales verificadas en Odoo | Equivalencia SaaS | Brecha determinante |
 | --- | --- | --- | --- |
 | `pm_qms_action_center` | Bandeja unificada de acciones, propietario, vencimiento, prioridad, origen y apertura del registro | Ausente | Falta bandeja transversal de trabajo con permisos y filtros. |
-| `pm_qms_app` | Shell y dashboard con readiness, actividades, evidencia, riesgos, NCR, CAPA, auditorías, objetivos, personas y calibración | Parcial mínima | Existe shell/navegación y resumen básico; faltan widgets ejecutivos, tendencias, alertas y siguientes acciones. |
+| `pm_qms_app` | Shell y dashboard con readiness, actividades, evidencia, riesgos, NCR, CAPA, auditorías, objetivos, personas y calibración | Parcial | Existe shell/navegación y un tablero operativo de siguientes acciones derivadas de workflow, CAPA, controles y evidencia. Faltan readiness transversal, tendencias y widgets de los módulos aún ausentes. |
 | `pm_qms_audit` | Programa, auditoría, alcance, criterios, plan, independencia, evidencia, hallazgos, seguimiento y creación de NCR | Ausente | La bitácora técnica actual no es auditoría interna QMS. |
 | `pm_qms_calibration` | Tipos/proveedores/equipos, frecuencia, eventos, mediciones, certificado, fuera de tolerancia, impacto, NCR/CAPA y cuarentena | Ausente | No existe inventario de equipos ni ciclo metrológico. |
 | `pm_qms_capa` | Origen NCR/riesgo, 5 Why/Ishikawa/Es-No-Es, acciones, implementación, verificación, eficacia, reapertura, cierre y relaciones | Parcial avanzada | Falta equivalencia de adjuntos, vínculos a controles, algunas relaciones bidireccionales, reportes y aceptación completa. |

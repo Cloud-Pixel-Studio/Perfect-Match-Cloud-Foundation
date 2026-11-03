@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from pmc_api import __version__
+from pmc_api.action_center import router as action_center_router
 from pmc_api.antivirus import scanner_is_ready
 from pmc_api.audit import router as audit_router
 from pmc_api.auth import router as auth_router
@@ -72,6 +73,7 @@ async def request_correlation(
 
 
 app.include_router(auth_router)
+app.include_router(action_center_router)
 app.include_router(tenant_router)
 app.include_router(audit_router)
 app.include_router(organization_router)

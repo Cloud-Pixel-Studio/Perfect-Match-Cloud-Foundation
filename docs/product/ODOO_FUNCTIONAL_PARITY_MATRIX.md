@@ -1,6 +1,6 @@
 # Matriz inicial de paridad funcional Odoo → SaaS
 
-Estado SaaS actualizado: 1 de noviembre de 2026; inventario Odoo verificado contra
+Estado SaaS actualizado: 2 de noviembre de 2026; inventario Odoo verificado contra
 `main@d89330cc1a8e9a2ea16992c9b49394f1dc481b7f`. Esta matriz compara el inventario
 `addons/` del repositorio Odoo de referencia con el estado evidenciado en
 `CHECKPOINT.md`, arquitectura y recorridos locales. Resume módulos, no funciones
@@ -8,15 +8,15 @@ individuales; “parcial” nunca significa paridad suficiente para comercializa
 
 Conteo corregido: **22 directorios**, de los cuales **20 son addons funcionales y 2 son
 placeholders sin implementación en Odoo** (`pm_qms_ai` y `pm_qms_portal`). Entre los
-20 addons funcionales, **9 tienen contraparte parcial en el SaaS y 11 no tienen todavía
+20 addons funcionales, **10 tienen contraparte parcial en el SaaS y 10 no tienen todavía
 contraparte funcional**. Ninguno tiene equivalencia completa verificada; este conteo no
 mide porcentaje de funciones ni permite afirmar “45 % terminado”.
 
 | Addon Odoo | Función principal según su ficha | Estado en SaaS | Alcance ya evidenciado / brecha principal |
 | --- | --- | --- | --- |
-| `pm_qms_action_center` | Centro unificado de acciones | No implementado | Workflow tiene sus propias tareas; falta consolidar acciones QMS con filtros, ownership y permisos. |
+| `pm_qms_action_center` | Centro unificado de acciones | Parcial | Cola unificada derivada de workflows, acciones CAPA, actividades de control y revisiones de evidencia, con vista personal/equipo, ownership, vencimientos y permisos tenant/unidad. Falta cotejo completo con Odoo, vínculos al registro exacto, cobertura PostgreSQL multi-tenant y aceptación visual. Ver `docs/architecture/QMS_ACTION_CENTER.md`. |
 | `pm_qms_ai` | Placeholder para funciones futuras de IA | No aplica a la paridad actual | Odoo solo contiene un README que declara que no existe implementación. Cualquier IA futura requiere diseño separado de privacidad, aislamiento tenant, evaluación y controles. |
-| `pm_qms_app` | Shell de aplicación y dashboard ejecutivo | Parcial | Shell tenant autenticado y módulos QMS visibles; falta dashboard ejecutivo y widgets con permisos. |
+| `pm_qms_app` | Shell de aplicación y dashboard ejecutivo | Parcial | Shell tenant autenticado, navegación modular y tablero operativo con acciones abiertas, vencidas y próximas según permisos. Faltan tendencias, KPIs, readiness ejecutivo, configuración de widgets y aceptación gerencial. |
 | `pm_qms_audit` | Programa de auditoría interna, planificación, evidencia, hallazgos/NCR | No implementado | La bitácora técnica del SaaS no equivale a auditoría interna. Faltan programa, agenda, alcance/criterios, independencia, ejecución, evidencia, hallazgos y seguimiento. Odoo permite crear NCR desde un hallazgo emitido con proceso; el SaaS aún no tiene ese flujo. |
 | `pm_qms_calibration` | Equipos, calibración, verificación y fuera de tolerancia | No implementado | Falta registro de equipos, ciclo de calibración, impacto y tratamiento de resultados vencidos/fuera de tolerancia. |
 | `pm_qms_capa` | Acciones correctivas y preventivas | Parcial | Registro y análisis 5 Why/Ishikawa/Es-No-Es, plan, acciones, ejecución, verificación independiente, revisión de eficacia con ciclos, cierre, cancelación, referencia externa y vínculos versionados a revisiones documentales, implementaciones y evidencia aceptada, con API/UI e integridad PostgreSQL (0026–0039). La UI separa referencias directas de la trazabilidad heredada de la NCR/riesgo fuente. Faltan cotejo opción por opción, reportes, recorrido OIDC/proxy de 0039 y aceptación UX. Ver `docs/architecture/QMS_CAPA_IMPLEMENTATION.md`. |

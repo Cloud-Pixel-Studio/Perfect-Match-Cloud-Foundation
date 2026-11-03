@@ -22,6 +22,7 @@ from pmc_api.models import (
     WorkflowTransition,
     WorkflowVersion,
 )
+from pmc_api.organization_service import OrganizationActor
 
 
 @dataclass(frozen=True)
@@ -543,7 +544,9 @@ def publish_version(
     return version
 
 
-def _eligible(db: Session, actor: WorkflowActor, step_id: UUID, version_id: UUID) -> bool:
+def actor_is_eligible(
+    db: Session, actor: WorkflowActor | OrganizationActor, step_id: UUID, version_id: UUID
+) -> bool:
     assignments = list(
         db.scalars(
             select(WorkflowStepAssignment).where(
@@ -599,7 +602,7 @@ def eligible_actions(
             .limit(100)
         )
     )
-    if not _eligible(db, actor, row.current_step_id, row.workflow_version_id):
+    if not actor_is_eligible(db, actor, row.current_step_id, row.workflow_version_id):
         return []
     return transitions
 
@@ -697,7 +700,7 @@ def transition_instance(
         raise HTTPException(
             status.HTTP_409_CONFLICT, "transition is not valid for the current step"
         )
-    if not _eligible(db, actor, locked.current_step_id, locked.workflow_version_id):
+    if not actor_is_eligible(db, actor, locked.current_step_id, locked.workflow_version_id):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "actor is not assigned to the current step")
     before = _instance_values(locked)
     destination = db.get(WorkflowStep, edge.to_step_id)

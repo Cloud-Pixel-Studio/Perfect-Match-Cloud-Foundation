@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, ChartNoAxesCombined, ChevronDown, ClipboardCheck, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Building2, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -14,6 +14,7 @@ import { RisksWorkspace } from "./risks-workspace";
 import { NonconformitiesWorkspace } from "./nonconformities-workspace";
 import { CAPAWorkspace } from "./capa-workspace";
 import { WorkspaceOverview } from "./workspace-overview";
+import { ActionCenterWorkspace } from "./action-center-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { workspaceFromHash, workspaceItems, workspaceSections, type WorkspaceId } from "../lib/workspace-navigation";
 
@@ -29,6 +30,7 @@ type AuditEvent = { id: string; occurred_at: string; actor_display_name: string;
 const apiUrl = "/api/identity";
 const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   overview: LayoutDashboard,
+  actions: ClipboardList,
   processes: FolderKanban,
   documents: FileText,
   controls: ListChecks,
@@ -247,6 +249,7 @@ export function IdentityShell() {
         {!current ? <div className="qms-empty-context" id="qms-active-workspace" tabIndex={-1}><ShieldCheck aria-hidden="true" size={24} /><h1>Choose an organization</h1><p>Select an active organization to open its quality workspace. If none appears, contact its administrator.</p></div> : <fieldset className="context-workspaces qms-active-workspace" id="qms-active-workspace" disabled={busy} aria-busy={busy}>
           <legend className="sr-only">{selectedItem.label}</legend>
           {activeModule === "overview" && <WorkspaceOverview tenantName={current.name} role={current.role} canAudit={canAudit} onNavigate={navigateWorkspace} />}
+          {activeModule === "actions" && <ActionCenterWorkspace key={`actions-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
           {activeModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {activeModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
           {activeModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}

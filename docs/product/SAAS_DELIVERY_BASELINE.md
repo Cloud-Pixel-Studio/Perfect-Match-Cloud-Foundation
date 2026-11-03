@@ -54,9 +54,9 @@ behavioral parity; inspect models, workflows, ACLs and tests before implementati
 | pm_qms_people | People/training | Pending; competencies, training and scoped personnel records |
 | pm_qms_calibration | Equipment/calibration | Pending; out-of-tolerance impact and authority |
 | pm_qms_license | SaaS entitlements | Redesign as tenant subscription + seats + ISO addons; not offline license copy |
-| pm_qms_app | Product shell | Identity/organization UI exists; QMS dashboard/navigation pending |
+| pm_qms_app | Product shell | Identity/organization UI, modular navigation and operational action dashboard implemented; executive trends/readiness pending |
 | pm_qms_customer_quality | Customer quality | Pending; complaints, satisfaction and performance |
-| pm_qms_action_center | Action center | Pending; scoped aggregation and source access checks |
+| pm_qms_action_center | Action center | Partial; workflow/CAPA/control/evidence aggregation, personal/team scope and source access checks implemented; exact-record links and full parity pending |
 | pm_qms_cost_quality | Cost of quality | Pending; traceable calculations and scoped totals |
 
 Supplier quality is required by the reference README but is not a separately

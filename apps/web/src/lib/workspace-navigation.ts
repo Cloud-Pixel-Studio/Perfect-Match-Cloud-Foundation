@@ -1,5 +1,6 @@
 export type WorkspaceId =
   | "overview"
+  | "actions"
   | "processes"
   | "documents"
   | "controls"
@@ -23,6 +24,7 @@ export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
     label: "Workspace",
     items: [
       { id: "overview", label: "Overview", description: "Choose the work you need to do.", hash: "overview-heading" },
+      { id: "actions", label: "Action center", description: "Prioritize assigned work and pending reviews.", hash: "action-center-heading" },
     ],
   },
   {

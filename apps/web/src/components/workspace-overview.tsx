@@ -3,6 +3,7 @@
 import { ArrowUpRight, ShieldCheck } from "lucide-react";
 
 import { workspaceSections, type WorkspaceId } from "../lib/workspace-navigation";
+import { ActionCenterWorkspace } from "./action-center-workspace";
 
 export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { tenantName: string; role: string; canAudit: boolean; onNavigate: (id: WorkspaceId) => void }) {
   return <section className="qms-overview" aria-labelledby="overview-heading">
@@ -14,6 +15,7 @@ export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { 
       </div>
       <div className="qms-overview-context"><ShieldCheck aria-hidden="true" size={22} /><span><strong>{tenantName}</strong><small>Current role: {role}</small></span></div>
     </div>
+    <ActionCenterWorkspace compact role={role} onNavigate={onNavigate} />
     <div className="qms-overview-sections">
       {workspaceSections.slice(1).map((section) => {
         const visibleItems = section.items.filter((item) => item.id !== "audit" || canAudit);
