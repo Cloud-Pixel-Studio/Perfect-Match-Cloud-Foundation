@@ -11,7 +11,7 @@ jobs:
   security:
     runs-on: ubuntu-24.04
     env:
-      TRIVY_CACHE_DIR: ${{ runner.temp }}/trivy-cache
+      TRIVY_CACHE_DIR: /tmp/trivy-cache
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -43,7 +43,7 @@ jobs:
           version: v0.74.0
           scan-type: fs
           scan-ref: .
-          cache-dir: ${{ runner.temp }}/trivy-cache
+          cache-dir: /tmp/trivy-cache
           scanners: vuln,secret,misconfig
           severity: CRITICAL,HIGH
           exit-code: "1"
