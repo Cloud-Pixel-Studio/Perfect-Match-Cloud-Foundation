@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Perfect Match QMS brand system</title>
+  <desc id="desc">Selected Aligned Evidence identity, logo variants and core color palette.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop stop-color="#EFFCFB"/><stop offset="1" stop-color="#F4F6F7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="25" flood-color="#0A2425" flood-opacity=".12"/></filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <text x="84" y="96" fill="#087F79" font-family="Inter,Arial,sans-serif" font-size="16" font-weight="700" letter-spacing="3">PERFECT MATCH QMS</text>
+  <text x="84" y="154" fill="#123A3A" font-family="Inter,Arial,sans-serif" font-size="48" font-weight="700" letter-spacing="-2">Aligned Evidence</text>
+  <text x="84" y="190" fill="#5C6870" font-family="Inter,Arial,sans-serif" font-size="20">Trust, precision and quality operations in one governed system.</text>
+
+  <rect x="84" y="246" width="760" height="360" rx="28" fill="#FFFFFF" stroke="#D4DADD" filter="url(#shadow)"/>
+  <g transform="translate(142 318) scale(1.18)"><path d="M22 33 51 16a26 26 0 0 1 26 0l29 17v35L77 85a26 26 0 0 1-26 0L22 68Z" fill="none" stroke="#123A3A" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path d="m42 65 15 15 31-36" fill="none" stroke="#14A39A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="33" r="9" fill="#FF6B57"/><path d="M42 98h44" stroke="#123A3A" stroke-width="12" stroke-linecap="round"/></g>
+  <text x="318" y="380" fill="#123A3A" font-family="Inter,Arial,sans-serif" font-size="46" font-weight="700" letter-spacing="-1">Perfect Match</text>
+  <text x="320" y="426" fill="#52706F" font-family="Inter,Arial,sans-serif" font-size="25" font-weight="650" letter-spacing="5">QMS</text>
+  <line x1="142" y1="506" x2="786" y2="506" stroke="#D4DADD"/>
+  <text x="142" y="550" fill="#5C6870" font-family="Inter,Arial,sans-serif" font-size="16">PRIMARY LOCKUP · LIGHT BACKGROUND</text>
+
+  <rect x="884" y="246" width="472" height="360" rx="28" fill="#0A2425" filter="url(#shadow)"/>
+  <g transform="translate(1028 308) scale(1.44)"><path d="M22 33 51 16a26 26 0 0 1 26 0l29 17v35L77 85a26 26 0 0 1-26 0L22 68Z" fill="none" stroke="#EAF7F6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path d="m42 65 15 15 31-36" fill="none" stroke="#49D3C9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="33" r="9" fill="#FF816E"/><path d="M42 98h44" stroke="#EAF7F6" stroke-width="12" stroke-linecap="round"/></g>
+  <text x="1120" y="548" text-anchor="middle" fill="#EAF7F6" font-family="Inter,Arial,sans-serif" font-size="18" font-weight="650">Assurance in dark mode</text>
+
+  <g transform="translate(84 670)">
+    <g><rect width="196" height="142" rx="18" fill="#123A3A"/><text x="18" y="100" fill="#EAF7F6" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">DEEP INK</text><text x="18" y="122" fill="#AFE6E1" font-family="monospace" font-size="13">#123A3A</text></g>
+    <g transform="translate(216)"><rect width="196" height="142" rx="18" fill="#14A39A"/><text x="18" y="100" fill="#0A2425" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">ASSURANCE TEAL</text><text x="18" y="122" fill="#0A2425" font-family="monospace" font-size="13">#14A39A</text></g>
+    <g transform="translate(432)"><rect width="196" height="142" rx="18" fill="#087F79"/><text x="18" y="100" fill="#FFFFFF" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">ACTION TEAL</text><text x="18" y="122" fill="#D8F3F0" font-family="monospace" font-size="13">#087F79</text></g>
+    <g transform="translate(648)"><rect width="196" height="142" rx="18" fill="#FF6B57"/><text x="18" y="100" fill="#0A2425" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">SIGNAL CORAL</text><text x="18" y="122" fill="#0A2425" font-family="monospace" font-size="13">#FF6B57</text></g>
+    <g transform="translate(864)"><rect width="196" height="142" rx="18" fill="#EAF7F6" stroke="#D4DADD"/><text x="18" y="100" fill="#123A3A" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">PALE MINT</text><text x="18" y="122" fill="#5C6870" font-family="monospace" font-size="13">#EAF7F6</text></g>
+    <g transform="translate(1080)"><rect width="192" height="142" rx="18" fill="#FFFFFF" stroke="#D4DADD"/><text x="18" y="100" fill="#172026" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="700">SURFACE</text><text x="18" y="122" fill="#5C6870" font-family="monospace" font-size="13">#FFFFFF</text></g>
+  </g>
+</svg>

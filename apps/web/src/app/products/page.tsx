@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { ThemeToggle } from "../../components/theme-toggle";
+import { BrandMark } from "../../components/brand-mark";
 
 export const metadata: Metadata = {
   title: "Products | Perfect Match QMS",
@@ -59,8 +60,8 @@ export default async function ProductsPage() {
     <div className="product-page">
       <header className="product-header">
         <Link className="product-brand" href="/">
-          <Image alt="" height={40} priority src="/brand-mark.png" unoptimized width={40} />
-          <span className="product-brand-name"><strong>PERFECT MATCH</strong><small>Quality Management Cloud</small></span>
+          <BrandMark priority />
+          <span className="product-brand-name"><strong>PERFECT MATCH QMS</strong><small>Quality Operations Cloud</small></span>
           <span className="sr-only">Home</span>
         </Link>
         <nav aria-label="Product navigation">
@@ -91,7 +92,7 @@ export default async function ProductsPage() {
             <div className="showcase-window-bar"><span /><span /><span /><small>Perfect Match QMS · Tenant workspace</small></div>
             <div className="showcase-layout">
               <aside aria-hidden="true">
-                <div className="showcase-brand"><Image alt="" height={26} src="/brand-mark.png" unoptimized width={26} /><span /></div>
+                <div className="showcase-brand"><BrandMark size={26} /><span /></div>
                 <span className="showcase-nav active" /><span className="showcase-nav" /><span className="showcase-nav" /><span className="showcase-nav short" />
               </aside>
               <div className="showcase-content">
@@ -114,6 +115,11 @@ export default async function ProductsPage() {
           <span><UsersRound aria-hidden="true" size={19} /><span><strong>Flexible seats</strong><small>Capacity for active members</small></span></span>
           <span><BookOpenCheck aria-hidden="true" size={19} /><span><strong>ISO addons</strong><small>Contracted standard and edition</small></span></span>
         </section>
+
+        <figure className="product-brand-art">
+          <Image alt="Abstract document and evidence pathways converging into one governed quality system" height={941} src="/brand/hero-quality-network.png" width={1672} />
+          <figcaption><strong>Aligned Evidence</strong><span>Requirements, responsibility and proof converge in one controlled workspace.</span></figcaption>
+        </figure>
 
         <section className="product-story" aria-labelledby="product-story-heading">
           <div className="product-story-heading"><p className="eyebrow">What the platform brings together</p><h2 id="product-story-heading">Quality work feels clearer when everything has a place.</h2></div>
