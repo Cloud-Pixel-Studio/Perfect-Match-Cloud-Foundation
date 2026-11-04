@@ -28,7 +28,8 @@
 ## Pendiente y límites
 
 - Completar primitives y navegación por persona.
-- Baselines Linux y dark autenticado en CI; QA con lector de pantalla y usuarios.
+- Baselines Linux regenerados e inspeccionados en contenedor Playwright 1.64.1;
+  dark autenticado, lector de pantalla y aceptación con usuarios siguen pendientes.
 - Revisión legal de marca.
 - El gate de release global continúa en FAIL por hallazgos High conocidos de
   Keycloak y SeaweedFS; este trabajo visual no los corrige ni los oculta.
