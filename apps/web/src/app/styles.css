@@ -725,6 +725,17 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .product-principles strong, .product-principles small { display: block; }
 .product-principles strong { color: var(--pm-text); font-size: .84rem; }
 .product-principles small { margin-top: 3px; font-size: .72rem; font-weight: 400; }
+.product-brand-art { position: relative; overflow: hidden; margin: 0 0 120px; border: 1px solid var(--pm-border); border-radius: var(--pm-radius-2xl); background: var(--pm-brand-teal-900); box-shadow: 0 30px 70px rgb(10 36 37 / 18%); }
+.product-brand-art img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.product-brand-art figcaption { position: absolute; inset: auto 24px 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 18px; color: #eaf7f6; background: rgb(10 36 37 / 82%); border: 1px solid rgb(234 247 246 / 18%); border-radius: 12px; backdrop-filter: blur(14px); }
+.product-brand-art figcaption strong, .product-brand-art figcaption span { display: block; }
+.product-brand-art figcaption strong { flex: 0 0 auto; color: #49d3c9; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
+.product-brand-art figcaption span { color: #eaf7f6; font-size: .82rem; }
+.brand-mark { position: relative; display: inline-block; flex: 0 0 auto; }
+.brand-mark > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.brand-mark-dark { opacity: 0; }
+[data-theme="dark"] .brand-mark-light { opacity: 0; }
+[data-theme="dark"] .brand-mark-dark { opacity: 1; }
 .product-story { display: grid; grid-template-columns: minmax(280px, .7fr) minmax(0, 1.3fr); gap: clamp(44px, 7vw, 90px); margin-block: 110px 140px; }
 .product-story-heading h2 { max-width: 500px; margin: 0; font-size: clamp(2.15rem, 4vw, 3.8rem); line-height: 1.03; letter-spacing: -.055em; }
 .product-pillar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; background: var(--pm-border); border: 1px solid var(--pm-border); border-radius: 16px; }
@@ -835,6 +846,59 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   overflow: clip;
   border-radius: 18px;
   box-shadow: 0 16px 42px rgb(23 32 38 / 5%);
+}
+
+/* Administration: calm, trustworthy control surfaces. */
+.organization-workspace, .qms-access-panel, .workflow-workspace, .audit-panel {
+  position: relative; overflow: hidden; border-radius: 18px;
+  border-color: color-mix(in srgb, var(--pm-primary) 12%, var(--pm-border));
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--pm-text) 7%, transparent);
+}
+.organization-workspace::before, .qms-access-panel::before, .workflow-workspace::before, .audit-panel::before {
+  position: absolute; inset: 0 0 auto; height: 3px; content: "";
+  background: linear-gradient(90deg, var(--pm-primary), var(--pm-accent), transparent 74%);
+}
+.organization-grid, .workflow-grid { align-items: start; }
+.unit-browser, .workflow-list {
+  background: color-mix(in srgb, var(--pm-surface-muted) 66%, var(--pm-surface));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent);
+}
+.unit-details, .workflow-detail, .workflow-instances {
+  background: var(--pm-surface); box-shadow: var(--pm-shadow-sm);
+}
+.unit-browser, .unit-details, .workflow-list, .workflow-detail, .workflow-instances,
+.qms-access-form { border-radius: 14px; }
+.unit-browser, .workflow-list { max-height: min(68vh, 720px); overflow: auto; }
+.organization-tree .tree-group > strong {
+  display: block; margin-top: var(--pm-space-4); color: var(--pm-text-muted);
+  font-size: .72rem; letter-spacing: .09em; text-transform: uppercase;
+}
+.management-controls, .assignment-controls {
+  padding: var(--pm-space-4); border: 1px solid var(--pm-border);
+  border-radius: 12px; background: var(--pm-surface-muted);
+}
+.unit-facts > div, .assignment-list li, .step-list li {
+  border: 1px solid color-mix(in srgb, var(--pm-border) 76%, transparent);
+}
+.qms-access-note { padding: var(--pm-space-4); border-radius: 12px; background: var(--pm-surface-muted); }
+.qms-access-form { background: color-mix(in srgb, var(--pm-surface-muted) 58%, var(--pm-surface)); }
+.qms-access-table { border: 1px solid var(--pm-border); border-radius: 12px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.qms-access-table th { background: var(--pm-surface-muted); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
+.qms-access-table tbody tr { transition: background-color 160ms ease; }
+.qms-access-table tbody tr:hover { background: color-mix(in srgb, var(--pm-primary) 5%, var(--pm-surface)); }
+.workflow-list li button { padding: var(--pm-space-4); }
+.workflow-list li button.selected { border-color: color-mix(in srgb, var(--pm-primary) 36%, var(--pm-border)); box-shadow: inset 3px 0 var(--pm-primary); }
+.version-tabs button { border-radius: 999px; }
+.version-tabs button.selected { background: color-mix(in srgb, var(--pm-primary) 9%, var(--pm-surface)); }
+.audit-list { gap: var(--pm-space-3); }
+.audit-event { border: 1px solid var(--pm-border); border-radius: 12px; background: var(--pm-surface); overflow: hidden; }
+.audit-event summary { padding: var(--pm-space-4); }
+.audit-event[open] summary { background: var(--pm-surface-muted); border-bottom: 1px solid var(--pm-border); }
+.audit-event dl { margin: var(--pm-space-3); border: 1px solid var(--pm-border); }
+@media (max-width: 800px) {
+  .unit-browser, .workflow-list { max-height: none; overflow: visible; }
+  .audit-event summary { align-items: flex-start; flex-direction: column; }
+  .audit-event dl { grid-template-columns: 1fr; }
 }
 .qms-active-workspace > :is(.process-workspace, .documents-workspace, .controls-panel, .risks-panel, .ncr-panel, .organization-workspace, .qms-access-panel, .workflow-workspace, .audit-panel)::before {
   position: absolute;
@@ -1033,6 +1097,8 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   .risk-links > .risk-link-group-heading, .risk-links > .qms-history-caption { grid-column: auto; }
 }
 @media (max-width: 640px) {
+  .product-brand-art { margin-bottom: 88px; }
+  .product-brand-art figcaption { inset: auto 12px 12px; align-items: flex-start; flex-direction: column; gap: 5px; padding: 13px 14px; }
   .qms-active-workspace .workspace-heading h2 > svg { padding: 6px; }
   .qms-active-workspace :is(.process-toolbar, .documents-toolbar, .process-scope-picker, .risk-toolbar, .ncr-toolbar) { padding: 12px; }
   .control-card-summary { min-height: 0; padding: 16px; }
