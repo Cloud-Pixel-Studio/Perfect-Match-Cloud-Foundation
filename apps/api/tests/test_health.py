@@ -9,23 +9,42 @@ from pmc_api.main import app
 def test_health_reports_ready_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("pmc_api.main.database_is_ready", lambda: True)
     monkeypatch.setattr("pmc_api.main.object_storage_is_ready", lambda: True)
+    monkeypatch.setattr("pmc_api.main.scanner_is_ready", lambda: True)
 
     response = TestClient(app).get("/health")
 
     assert response.status_code == 200
     assert response.json() == {
         "status": "ok",
-        "version": "0.4.0",
-        "dependencies": {"database": "ok", "object_storage": "ok"},
+        "version": "0.5.0",
+        "dependencies": {
+            "database": "ok",
+            "object_storage": "ok",
+            "malware_scanner": "ok",
+        },
     }
 
 
 def test_health_returns_503_without_exposing_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("pmc_api.main.database_is_ready", lambda: False)
     monkeypatch.setattr("pmc_api.main.object_storage_is_ready", lambda: True)
+    monkeypatch.setattr("pmc_api.main.scanner_is_ready", lambda: True)
 
     response = TestClient(app).get("/health")
 
     assert response.status_code == 503
     assert response.json()["dependencies"]["database"] == "unavailable"
     assert "postgresql" not in response.text.lower()
+
+
+def test_health_is_unavailable_when_antivirus_is_not_ready(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("pmc_api.main.database_is_ready", lambda: True)
+    monkeypatch.setattr("pmc_api.main.object_storage_is_ready", lambda: True)
+    monkeypatch.setattr("pmc_api.main.scanner_is_ready", lambda: False)
+
+    response = TestClient(app).get("/health")
+
+    assert response.status_code == 503
+    assert response.json()["dependencies"]["malware_scanner"] == "unavailable"

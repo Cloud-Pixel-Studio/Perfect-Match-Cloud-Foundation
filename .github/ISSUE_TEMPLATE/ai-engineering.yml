@@ -1,0 +1,60 @@
+name: Controlled AI engineering request
+description: Propose bounded work for the Perfect Match Cloud Foundation agent workflow.
+title: "[AI] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form records a request. It does not authorize code execution. An authorized maintainer must review it and apply `ai:ready` before manually activating the intake workflow.
+  - type: dropdown
+    id: work_type
+    attributes:
+      label: Work type
+      options:
+        - Defect correction
+        - Small product improvement
+        - Test or validation improvement
+        - Security hardening
+        - Documentation or recovery control
+        - UI/UX improvement
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Bounded objective
+      description: Describe the user or business outcome. Do not include credentials, tokens, customer data or shell commands.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance evidence
+      description: List observable behavior, tests and screenshots required for acceptance.
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and tenant-isolation considerations
+      description: Identify affected permissions, tenant/unit boundaries, regulated records, uploads, secrets or external services.
+    validations:
+      required: true
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback and recovery expectations
+      description: State whether data, migrations or deployment behavior can change and what must be recoverable.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Request confirmations
+      options:
+        - label: This request contains no secrets, credentials or customer data.
+          required: true
+        - label: The requested change is bounded and has observable acceptance criteria.
+          required: true
+        - label: Merge and production deployment will still require human approval.
+          required: true

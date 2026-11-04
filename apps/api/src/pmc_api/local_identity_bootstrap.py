@@ -14,6 +14,7 @@ TENANT_B = UUID("10000000-0000-4000-8000-000000000002")
 USER_A = UUID("20000000-0000-4000-8000-000000000001")
 USER_B = UUID("20000000-0000-4000-8000-000000000002")
 MULTI_USER = UUID("20000000-0000-4000-8000-000000000003")
+OWNER_USER = UUID("20000000-0000-4000-8000-000000000004")
 
 
 def _request(client: httpx.Client, method: str, path: str, **kwargs: Any) -> httpx.Response:
@@ -117,6 +118,12 @@ def _configure_keycloak() -> dict[UUID, tuple[str, str, str]]:
 
         definitions = (
             (
+                OWNER_USER,
+                "pmc-local-owner",
+                "pmc-local-owner@example.test",
+                os.environ["KEYCLOAK_OWNER_PASSWORD"],
+            ),
+            (
                 USER_A,
                 "pmc-user-a",
                 "pmc-user-a@example.test",
@@ -178,6 +185,7 @@ def _seed_application(subjects: dict[UUID, tuple[str, str, str]]) -> None:
                 {"user_id": user_id, "issuer": issuer, "subject": subject, "now": now},
             )
         memberships = (
+            (TENANT_A, OWNER_USER, "owner"),
             (TENANT_A, USER_A, "member"),
             (TENANT_B, USER_B, "member"),
             (TENANT_A, MULTI_USER, "member"),
@@ -197,6 +205,8 @@ def _seed_application(subjects: dict[UUID, tuple[str, str, str]]) -> None:
 
 
 def main() -> None:
+    if os.environ.get("PMC_ENVIRONMENT") != "development":
+        raise RuntimeError("local identity fixtures require the development environment")
     _seed_application(_configure_keycloak())
 
 

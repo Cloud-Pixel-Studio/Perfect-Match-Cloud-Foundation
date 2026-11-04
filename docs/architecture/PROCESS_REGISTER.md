@@ -1,0 +1,17 @@
+# Registro de procesos — 2026-10-28
+
+## Implementado
+API y migración 0009: registro por tenant/unidad, código único sin distinguir mayúsculas, nombre, tipo, responsable, departamento, orden, descripción, entradas y salidas. Jerarquía dentro de la misma unidad; archivo/restauración; versión optimista para evitar sobrescritura. Sin borrado por el usuario runtime.
+
+Migración 0015: un proceso admite varias sedes activas del mismo tenant. La sede debe ser una unidad de tipo `site`; la relación usa FK compuesta y RLS. El permiso `processes.manage` sobre el proceso controla el alta/cambio de aplicabilidad. El historial `process.created/updated` conserva los IDs de sede. No se puede archivar una sede que aún esté asociada a procesos activos; para restaurar un proceso primero deben restaurarse sus sedes. Las sedes son metadatos organizacionales del tenant, no permisos QMS.
+
+Permisos explícitos processes.read / processes.manage por unidad. Owner y responsable del proceso no adquieren autoridad implícita. RLS forzado y controles SQL protegen también escrituras directas. Auditoría y proyección de dependencias se guardan en la misma transacción; textos largos se registran por hash. Una unidad con procesos activos no puede archivarse, incluso si su owner no puede leerlos.
+
+La función privilegiada de bloqueo verifica capacidad antes de bloquear la proyección privada de la unidad. No concede escritura organizacional a miembros. Permisos de función limitados, search_path fijo y tablas privadas sin acceso runtime.
+
+Interfaz inicial: selección de unidad autorizada, lista, creación/edición de datos descriptivos, archivo con confirmación y restauración. Refrescar descarta el borrador; las ediciones conservan la versión que el usuario cargó. Respuestas antiguas se descartan al cambiar de unidad; cambio de tenant remonta el panel.
+
+## Validación y límites
+30 pruebas PostgreSQL pasan: aislamiento, permisos, jerarquía, versiones, auditoría atómica, dependencias, multi-sede, archive/restore y SQL directo. Migración 0015 sube, baja y vuelve a subir en PostgreSQL desechable; downgrade acumulado con auditoría de procesos se rechaza para conservar integridad. Ver artifacts/process-final.log. Checkpoint integral previo PASS (artifacts/checkpoint-process-final-hardening.log), 143 casos backend distintos; 8 tests frontend PASS (artifacts/process-web-tests.log). Revisión visual del selector multi-sede pendiente.
+
+La base del catálogo de controles, instancias y sus definiciones reusables está en `0016_qms_controls` y `0018_control_definitions`; el mapa y la equivalencia funcional restante siguen pendientes. La referencia Odoo `addons/pm_qms_core/models/process.py` relaciona procesos con `site_ids`, `control_ids` y `control_instance_ids`; `site.py` alinea sede con organización y compañía. El SaaS adapta compañía a tenant y conserva `unit_id` como alcance explícito; vincular una sede no otorga acceso implícito. El proceso admite responsable, jerarquía y varias sedes. El registro tiene páginas de50, búsqueda literal por código/nombre y búsqueda de padre independiente; la API limita cada respuesta a100 y offset a1.000.000. Selectores de unidades/miembros siguen acotados a100. Revisión visual pendiente; controles de búsqueda/paginación pasaron lint/tipos y pruebas. E2E real anterior PASS para creación, edición, responsable, jerarquía, rechazo de ciclo, archivo/restauración y revocación. Multi-sede y panel de controles aún no tienen recorrido real autenticado en navegador. No se declara certificación ISO/NIST.

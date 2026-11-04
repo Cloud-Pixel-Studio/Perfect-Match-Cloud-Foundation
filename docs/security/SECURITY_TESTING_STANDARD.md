@@ -13,25 +13,30 @@ events; private storage URLs; and cross-tenant AI retrieval prevention.
 Active attack scanning, production targeting, LAN discovery, and external source
 upload are prohibited in PMC-00.
 
-## PMC-00 baseline risk treatments
+## Current browser boundary
 
-ZAP rule 10055 remains `WARN`: Next.js hydration uses inline bootstrap scripts.
-The local shell's CSP otherwise limits scripts, connections, images, forms,
-frames, and objects to explicit safe sources. This exception is limited to the
-disposable foundation UI, which renders no customer or user-authored content.
-Nonce-based script policy is required before production exposure.
+The shell uses a fresh cryptographic CSP nonce per request, dynamic rendering
+and private/no-store document responses. Production scripts do not use
+`unsafe-inline` or `unsafe-eval`. Incoming nonce/CSP headers are replaced.
+The local HTTP environment does not establish production TLS/HSTS readiness.
 
 ZAP rule 10109 is retained in the report and classified as the informational
 Modern Web Application observation. It is not suppressed as a vulnerability;
 the final evidence manifest records its title, risk, confidence, and count.
 
 ZAP rule 10049 is retained as an informational cacheability observation. The
-disposable foundation UI intentionally marks robots and sitemap responses
-`no-store` while static assets and the document response expose explicit cache
-directives; this is not a PMC-02 security defect.
+UI uses explicit cache policies: authenticated documents are private/no-store,
+while versioned static assets may be cached. Inspect the affected URL and content
+before accepting any cache observation.
 
-ZAP rule 90004 is retained as a low-risk response-header observation. The
-disposable local UI does not require cross-origin isolation for PMC-02, and no
-cross-tenant, authentication, audit-write, or secret exposure was observed.
-Production cross-origin isolation policy remains deferred to the production
-deployment hardening review.
+The web boundary sets COOP same-origin, COEP require-corp and CORP same-origin.
+Revalidate these policies when external resources, embedding or popup identity
+flows are introduced. Local OIDC uses top-level navigation.
+
+## Third-party image gate
+
+Trivy reports for PostgreSQL, Keycloak and SeaweedFS must contain a Results array.
+CI fails on HIGH or CRITICAL vulnerabilities, matching the application-image
+gate. A newer image tag alone is not evidence of remediation. Do not suppress
+findings to satisfy the gate; record applicability, fixes and release blockers
+with the image digest and scanner database date.

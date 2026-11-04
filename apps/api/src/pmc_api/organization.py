@@ -161,7 +161,7 @@ def get_units(
     db: DBSession,
     authenticated: Authenticated,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
-    offset: Annotated[int, Query(ge=0, le=10000)] = 0,
+    offset: Annotated[int, Query(ge=0, le=1000000)] = 0,
 ) -> list[OrganizationUnit]:
     return list_units(db, _actor(db, authenticated), limit=limit, offset=offset)
 
@@ -290,15 +290,21 @@ def get_members(
     authenticated: Authenticated,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0, le=10000)] = 0,
+    search: Annotated[str, Query(max_length=160)] = "",
 ) -> list[dict[str, object]]:
     _actor(db, authenticated)
+    params: dict[str, object] = {"limit": limit, "offset": offset, "pattern": None}
+    if search.strip():
+        value = search.strip().replace("!", "!!").replace("%", "!%").replace("_", "!_")
+        params["pattern"] = f"%{value}%"
     rows = db.execute(
         text(
             "SELECT user_id AS id, display_name, role "
             "FROM organization_member_directory() "
+            "WHERE CAST(:pattern AS text) IS NULL OR display_name ILIKE :pattern ESCAPE '!' "
             "ORDER BY lower(display_name), user_id LIMIT :limit OFFSET :offset"
         ),
-        {"limit": limit, "offset": offset},
+        params,
     )
     return [{"id": row.id, "display_name": row.display_name, "role": row.role} for row in rows]
 

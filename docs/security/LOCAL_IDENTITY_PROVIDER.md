@@ -1,14 +1,14 @@
 # Local Identity Provider
 
-Keycloak 26.7.3 is used only as a disposable local OIDC provider.
+Keycloak 26.8.1 is used only as a disposable local OIDC provider.
 
 | Evidence | Value |
 | --- | --- |
 | Canonical project | https://www.keycloak.org/ |
 | Canonical source | https://github.com/keycloak/keycloak |
 | License | Apache-2.0 |
-| Image | `quay.io/keycloak/keycloak:26.7.3` |
-| Digest | `sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54` |
+| Image | `quay.io/keycloak/keycloak:26.8.1` |
+| Digest | `sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b` |
 
 The endpoint binds to host loopback only and the container is capped at 768 MiB.
 An idempotent infrastructure bootstrap creates the `perfect-match` realm, a

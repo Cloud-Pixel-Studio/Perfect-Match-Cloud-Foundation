@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import "@fontsource-variable/inter";
 import "@perfect-match/design-system/tokens.css";
 import "./styles.css";
 

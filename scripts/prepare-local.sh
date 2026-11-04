@@ -51,6 +51,7 @@ ensure_secret POSTGRES_MIGRATION_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret POSTGRES_RUNTIME_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret KEYCLOAK_ADMIN_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret KEYCLOAK_USER_A_PASSWORD "$(openssl rand -hex 24)"
+ensure_secret KEYCLOAK_OWNER_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret KEYCLOAK_USER_B_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret KEYCLOAK_MULTI_USER_PASSWORD "$(openssl rand -hex 24)"
 ensure_secret PMC_LOGIN_TRANSACTION_KEY "$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')"
@@ -67,7 +68,18 @@ ensure_value PMC_COOKIE_SECURE false
 ensure_value PMC_WEB_URL http://127.0.0.1:3000
 
 if grep -q '^APP_VERSION=' "$env_file"; then
-  sed -i 's/^APP_VERSION=.*/APP_VERSION=0.4.0/' "$env_file"
+  python3 - "$env_file" <<'PY'
+import pathlib
+import sys
+
+target = pathlib.Path(sys.argv[1])
+lines = target.read_text(encoding="utf-8").splitlines()
+target.write_text(
+    "\n".join("APP_VERSION=0.4.0" if line.startswith("APP_VERSION=") else line for line in lines)
+    + "\n",
+    encoding="utf-8",
+)
+PY
 else
   printf 'APP_VERSION=0.4.0\n' >> "$env_file"
 fi

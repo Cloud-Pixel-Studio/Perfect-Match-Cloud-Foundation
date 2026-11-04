@@ -32,7 +32,7 @@ to their respective components. Dependencies are kept narrow and mature.
 | Lucide React | 1.41.0 | https://github.com/lucide-icons/lucide | ISC | Accessible interface icon set. |
 | PostgreSQL | 18.6 | https://www.postgresql.org/ | PostgreSQL | Local relational data service and future RDS-compatible engine. |
 | SeaweedFS Community Edition | 4.45 | https://github.com/seaweedfs/seaweedfs | Apache-2.0 | Local S3-compatible object storage. |
-| Keycloak | 26.7.3 | https://github.com/keycloak/keycloak | Apache-2.0 | Local-only standards-compliant OIDC provider; not used by product business code. |
+| Keycloak | 26.8.1 | https://github.com/keycloak/keycloak | Apache-2.0 | Local-only standards-compliant OIDC provider; not used by product business code. |
 
 The standalone engineering tools are Docker Engine 29.8.0 (Apache-2.0 core),
 Docker Compose 5.5.1 (Apache-2.0), OpenGrep 1.29.0 (LGPL-2.1), Trivy 0.74.0

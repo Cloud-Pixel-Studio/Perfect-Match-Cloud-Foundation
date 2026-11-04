@@ -47,7 +47,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
       - run: shellcheck scripts/*.sh security/opengrep/test-rules.sh
+      - run: node scripts/test-agent-intake-policy.mjs
 
   tenant-isolation:
     runs-on: ubuntu-24.04
@@ -81,3 +85,36 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-organization-integrity.sh
+
+  workflow-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: cd apps/api && uv sync --frozen
+      - run: ./scripts/run-workflow-integrity.sh
+
+  qms-access-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: cd apps/api && uv sync --frozen
+      - run: ./scripts/run-qms-access-integrity.sh
+
+  process-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: cd apps/api && uv sync --frozen
+      - run: ./scripts/run-process-integrity.sh

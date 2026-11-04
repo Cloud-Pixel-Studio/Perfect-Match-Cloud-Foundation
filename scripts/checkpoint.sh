@@ -5,7 +5,11 @@ env_file=${1:-"${HOME}/.config/pmcloud/dev.env"}
 make lint ENV_FILE="$env_file"
 make typecheck ENV_FILE="$env_file"
 make test ENV_FILE="$env_file"
-./scripts/run-tenant-isolation.sh
+./scripts/run-audit-integrity.sh
+./scripts/run-organization-integrity.sh
+./scripts/run-workflow-integrity.sh
+./scripts/run-qms-access-integrity.sh
+./scripts/run-process-integrity.sh
 make build ENV_FILE="$env_file"
 make health ENV_FILE="$env_file"
 ./security/opengrep/test-rules.sh
