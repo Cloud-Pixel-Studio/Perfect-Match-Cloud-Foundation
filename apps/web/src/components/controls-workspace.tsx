@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgeCheck, ClipboardCheck, RefreshCw, ShieldCheck } from "lucide-react";
+import { BadgeCheck, ChevronDown, ClipboardCheck, RefreshCw, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ControlMethodDefinitions } from "./control-method-definitions";
 import { ControlInstanceActivities } from "./control-instance-activities";
@@ -298,10 +298,11 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
       {processId && !controls.length && <p className="empty-state">No controls are assigned to {process?.name ?? "this process"} yet.</p>}
       <div className="control-card-list">{controls.map((control) => {
         const implementation = instances.find((item) => item.control_id === control.id);
-        return <article id={implementation ? `control-implementation-${implementation.id}` : undefined} className={`control-card${implementation?.id === initialTarget?.recordId ? " action-target-record" : ""}`} key={control.id}>
-          <div className="control-card-heading"><span className={`process-status ${control.state === "active" ? "active" : control.state === "retired" ? "archived" : "draft"}`}>{control.state}</span><span className="eyebrow">{control.code} · {control.category.replaceAll("_", " ")}</span>
-            <h3>{control.name}</h3><p>{processes.find((item) => item.id === control.process_id)?.name ?? "Process"}</p></div>
-          <p>{control.objective}</p>
+        const targeted = !!implementation && implementation.id === initialTarget?.recordId;
+        return <details id={implementation ? `control-implementation-${implementation.id}` : undefined} className={`control-card${targeted ? " action-target-record" : ""}`} open={targeted || undefined} key={control.id}>
+          <summary className="control-card-summary"><div className="control-card-heading"><span className="eyebrow">{control.code} · {control.category.replaceAll("_", " ")}</span>
+            <h3>{control.name}</h3><p>{processes.find((item) => item.id === control.process_id)?.name ?? "Process"}</p></div><span className="control-card-summary-meta"><span className={`process-status ${control.state === "active" ? "active" : control.state === "retired" ? "archived" : "draft"}`}>{control.state}</span>{implementation && <span className="qms-grant-status assigned">{statusLabel[implementation.implementation_status] ?? implementation.implementation_status}</span>}<ChevronDown aria-hidden="true" size={18} /></span></summary>
+          <div className="control-card-body"><p className="control-objective">{control.objective}</p>
           {control.description && <p className="control-description">{control.description}</p>}
           {[{ label: "Implementation guidance", value: control.implementation_guidance }, { label: "Purpose", value: control.guidance_purpose }, { label: "Why it matters", value: control.guidance_why }, { label: "Recommended steps", value: control.recommended_steps }, { label: "Recommended tools", value: control.recommended_tools }, { label: "Evidence guidance", value: control.evidence_guidance }, { label: "Practical notes", value: control.practical_notes }].some((item) => item.value) &&
             <details className="control-guidance-read"><summary>Implementation and evidence guidance</summary><dl>{[
@@ -334,8 +335,8 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
             instanceId={implementation.id} unitId={unitId} processId={processId}
             canManage={canManageInstances} canReadDocuments={capabilities.includes("documents.read")}
             targetEvidenceId={initialTarget?.source === "evidence_review" && initialTarget.recordId === implementation.id ? initialTarget.subrecordId : undefined} />}
-          {!canReadInstances && <small>Implementation status is hidden: no read access assigned.</small>}
-        </article>;
+          {!canReadInstances && <small>Implementation status is hidden: no read access assigned.</small>}</div>
+        </details>;
       })}</div>
     </>}
   </section>;

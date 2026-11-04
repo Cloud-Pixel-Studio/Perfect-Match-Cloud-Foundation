@@ -828,3 +828,214 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   .qms-overview-card { min-height: 136px; }
   .qms-overview-card > span:nth-child(2) { padding-right: 18px; }
 }
+
+/* Operational modules: premium, scan-first record workspaces. */
+.qms-active-workspace > :is(.process-workspace, .documents-workspace, .controls-panel, .risks-panel, .ncr-panel, .organization-workspace, .qms-access-panel, .workflow-workspace, .audit-panel) {
+  position: relative;
+  overflow: clip;
+  border-radius: 18px;
+  box-shadow: 0 16px 42px rgb(23 32 38 / 5%);
+}
+.qms-active-workspace > :is(.process-workspace, .documents-workspace, .controls-panel, .risks-panel, .ncr-panel, .organization-workspace, .qms-access-panel, .workflow-workspace, .audit-panel)::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--pm-primary), color-mix(in srgb, var(--pm-accent) 82%, var(--pm-primary)));
+  content: "";
+}
+.qms-active-workspace .workspace-heading {
+  align-items: center;
+  padding: 4px 0 24px;
+}
+.qms-active-workspace .workspace-heading h2 {
+  gap: 11px;
+  font-size: clamp(1.38rem, 2vw, 1.72rem);
+  letter-spacing: -.035em;
+}
+.qms-active-workspace .workspace-heading h2 > svg {
+  box-sizing: content-box;
+  flex: 0 0 auto;
+  padding: 8px;
+  color: var(--pm-primary-strong);
+  background: color-mix(in srgb, var(--pm-primary) 9%, var(--pm-surface));
+  border: 1px solid color-mix(in srgb, var(--pm-primary) 20%, var(--pm-border));
+  border-radius: 10px;
+}
+.qms-active-workspace .workspace-heading .eyebrow {
+  color: var(--pm-primary-strong);
+  letter-spacing: .08em;
+}
+.qms-active-workspace :is(.process-toolbar, .documents-toolbar, .process-scope-picker, .risk-toolbar, .ncr-toolbar) {
+  padding: 16px;
+  background: color-mix(in srgb, var(--pm-bg) 72%, var(--pm-surface));
+  border: 1px solid var(--pm-border);
+  border-radius: 12px;
+}
+.qms-active-workspace :is(.process-list, .process-detail, .document-list, .document-detail, .ncr-register-grid > aside, .ncr-detail, .risk-register-grid > aside, .risk-detail) {
+  background: var(--pm-surface);
+  border-radius: 14px;
+  box-shadow: 0 7px 22px rgb(23 32 38 / 4%);
+}
+.qms-active-workspace :is(.process-list, .document-list, .ncr-register-grid > aside, .risk-register-grid > aside) > :is(.assignment-heading, h3) {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--pm-border);
+}
+.process-list li button, .document-list li button, .ncr-record-list button, .risk-register-grid li > button {
+  position: relative;
+  transition: background var(--pm-motion-fast), border-color var(--pm-motion-fast), box-shadow var(--pm-motion-fast), transform var(--pm-motion-fast);
+}
+.process-list li button:hover, .document-list li button:hover, .ncr-record-list button:hover:not(:disabled), .risk-register-grid li > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgb(23 32 38 / 5%);
+}
+.process-list li button.selected, .document-list li button.selected, .ncr-record-list button[aria-pressed="true"], .risk-register-grid li > button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--pm-primary) 8%, var(--pm-surface));
+  border-color: color-mix(in srgb, var(--pm-primary) 56%, var(--pm-border));
+  box-shadow: inset 3px 0 0 var(--pm-primary);
+}
+.ncr-detail, .risk-detail, .document-detail, .process-detail {
+  background: linear-gradient(155deg, var(--pm-surface), color-mix(in srgb, var(--pm-bg) 42%, var(--pm-surface)));
+}
+.ncr-metadata > div, .risk-metadata > div, .revision-decisions > div {
+  min-width: 0;
+  padding: 11px 12px;
+  background: color-mix(in srgb, var(--pm-bg) 64%, var(--pm-surface));
+  border: 1px solid var(--pm-border);
+  border-radius: 9px;
+}
+.ncr-read-section {
+  padding: 16px;
+  background: color-mix(in srgb, var(--pm-bg) 64%, var(--pm-surface));
+  border: 1px solid var(--pm-border);
+  border-radius: 10px;
+}
+.ncr-severity {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 8px;
+  background: var(--pm-surface-muted);
+  border: 1px solid var(--pm-border);
+  border-radius: 999px;
+}
+.ncr-severity.major, .ncr-severity.critical {
+  background: color-mix(in srgb, var(--pm-danger) 8%, var(--pm-surface));
+  border-color: color-mix(in srgb, var(--pm-danger) 24%, var(--pm-border));
+}
+.process-status.active {
+  background: color-mix(in srgb, var(--pm-success) 8%, var(--pm-surface));
+  border-color: color-mix(in srgb, var(--pm-success) 24%, var(--pm-border));
+}
+.control-card-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+.control-card {
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 7px 22px rgb(23 32 38 / 4%);
+}
+.control-card[open] {
+  grid-column: 1 / -1;
+  border-color: color-mix(in srgb, var(--pm-primary) 40%, var(--pm-border));
+}
+.control-card-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 118px;
+  padding: 20px;
+  cursor: pointer;
+  list-style: none;
+}
+.control-card-summary::-webkit-details-marker { display: none; }
+.control-card-summary:hover { background: color-mix(in srgb, var(--pm-primary) 4%, var(--pm-surface)); }
+.control-card-summary:focus-visible { outline: 2px solid var(--pm-focus); outline-offset: -4px; }
+.control-card-summary-meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+.control-card-summary-meta > svg {
+  color: var(--pm-text-muted);
+  transition: transform var(--pm-motion-fast);
+}
+.control-card[open] .control-card-summary-meta > svg { transform: rotate(180deg); }
+.control-card-heading h3 { font-size: 1rem; }
+.control-card-heading p { margin-bottom: 0; font-size: .76rem; }
+.control-card-body {
+  padding: 20px;
+  border-top: 1px solid var(--pm-border);
+}
+.control-objective {
+  margin-top: 0;
+  color: var(--pm-text) !important;
+  font-size: .93rem;
+  font-weight: 600;
+}
+.control-guidance-read, .control-instance-activities, .control-instance-evidence {
+  overflow: hidden;
+  background: color-mix(in srgb, var(--pm-bg) 64%, var(--pm-surface));
+  border: 1px solid var(--pm-border);
+  border-radius: 10px;
+}
+.control-guidance-read > summary, .control-instance-activities > summary, .control-instance-evidence > summary {
+  padding: 13px 15px;
+  font-weight: 650;
+}
+.risk-score-grid > div {
+  border: 1px solid var(--pm-border);
+  border-radius: 12px;
+}
+.risk-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.risk-links > .risk-link-group-heading, .risk-links > .qms-history-caption {
+  grid-column: 1 / -1;
+}
+.risk-links > .risk-link-group {
+  min-width: 0;
+  margin-top: 0;
+  background: color-mix(in srgb, var(--pm-bg) 56%, var(--pm-surface));
+}
+@media (min-width: 801px) {
+  .ncr-register-grid > aside, .risk-register-grid > aside, .process-list, .document-list {
+    position: sticky;
+    top: 108px;
+    align-self: start;
+  }
+  .ncr-register-grid > aside, .risk-register-grid > aside {
+    display: flex;
+    max-height: calc(100vh - 136px);
+    flex-direction: column;
+  }
+  .ncr-record-list, .risk-register-grid > aside > ul {
+    min-height: 0;
+    max-height: calc(100vh - 260px);
+    padding-right: 4px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+@media (max-width: 900px) {
+  .control-card-list { grid-template-columns: 1fr; }
+  .control-card[open] { grid-column: auto; }
+  .risk-links { grid-template-columns: 1fr; }
+  .risk-links > .risk-link-group-heading, .risk-links > .qms-history-caption { grid-column: auto; }
+}
+@media (max-width: 640px) {
+  .qms-active-workspace .workspace-heading h2 > svg { padding: 6px; }
+  .qms-active-workspace :is(.process-toolbar, .documents-toolbar, .process-scope-picker, .risk-toolbar, .ncr-toolbar) { padding: 12px; }
+  .control-card-summary { min-height: 0; padding: 16px; }
+  .control-card-summary-meta { align-items: flex-end; flex-direction: column; }
+  .control-card-body { padding: 16px; }
+}

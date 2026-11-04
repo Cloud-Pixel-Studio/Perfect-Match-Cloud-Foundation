@@ -87,18 +87,44 @@ def main() -> None:
 
         phase = "organization and users"
         members = checked(owner.get(f"{API}/organization/members?limit=100"))
-        user_ids = {
-            prefix: next(
-                row["id"] for row in members if row["display_name"].startswith(prefix)
+        user_ids: dict[str, str] = {}
+        for prefix in ("pmc-local-owner", "pmc-user-a", "pmc-multi-user"):
+            user_id = next(
+                (
+                    row["id"]
+                    for row in members
+                    if row["display_name"].startswith(prefix)
+                ),
+                None,
             )
-            for prefix in ("pmc-local-owner", "pmc-user-a", "pmc-multi-user")
-        }
+            if user_id is None:
+                raise RuntimeError(f"development member {prefix!r} is unavailable")
+            user_ids[prefix] = user_id
         units = checked(owner.get(f"{API}/organization/units?limit=100"))
         unit = next(
-            row
-            for row in units
-            if row["code"] == "DEV-ACCESS-UI" and row["status"] == "active"
+            (
+                row
+                for row in units
+                if row["code"] == "DEV-ACCESS-UI" and row["status"] == "active"
+            ),
+            None,
         )
+        if unit is None:
+            unit = checked(
+                post(
+                    owner,
+                    f"{API}/organization/units",
+                    {
+                        "unit_type": "site",
+                        "code": "DEV-ACCESS-UI",
+                        "name": "Perfect Match Demonstration Site",
+                        "description": (
+                            "Synthetic development scope for visual and workflow validation."
+                        ),
+                    },
+                ),
+                201,
+            )
         grants = checked(owner.get(f"{API}/qms-access/grants"))
         active = {
             (row["user_id"], row["unit_id"], row["capability"])

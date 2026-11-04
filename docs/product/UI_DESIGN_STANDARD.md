@@ -21,7 +21,7 @@ los colores de las referencias son ilustrativos y no sustituyen la marca propia.
 | Criterio | Comportamiento exigido | Estado comprobado |
 | --- | --- | --- |
 | Carga | Mantener la estructura del contenido con esqueletos y anunciar la carga a tecnologías de asistencia. | Esqueleto reutilizable en CAPA, NCR, riesgos, controles, permisos, organización, procesos, documentos y workflows. |
-| Adaptación | Cambiar la composición para móvil, tablet y escritorio, con acceso a toda función. | Menú compacto hasta 920 px y registros de una columna hasta 800 px. Playwright comprueba catálogo a 375/768/1280 px y workspace autenticado a 375/1280 px sin desbordamiento. Permisos cambia la tabla por registros etiquetados en móvil. |
+| Adaptación | Cambiar la composición para móvil, tablet y escritorio, con acceso a toda función. | Menú compacto hasta 920 px y registros de una columna hasta 800 px. Playwright comprueba catálogo a 375/768/1280 px, workspace autenticado a 375/1280 px y seis módulos operativos a 375/1440 px sin desbordamiento. Permisos cambia la tabla por registros etiquetados en móvil. |
 | Jerarquía | Una acción principal por contexto, encabezados claros y texto fácil de escanear. | Navegación por áreas, encabezados consistentes, registro/detalle y acciones principales jerarquizadas en los módulos actuales. Los flujos extensos todavía requieren aceptación con usuarios reales. |
 | Tokens | Usar colores, tipografía, espacios, bordes, sombras y estados compartidos. | Tokens centrales en `packages/design-system/tokens.css`; Inter variable se incluye en la aplicación para que la tipografía declarada sea real y reproducible. |
 | Consistencia | Los mismos componentes y estados funcionan en temas claro y oscuro. | Tema claro/oscuro, tokens compartidos, paneles y estructura registro/detalle unificada; recorrido visual real realizado en ambos temas. No sustituye aceptación de usuario. |
@@ -39,10 +39,13 @@ El hito visual local del 3 de noviembre eleva la presentación sin cambiar el
 alcance funcional: el catálogo incorpora una demostración ilustrativa rotulada,
 una progresión comercial tenant→seats→addons y una explicación visual del ciclo
 Define→Operate→Prove. El workspace usa un encabezado ejecutivo, contexto privado
-del tenant, iconografía consistente por área y un Centro de Acciones poblado.
-Las seis capturas Darwin fueron inspeccionadas y actualizadas; las equivalentes
-Linux deben regenerarse y revisarse en CI antes de cerrar la regresión
-multiplataforma.
+del tenant, iconografía consistente por área y un Centro de Acciones poblado. La
+segunda capa convierte procesos, documentos, controles, riesgos, NCR y CAPA en
+espacios de trabajo escaneables: registros laterales con desplazamiento,
+superficies de detalle jerarquizadas, metadatos y vínculos agrupados, y un
+catálogo de controles plegable en dos columnas. Las seis capturas Darwin fueron
+inspeccionadas y actualizadas; las equivalentes Linux deben regenerarse y
+revisarse en CI antes de cerrar la regresión multiplataforma.
 
 Objetivo de aceptación: WCAG 2.2 AA. El [criterio de contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
 exige 4.5:1 para texto normal y 3:1 para texto grande. El [contraste de controles](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast)
@@ -66,9 +69,11 @@ y capturas de fallo permanecen en `artifacts/` y no se versionan. Una actualizac
 de baseline requiere inspección humana y debe corresponder a un cambio visual
 intencional.
 
-La ejecución local posterior al hito cubrió siete escenarios: los cuatro del
-catálogo, workspace autenticado en móvil y escritorio, y navegación desde una
-acción al registro autorizado exacto. Todos pasaron Playwright; las vistas que
-ejecutan axe conservaron cero hallazgos WCAG A/AA y no presentaron overflow. Esto
-es evidencia automatizada y visual acotada, no una declaración de conformidad
-WCAG ni sustituto de pruebas con lector de pantalla y usuarios reales.
+La ejecución local posterior al hito cubrió nueve escenarios: los cuatro del
+catálogo, workspace autenticado en móvil y escritorio, navegación desde una
+acción al registro autorizado exacto y recorridos de los seis módulos operativos
+en móvil y escritorio. Los nueve pasaron Playwright; las vistas que ejecutan axe
+conservaron cero hallazgos WCAG A/AA y no presentaron overflow. El recorrido de
+módulos adjunta capturas completas al reporte para inspección. Esto es evidencia
+automatizada y visual acotada, no una declaración de conformidad WCAG ni
+sustituto de pruebas con lector de pantalla y usuarios reales.
