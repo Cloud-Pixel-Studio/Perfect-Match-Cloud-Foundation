@@ -15,6 +15,8 @@ pmcloud configuration directory.
 | `CP-05-20261102T151100Z` | Visual system and screenshot baselines | Source/Git/visuals verified; DB restored successfully |
 | `CP-05-20261103T172255Z` | Premium product catalog and workspace milestone | Source/Git/6 Darwin visuals verified; DB restored successfully |
 | `CP-05-20261104T003517Z` | Premium operational-module visual milestone | Source/Git/18 visual PNGs verified; DB restored successfully |
+| `CP-BRAND-00-20261104T015019Z` | Branding work initial baseline | Source/Git/local diff encrypted; decryption and bundle verified |
+| `CP-BRAND-06-20261104T020606Z` | Aligned Evidence pre-integration boundary | Source/Git/diff/DB encrypted; isolated DB restore passed on 0039 and 48 tables |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
