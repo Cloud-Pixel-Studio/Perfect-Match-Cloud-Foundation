@@ -83,8 +83,10 @@ segunda capa convierte procesos, documentos, controles, riesgos, NCR y CAPA en
 espacios de trabajo escaneables: registros laterales con desplazamiento,
 superficies de detalle jerarquizadas, metadatos y vínculos agrupados, y un
 catálogo de controles plegable en dos columnas. Las seis capturas Darwin fueron
-inspeccionadas y actualizadas; las equivalentes Linux deben regenerarse y
-revisarse en CI antes de cerrar la regresión multiplataforma.
+inspeccionadas y actualizadas. Las equivalentes Linux del workspace se
+regeneraron e inspeccionaron en el contenedor oficial Playwright 1.64.1; los 13
+escenarios pasaron en ese entorno y CI debe confirmar el nuevo baseline antes de
+cerrar la regresión multiplataforma.
 
 Objetivo de aceptación: WCAG 2.2 AA. El [criterio de contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
 exige 4.5:1 para texto normal y 3:1 para texto grande. El [contraste de controles](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast)

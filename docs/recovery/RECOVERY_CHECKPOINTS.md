@@ -20,6 +20,7 @@ pmcloud configuration directory.
 | `CP-VISUAL-00-20261109T182914Z` | Before visual completion work | Source and complete Git bundle encrypted; decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-05-20261110T214408Z` | Persona navigation, workflow dialog and audit workspace | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-06-20261110T215335Z` | Post-review visual/security integration boundary | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-07-20261110T221055Z` | Reviewed Linux visual baseline correction | 346 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -71,6 +72,13 @@ It also preserves the independent-review correction that couples evidence-review
 actions to the control context required to open and complete them, and requires
 the explicit `evidence.review` capability at the review endpoint. It contains no
 database or environment material; its separate key has mode 0600.
+
+CP-VISUAL-07 `20261110T221055Z` preserves the two reviewed Linux workspace
+baselines regenerated after PR #15 correctly rejected their stale predecessors.
+The official Playwright 1.64.1 Linux container passes all 13 scenarios against
+these files. The encrypted archive is restricted to Git-tracked source, and its
+complete Git bundle verifies; no database, environment value or customer data is
+included. Its separate key has mode 0600.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and
