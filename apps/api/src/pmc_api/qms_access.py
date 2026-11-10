@@ -75,6 +75,10 @@ class EffectiveAccessResponse(BaseModel):
     capabilities: list[str]
 
 
+class ActiveCapabilitiesResponse(BaseModel):
+    capabilities: list[str]
+
+
 def actor_context(db: Session, authenticated: Authenticated) -> OrganizationActor:
     set_request_context(
         db,
@@ -98,6 +102,18 @@ def require_capability(db: Session, capability: str, unit_id: UUID | None) -> No
         )
     ):
         raise HTTPException(403, "QMS capability is not granted for this scope")
+
+
+def active_capabilities(db: Session, actor: OrganizationActor) -> list[str]:
+    rows = db.scalars(
+        text(
+            "SELECT DISTINCT g.capability FROM qms_access_grants g "
+            "WHERE g.tenant_id=:tenant_id AND g.user_id=:user_id AND g.status='active' "
+            "AND qms_has_capability(g.capability,g.unit_id) ORDER BY g.capability"
+        ),
+        {"tenant_id": actor.tenant_id, "user_id": actor.user_id},
+    )
+    return list(rows)
 
 
 def _owner(actor: OrganizationActor) -> None:
@@ -217,6 +233,14 @@ def effective_access(
         )
     ]
     return EffectiveAccessResponse(unit_id=unit_id, capabilities=active)
+
+
+@router.get("/active-capabilities", response_model=ActiveCapabilitiesResponse)
+def active_capability_summary(
+    db: DBSession, authenticated: Authenticated
+) -> ActiveCapabilitiesResponse:
+    actor = actor_context(db, authenticated)
+    return ActiveCapabilitiesResponse(capabilities=active_capabilities(db, actor))
 
 
 @router.post(

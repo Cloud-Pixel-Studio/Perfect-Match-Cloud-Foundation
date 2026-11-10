@@ -17,6 +17,9 @@ pmcloud configuration directory.
 | `CP-05-20261104T003517Z` | Premium operational-module visual milestone | Source/Git/18 visual PNGs verified; DB restored successfully |
 | `CP-BRAND-00-20261104T015019Z` | Branding work initial baseline | Source/Git/local diff encrypted; decryption and bundle verified |
 | `CP-BRAND-06-20261104T020606Z` | Aligned Evidence pre-integration boundary | Source/Git/diff/DB encrypted; isolated DB restore passed on 0039 and 48 tables |
+| `CP-VISUAL-00-20261109T182914Z` | Before visual completion work | Source and complete Git bundle encrypted; decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-05-20261110T214408Z` | Persona navigation, workflow dialog and audit workspace | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-06-20261110T215335Z` | Post-review visual/security integration boundary | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -55,6 +58,19 @@ the complete Git bundle verifies, and 18 baseline/audit PNG files decrypt and
 list correctly. The database restore was independently verified at Alembic 0039,
 48 public tables and 28 CAPA rows. Nine local Playwright/axe scenarios pass;
 fresh Linux runtime and human acceptance remain pending.
+
+CP-VISUAL-05 `20261110T214408Z` preserves the verified local visual-completion
+tree before Git integration. It includes the persona-aware navigation, native
+workflow editor dialog, audit evidence workspace, Darwin workspace baselines and
+the read-only active-capability summary. It does not include environment files,
+runtime artifacts or database content; no schema or customer data changed. The
+key remains separate with mode 0600.
+
+CP-VISUAL-06 `20261110T215335Z` supersedes CP-VISUAL-05 as the pre-Git boundary.
+It also preserves the independent-review correction that couples evidence-review
+actions to the control context required to open and complete them, and requires
+the explicit `evidence.review` capability at the review endpoint. It contains no
+database or environment material; its separate key has mode 0600.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and

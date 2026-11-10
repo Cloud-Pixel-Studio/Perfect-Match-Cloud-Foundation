@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceTargetFromSearch } from "./workspace-navigation";
+import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSectionsForContext, workspaceTargetFromSearch } from "./workspace-navigation";
 
 describe("workspace navigation", () => {
   it("preserves every module deep link, including existing NCR and CAPA links", () => {
@@ -34,5 +34,34 @@ describe("workspace navigation", () => {
   it("rejects malformed or unsupported action targets", () => {
     expect(workspaceTargetFromSearch("?pm_record=not-a-uuid&pm_source=capa")).toBeNull();
     expect(workspaceTargetFromSearch("?pm_record=10000000-0000-4000-8000-000000000001&pm_source=unknown")).toBeNull();
+  });
+});
+
+describe("persona-aware workspace navigation", () => {
+  const ids = (role: string, capabilities: string[]) => workspaceSectionsForContext(role, capabilities)
+    .flatMap((section) => section.items.map((item) => item.id));
+
+  it("shows a collaborator only assigned QMS families and self-service access", () => {
+    expect(ids("member", ["documents.read", "risks.manage"])).toEqual([
+      "overview", "actions", "workflows", "documents", "risks", "permissions",
+    ]);
+  });
+
+  it("does not treat a tenant owner role as QMS operating authority", () => {
+    expect(ids("owner", [])).toEqual([
+      "overview", "actions", "workflows", "organization", "permissions", "audit",
+    ]);
+  });
+
+  it("gives an auditor assurance navigation plus explicitly granted read areas", () => {
+    expect(ids("auditor", ["documents.read", "controls.read"])).toEqual([
+      "overview", "actions", "workflows", "documents", "controls", "organization", "permissions", "audit",
+    ]);
+  });
+
+  it("does not expose the controls workspace for an evidence-review grant alone", () => {
+    expect(ids("member", ["evidence.review"])).toEqual([
+      "overview", "actions", "workflows", "permissions",
+    ]);
   });
 });
