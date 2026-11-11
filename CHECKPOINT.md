@@ -1,4 +1,4 @@
-# Checkpoint de continuidad — 2026-11-11 · AI Design Studio visual validado localmente
+# Checkpoint de continuidad — 2026-11-11 · AI Design Studio en PR borrador
 
 ## Hito actual — AI Design Studio
 - Rama/worktree independiente `codex/ai-design-studio`, basada en el árbol validado `e43d648`; el trabajo no probado de Auditoría Interna 0041 permanece preservado sin mezclarse en `codex/internal-audit-scope-team`.
@@ -7,6 +7,7 @@
 - Se evaluaron `langchain-ai/design-agent`, `nexu-io/open-design`, `Anil-matcha/Open-AI-Design-Agent`, `motiful/product-shots` y `beatra-ai/ecommerce-product-images-skill`. Ninguno se instaló: se seleccionó composición determinista con el stack actual y un futuro servicio separado con proveedores intercambiables. Ver `docs/design-studio/`.
 - Probado: Vitest **43/43**, ESLint, TypeScript y build Next PASS; Playwright/axe responsive **2/2 PASS** en Darwin y **2/2 PASS** en el contenedor Linux Playwright 1.64.1 fijado por digest, sin overflow ni violaciones WCAG A/AA en 375 y 1440 px; las cuatro referencias fueron inspeccionadas; licencias PASS; Gitleaks árbol/historial PASS; `pnpm audit` conserva 1 Moderate preexistente y 0 High/Critical.
 - `CP-DESIGN-STUDIO-03-20261111T183407Z` es la frontera final de preintegración; incorpora las referencias Darwin/Linux inspeccionadas y supersede CP-DESIGN-STUDIO-02. Base de datos, autenticación, multi-tenant, producción y despliegues no cambiaron.
+- El PR borrador [#17](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/17) contiene exclusivamente el Design Studio sobre `codex/internal-audit-foundation`: 34 archivos, 2 commits, 940 adiciones y 2 eliminaciones. La rama remota `codex/ai-design-studio` quedó en `db355ee` con árbol `a4e39af9ac06b2cc538bca29870431a8ba872242`, idéntico al árbol local verificado antes de esta anotación. No se hizo merge ni despliegue.
 - Límite honesto: generación persistida por tenant, adaptadores de proveedor, cola/worker, costos, almacenamiento privado, QA/aprobación API y publicación siguen sin implementar; los assets continúan `draft_requires_human_review`.
 
 ## Mandato y decisiones confirmadas

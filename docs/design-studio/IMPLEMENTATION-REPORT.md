@@ -58,5 +58,7 @@ undetermined until self-hosted versus managed execution is selected.
 - No publication connector is enabled.
 - The six assets remain `draft_requires_human_review`; inclusion in Git is not
   marketing approval.
-- No PR, merge or deployment has been performed from this branch.
+- Draft PR [#17](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/17)
+  was opened against `codex/internal-audit-foundation`; no merge or deployment
+  has been performed.
 
