@@ -65,7 +65,7 @@ export default async function ProductsPage() {
           <span className="sr-only">Home</span>
         </Link>
         <nav aria-label="Product navigation">
-          <a href="#platform">Platform</a><a href="#standards">ISO addons</a><a href="#security">Security</a>
+          <a href="#platform">Platform</a><a href="#standards">ISO addons</a><a href="#security">Security</a><Link href="/design-studio">Design studio</Link>
           <ThemeToggle />
           <Link className="product-login" href="/">Open workspace <ArrowRight aria-hidden="true" size={16} /></Link>
         </nav>
