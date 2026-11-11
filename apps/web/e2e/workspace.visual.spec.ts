@@ -4,6 +4,58 @@ import { expect, test, type Page } from "@playwright/test";
 const password = process.env.KEYCLOAK_USER_A_PASSWORD;
 const apiURL = process.env.PLAYWRIGHT_API_URL ?? "http://127.0.0.1:8000";
 
+const visualActions = {
+  scope: "mine",
+  generated_at: "2026-11-10T12:00:00Z",
+  summary: { total: 2, overdue: 1, due_soon: 0, unassigned: 0, by_source: { capa: 2 } },
+  items: [
+    {
+      id: "10000000-0000-4000-8000-000000000011",
+      source: "capa",
+      source_id: "10000000-0000-4000-8000-000000000021",
+      unit_id: "10000000-0000-4000-8000-000000000031",
+      title: "Assign receiving inspection owner",
+      context: "DEMO-CAPA-002 · Receiving control follow-up",
+      state: "open",
+      urgency: "overdue",
+      due_date: "2026-11-06",
+      overdue: true,
+      assigned_to_user_id: "10000000-0000-4000-8000-000000000041",
+      assignee_name: "Quality specialist",
+      target_workspace: "capa",
+      target_record_id: "10000000-0000-4000-8000-000000000021",
+      target_subrecord_id: null,
+      target_process_id: "10000000-0000-4000-8000-000000000051",
+      updated_at: "2026-11-10T12:00:00Z",
+    },
+    {
+      id: "10000000-0000-4000-8000-000000000012",
+      source: "capa",
+      source_id: "10000000-0000-4000-8000-000000000022",
+      unit_id: "10000000-0000-4000-8000-000000000031",
+      title: "Update receiving inspection checklist",
+      context: "DEMO-CAPA-001 · Supplier documentation validation",
+      state: "open",
+      urgency: "normal",
+      due_date: "2026-11-22",
+      overdue: false,
+      assigned_to_user_id: "10000000-0000-4000-8000-000000000041",
+      assignee_name: "Quality specialist",
+      target_workspace: "capa",
+      target_record_id: "10000000-0000-4000-8000-000000000022",
+      target_subrecord_id: null,
+      target_process_id: "10000000-0000-4000-8000-000000000051",
+      updated_at: "2026-11-10T12:00:00Z",
+    },
+  ],
+};
+
+async function stabilizeOverviewActions(page: Page) {
+  await page.route("**/api/identity/action-center?scope=mine&limit=5", async (route) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(visualActions) });
+  });
+}
+
 async function authenticate(page: Page) {
   await page.goto(`${apiURL}/auth/login`, { waitUntil: "domcontentloaded" });
   await page.locator("#username").fill("pmc-user-a");
@@ -31,6 +83,7 @@ for (const viewport of [
   test(`authenticated workspace ${viewport.name}`, async ({ page }) => {
     test.skip(!password, "Local development credential was not provided");
     await page.setViewportSize(viewport);
+    await stabilizeOverviewActions(page);
     await authenticate(page);
     await page.evaluate(() => document.fonts.ready);
     const overflow = await page.evaluate(

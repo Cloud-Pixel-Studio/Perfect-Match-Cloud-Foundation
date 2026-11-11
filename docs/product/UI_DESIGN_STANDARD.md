@@ -110,6 +110,13 @@ y capturas de fallo permanecen en `artifacts/` y no se versionan. Una actualizac
 de baseline requiere inspección humana y debe corresponder a un cambio visual
 intencional.
 
+Para que el baseline del workspace no cambie según el contenido transaccional de
+cada base demo, únicamente las dos pruebas de screenshot interceptan la respuesta
+compacta del Centro de Acciones con una fixture visual fija y una hora estable.
+Las pruebas de deep link y apertura del registro exacto siguen usando la API real.
+En CI los escenarios se serializan en un worker y Linux usa el runtime Playwright
+fijado por digest; no se elevó la tolerancia de comparación.
+
 La ejecución local posterior al hito cubrió nueve escenarios: los cuatro del
 catálogo, workspace autenticado en móvil y escritorio, navegación desde una
 acción al registro autorizado exacto y recorridos de los seis módulos operativos
