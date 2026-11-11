@@ -44,6 +44,10 @@ CAPABILITIES = frozenset(
         "capa.read",
         "capa.manage",
         "capa.review",
+        "audits.read",
+        "audits.manage",
+        "audits.execute",
+        "audits.review",
     }
 )
 router = APIRouter(prefix="/qms-access", tags=["qms-access"])

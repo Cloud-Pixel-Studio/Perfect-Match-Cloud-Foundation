@@ -25,6 +25,9 @@ pmcloud configuration directory.
 | `CP-VISUAL-09-20261111T022612Z` | Stable authenticated visual fixture and serialized CI | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-10-20261111T023554Z` | Visual artifact ownership handoff | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-11-20261111T025137Z` | Deterministic authenticated-session readiness | Tracked source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-AUDIT-00-20261111T030311Z` | Internal-audit initial baseline | 348-entry source, complete Git bundle and database encrypted; isolated restore passed on 0039 and 48 tables |
+| `CP-AUDIT-01-20261111T125152Z` | Internal-audit planning slice before commit | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline re-encrypted and matched to CP-AUDIT-00 |
+| `CP-AUDIT-02-20261111T133146Z` | Internal-audit planning slice with CI gate | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline digest matched and catalog read passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -118,6 +121,38 @@ ESLint, TypeScript and two consecutive runs of all 13 scenarios pass without
 retries in the pinned Linux image. The encrypted tracked-source archive and
 complete Git bundle were verified; no database, environment value or customer
 data is included, and the separate key has mode 0600.
+
+CP-AUDIT-00 `20261111T030311Z` is the clean baseline before internal-audit
+schema work. Its encrypted source lists 348 entries, the complete Git bundle
+verifies, and the encrypted PostgreSQL dump restores independently at Alembic
+`0039_capa_trace_links` with 48 public tables. The separate key has mode 0600;
+no environment file or plaintext database dump is stored in the repository.
+
+CP-AUDIT-01 `20261111T125152Z` preserves the verified first internal-audit
+vertical before commit:
+programs, audit planning, four explicit scoped capabilities, forced RLS,
+controlled transitions, immutable technical events and its disposable database
+test harness. The unchanged live database snapshot is re-encrypted from the
+restored CP-AUDIT-00 baseline and its decrypted digest must match. The source,
+complete Git bundle and database remain outside the working tree with a separate
+mode-0600 key. The final timestamp and verification counts are recorded after
+checkpoint creation.
+The source, Git bundle and database ciphertext SHA-256 values are respectively
+`16f9344a0c2600eb2b1dfad5381374688ae197a23dcb501d30e22e738f432067`,
+`97153b50462eba07f81c4f54c29b8a06ba4b2401fa1f0e51ebecea1b91318ee2`
+and `b31649c11b6d516c3c8af446c02c6ffb73cd43fe522faa646f73374c40c8b1fe`.
+
+CP-AUDIT-02 `20261111T133146Z` supersedes CP-AUDIT-01 as the verified
+pre-commit boundary. It adds the independent `internal-audit-integrity` quality
+job, includes the suite in `scripts/checkpoint.sh`, validates the expected
+downgrade failure reason without noisy traceback output, and preserves the
+Ruff/mypy corrections required by the exact CI commands. Its encrypted source,
+Git bundle and unchanged database snapshot hashes are respectively
+`8c8cba07f7e71419f994333ba43bdc61f033e4999ca3a3f8854cfa36d57d36fd`,
+`6a734e9dceaf1c9a37f4b4ab72fcb4e6da67e61bea66638389059a854566eb5a`
+and `f55561250188cea898cad8f2f2dc8bde767ed8c8e4c331bc2964ed101785ecb6`.
+The separate key is mode 0600; the decrypted database digest matches the
+restored CP-AUDIT-00 baseline and `pg_restore` reads its catalog.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and

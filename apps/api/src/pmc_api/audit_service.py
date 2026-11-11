@@ -72,6 +72,75 @@ QMS_ACCESS_ACTIONS = {
     "qms.access_granted": "qms_access_grant",
     "qms.access_revoked": "qms_access_grant",
 }
+INTERNAL_AUDIT_ACTIONS = {
+    **{
+        action: "qms_audit_program"
+        for action in (
+            "audit_program.created",
+            "audit_program.updated",
+            "audit_program.transitioned",
+        )
+    },
+    **{
+        action: "qms_internal_audit"
+        for action in (
+            "internal_audit.created",
+            "internal_audit.updated",
+            "internal_audit.transitioned",
+        )
+    },
+}
+AUDIT_PROGRAM_FIELDS = frozenset(
+    {
+        "unit_id",
+        "code",
+        "name_hash",
+        "objective_hash",
+        "description_hash",
+        "date_start",
+        "date_end",
+        "owner_user_id",
+        "state",
+        "cancellation_reason_hash",
+        "approved_by_user_id",
+        "approved_at",
+        "completed_by_user_id",
+        "completed_at",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "row_version",
+        "decision",
+    }
+)
+INTERNAL_AUDIT_FIELDS = frozenset(
+    {
+        "unit_id",
+        "program_id",
+        "code",
+        "name_hash",
+        "audit_type",
+        "planned_start",
+        "planned_end",
+        "actual_start",
+        "actual_end",
+        "objective_hash",
+        "scope_summary_hash",
+        "conclusion_hash",
+        "lead_auditor_user_id",
+        "independence_status",
+        "independence_notes_hash",
+        "independence_reviewed_by_user_id",
+        "independence_reviewed_at",
+        "state",
+        "cancellation_reason_hash",
+        "completed_by_user_id",
+        "completed_at",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "row_version",
+        "decision",
+    }
+)
 ACTION_TENANT_SELECTED = "auth.tenant_selected"
 RISK_ACTIONS = {
     action: "qms_risk"
@@ -557,6 +626,7 @@ def _record(
         **ORGANIZATION_ACTIONS,
         **WORKFLOW_ACTIONS,
         **QMS_ACCESS_ACTIONS,
+        **INTERNAL_AUDIT_ACTIONS,
         **PROCESS_ACTIONS,
         **CONTROL_ACTIONS,
         **RISK_ACTIONS,
@@ -751,6 +821,23 @@ def record_qms_access(db: Session, **kwargs: object) -> AuditEvent:
     if not isinstance(payload, dict) or set(payload) != allowed:
         raise AuditPayloadError("QMS access audit payload fields are invalid")
     return _record(db, resource_type="qms_access_grant", **kwargs)  # type: ignore[arg-type]
+
+
+def record_internal_audit(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    resource_type = INTERNAL_AUDIT_ACTIONS.get(action)
+    if resource_type is None:
+        raise AuditPayloadError("unsupported internal-audit action")
+    allowed = (
+        AUDIT_PROGRAM_FIELDS if resource_type == "qms_audit_program" else INTERNAL_AUDIT_FIELDS
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or not set(payload).issubset(allowed)
+        ):
+            raise AuditPayloadError("internal-audit payload fields are invalid")
+    return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
 
 
 def record_process(db: Session, **kwargs: object) -> AuditEvent:

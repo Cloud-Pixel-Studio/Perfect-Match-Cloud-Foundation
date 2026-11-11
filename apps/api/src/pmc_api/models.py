@@ -37,6 +37,67 @@ class QMSAccessGrant(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class QMSAuditProgram(Base):
+    __tablename__ = "qms_audit_programs"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    objective: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    date_start: Mapped[date] = mapped_column(Date, nullable=False)
+    date_end: Mapped[date] = mapped_column(Date, nullable=False)
+    owner_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    state: Mapped[str] = mapped_column(String(20), nullable=False)
+    cancellation_reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    approved_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancelled_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class QMSInternalAudit(Base):
+    __tablename__ = "qms_internal_audits"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    program_id: Mapped[UUID | None] = mapped_column()
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    audit_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    planned_start: Mapped[date] = mapped_column(Date, nullable=False)
+    planned_end: Mapped[date] = mapped_column(Date, nullable=False)
+    actual_start: Mapped[date | None] = mapped_column(Date)
+    actual_end: Mapped[date | None] = mapped_column(Date)
+    objective: Mapped[str] = mapped_column(Text, nullable=False)
+    scope_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    conclusion: Mapped[str] = mapped_column(Text, nullable=False)
+    lead_auditor_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    independence_status: Mapped[str] = mapped_column(String(24), nullable=False)
+    independence_notes: Mapped[str] = mapped_column(Text, nullable=False)
+    independence_reviewed_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    independence_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    state: Mapped[str] = mapped_column(String(20), nullable=False)
+    cancellation_reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    completed_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancelled_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class QMSProcess(Base):
     __tablename__ = "qms_processes"
 
