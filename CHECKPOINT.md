@@ -1,4 +1,13 @@
-# Checkpoint de continuidad — 2026-11-11 · Planificación de auditoría interna validada localmente
+# Checkpoint de continuidad — 2026-11-11 · AI Design Studio visual validado localmente
+
+## Hito actual — AI Design Studio
+- Rama/worktree independiente `codex/ai-design-studio`, basada en el árbol validado `e43d648`; el trabajo no probado de Auditoría Interna 0041 permanece preservado sin mezclarse en `codex/internal-audit-scope-team`.
+- Implementada una primera base creativa controlada: Brand Kit legible por agentes, cinco roles con mínimo privilegio, validación de briefs, estados de trabajo con aprobación humana, galería `/design-studio` y renderer Playwright restringido a loopback.
+- Entregados seis PNG reales y reproducibles: banner 1600×900, presentación SaaS 1600×900, mockup real 1600×1000, LinkedIn 1200×1200, auditorías 1200×628 e infografía 1200×1200. Dos fondos se generaron con imagegen sin texto/datos; el mockup usa una captura real con datos sintéticos. SHA-256, procedencia, tamaño y disclosure están en `apps/web/public/brand/design-studio/asset-manifest.json`.
+- Se evaluaron `langchain-ai/design-agent`, `nexu-io/open-design`, `Anil-matcha/Open-AI-Design-Agent`, `motiful/product-shots` y `beatra-ai/ecommerce-product-images-skill`. Ninguno se instaló: se seleccionó composición determinista con el stack actual y un futuro servicio separado con proveedores intercambiables. Ver `docs/design-studio/`.
+- Probado: Vitest **43/43**, ESLint, TypeScript y build Next PASS; Playwright/axe responsive **2/2 PASS** en Darwin y **2/2 PASS** en el contenedor Linux Playwright 1.64.1 fijado por digest, sin overflow ni violaciones WCAG A/AA en 375 y 1440 px; las cuatro referencias fueron inspeccionadas; licencias PASS; Gitleaks árbol/historial PASS; `pnpm audit` conserva 1 Moderate preexistente y 0 High/Critical.
+- `CP-DESIGN-STUDIO-03-20261111T183407Z` es la frontera final de preintegración; incorpora las referencias Darwin/Linux inspeccionadas y supersede CP-DESIGN-STUDIO-02. Base de datos, autenticación, multi-tenant, producción y despliegues no cambiaron.
+- Límite honesto: generación persistida por tenant, adaptadores de proveedor, cola/worker, costos, almacenamiento privado, QA/aprobación API y publicación siguen sin implementar; los assets continúan `draft_requires_human_review`.
 
 ## Mandato y decisiones confirmadas
 - Construir el SaaS propio Perfect Match QMS con equivalencia funcional con Odoo y la misma exigencia de ciberseguridad y validaciones, adaptadas al SaaS. El QMS completo es el producto base; los únicos addons comerciales son normas ISO/ediciones. Venta por tenant y seats. Sitio Productos y área cliente con contratado, seats, normas, facturas y renovación. Precios/pagos aún no decididos.

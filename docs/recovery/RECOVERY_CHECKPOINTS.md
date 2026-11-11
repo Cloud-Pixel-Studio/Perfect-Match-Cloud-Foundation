@@ -28,6 +28,9 @@ pmcloud configuration directory.
 | `CP-AUDIT-00-20261111T030311Z` | Internal-audit initial baseline | 348-entry source, complete Git bundle and database encrypted; isolated restore passed on 0039 and 48 tables |
 | `CP-AUDIT-01-20261111T125152Z` | Internal-audit planning slice before commit | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline re-encrypted and matched to CP-AUDIT-00 |
 | `CP-AUDIT-02-20261111T133146Z` | Internal-audit planning slice with CI gate | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline digest matched and catalog read passed |
+| `CP-DESIGN-STUDIO-01-20261111T181713Z` | AI Design Studio visual foundation | 373-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
+| `CP-DESIGN-STUDIO-02-20261111T182451Z` | Verified AI Design Studio pre-commit boundary | 378-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
+| `CP-DESIGN-STUDIO-03-20261111T183407Z` | Final Design Studio pre-integration boundary | Includes reviewed Darwin/Linux baselines and supersedes CP-DESIGN-STUDIO-02; encrypted hashes and restoration evidence recorded below |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -153,6 +156,37 @@ Git bundle and unchanged database snapshot hashes are respectively
 and `f55561250188cea898cad8f2f2dc8bde767ed8c8e4c331bc2964ed101785ecb6`.
 The separate key is mode 0600; the decrypted database digest matches the
 restored CP-AUDIT-00 baseline and `pg_restore` reads its catalog.
+
+CP-DESIGN-STUDIO-01 `20261111T181713Z` preserves the isolated Design Studio
+implementation before commit. Its source archive includes the Brand Kit, five
+agent contracts, two generated source visuals, one synthetic product capture,
+six deterministic PNG exports, gallery, renderer, policies, tests and documents.
+The encrypted source and Git bundle hashes are respectively
+`6588ea9b61138c20a12c1b29b7377a2ac75535d7bb373d63f4b824c755497397`
+and `f4873b571711d886710c81d6d1ee282e1134003e770ebea1b1d319a0db105d98`.
+Both recovery checks passed; the key is separate with mode 0600. No database,
+environment file, provider credential or customer data is included.
+
+CP-DESIGN-STUDIO-02 `20261111T182451Z` supersedes CP-DESIGN-STUDIO-01 as the
+verified pre-commit boundary. It adds the six exact PNG exports, asset/hash and
+dimension tests, responsive Playwright/axe baselines, CSP-safe logo rendering,
+tool evaluation and implementation report. The encrypted source and Git bundle
+hashes are respectively
+`00e4fba1f11642cf57821524de0917a8bb8d0c43071edaaa6337519ac9505625`
+and `53a1c2a3853239e4abc8b4f2632cab5f7f32c0cdd05cbd0c2887a16921cf9f8d`.
+Both recovery checks passed; the key is separate with mode 0600. The database,
+runtime services and production remain unchanged.
+
+CP-DESIGN-STUDIO-03 `20261111T183407Z` supersedes CP-DESIGN-STUDIO-02 before
+GitHub integration. Its additional evidence is the independently rendered and visually
+inspected Linux mobile/desktop baseline pair, followed by a second unchanged
+2/2 Playwright/axe run in the official image pinned by digest. It preserves 380
+source entries and a complete Git bundle. The encrypted source and Git bundle
+hashes are respectively
+`4f3f5cca66b9f3dd8e32678c89d5b700c1fc465df87b192eb1139c55be52baf2`
+and `0b58532309cb1e5e74341240890a5cde62f35d3b48a16e920ad0b0091e7f9541`.
+Archive listing and Git bundle verification passed; the separate key is mode
+0600. Database, runtime services and production remain unchanged.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and
