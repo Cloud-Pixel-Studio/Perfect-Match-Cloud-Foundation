@@ -41,4 +41,28 @@ describe("design token contrast", () => {
       }
     });
   }
+
+  it("keeps the selected brand scales and semantic interaction tokens versioned", () => {
+    for (const token of [
+      "--pm-brand-ink",
+      "--pm-brand-teal-50",
+      "--pm-brand-teal-500",
+      "--pm-brand-teal-900",
+      "--pm-brand-coral-500",
+    ]) {
+      expect(light, token).toContain(token);
+    }
+    for (const token of [
+      "--pm-brand-ink",
+      "--pm-primary-soft",
+      "--pm-accent-strong",
+      "--pm-selected",
+      "--pm-disabled-bg",
+      "--pm-disabled-text",
+      "--pm-overlay",
+    ]) {
+      expect(light, token).toContain(token);
+      expect(dark, `${token} must be represented in the dark theme`).toContain(token);
+    }
+  });
 });

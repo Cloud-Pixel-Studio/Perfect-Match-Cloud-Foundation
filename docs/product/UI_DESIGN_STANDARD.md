@@ -35,6 +35,45 @@ edición. Se verificó en 375, 768 y 1280 px, claro y oscuro, sin desbordamiento
 estados de catálogo distinguen preparación y planificación para no presentar
 como vendible lo que aún carece de licencias, precios o evidencia de release.
 
+## Arquitectura por persona, alcance y tarea
+
+La aplicación no debe ser un menú ERP uniforme. La navegación visible se deriva
+de la intersección `tenant + unidad + capacidad QMS + responsabilidad actual`;
+ocultar una opción sin permiso mejora claridad, pero la API continúa siendo la
+frontera de autorización. Cada persona entra al trabajo que debe completar:
+
+| Persona | Inicio prioritario | Navegación visible por defecto | Profundidad secundaria |
+| --- | --- | --- | --- |
+| Colaborador | Mis acciones, vencimientos y formación pendiente | Documentos publicados, eventos que puede crear y tareas asignadas | Historial propio y referencias relacionadas |
+| Responsable de proceso | Salud del proceso, riesgos, controles y NCR de su alcance | Procesos, controles, riesgos, NCR y CAPA de sus unidades | Tendencias, evidencia y dependencias |
+| Calidad | Cola de revisión, excepciones y cumplimiento | Todos los módulos QMS autorizados, reportes y auditoría funcional | Configuración de plantillas y análisis transversal |
+| Aprobador/revisor | Decisiones pendientes y segregación de funciones | Bandejas de revisión/aprobación y registros vinculados | Evidencia, versión y trazabilidad de la decisión |
+| Administrador del tenant | Licencia, seats, estructura y acceso | Organización, usuarios, permisos, workflows y productos contratados | Configuración técnica y auditoría administrativa |
+| Ejecutivo/auditor | Riesgo, eficacia y evidencia resumida | Dashboard de solo lectura, reportes y trazabilidad | Drill-down al registro, sin controles de edición |
+
+Reglas de presentación:
+
+1. Mostrar primero `Mi trabajo`, luego `Mi alcance`, después `Explorar`; la
+   administración queda separada y solo aparece a quien corresponda.
+2. Una página de lista responde qué requiere atención; una página de registro
+   responde estado, responsable, próxima decisión, evidencia y trazabilidad.
+3. Usar divulgación progresiva: resumen y acción primaria visibles; historial,
+   configuración y datos técnicos bajo pestañas o paneles expandibles.
+4. No usar el seat o el rol comercial como permiso QMS. Las acciones se muestran
+   por capacidad explícita y alcance de unidad, con segregación de funciones.
+5. Conservar filtros por persona/unidad/estado y permitir vistas guardadas sin
+   alterar la política de acceso.
+6. En móvil reestructurar: lista y detalle se vuelven pasos separados; no se
+   encoge simplemente la versión de escritorio.
+7. Mantener lenguaje específico del dominio: “Revisión pendiente”, “Eficacia por
+   verificar” o “Documento por liberar”, no tarjetas genéricas como “Elemento”.
+
+Estas reglas se apoyan en patrones oficiales role-based/adaptive de SAP Fiori,
+variantes por persona y páginas list/record de ServiceNow, bandejas “My actions”
+de Qualio y acceso contextual por ubicación/rol de ETQ. Son referencias de
+arquitectura de información; Perfect Match conserva identidad y componentes
+propios y no copia interfaces propietarias.
+
 El hito visual local del 3 de noviembre eleva la presentación sin cambiar el
 alcance funcional: el catálogo incorpora una demostración ilustrativa rotulada,
 una progresión comercial tenant→seats→addons y una explicación visual del ciclo
