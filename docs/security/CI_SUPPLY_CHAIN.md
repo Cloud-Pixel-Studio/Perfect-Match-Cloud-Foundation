@@ -48,6 +48,8 @@ The container receives only the two synthetic Keycloak test passwords and local
 loopback URLs. Pinning the browser, operating-system libraries and fonts avoids
 accepting visual drift caused solely by GitHub-hosted runner image updates. The
 test runtime is not a production dependency or distributed application image.
+The root-run browser container returns ownership of its generated report files to
+the invoking runner user before later ZAP and artifact steps execute.
 
 ## Version upgrades
 

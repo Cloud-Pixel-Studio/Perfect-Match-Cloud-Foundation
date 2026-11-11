@@ -5,6 +5,8 @@ env_file=${1:-"${HOME}/.config/pmcloud/dev.env"}
 update=${2:-false}
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 playwright_image="mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f"
+host_uid=$(id -u)
+host_gid=$(id -g)
 
 # shellcheck disable=SC1090
 source "$env_file"
@@ -30,4 +32,4 @@ docker run --rm \
   --mount "type=bind,source=${repo_root},target=/work" \
   --workdir /work/apps/web \
   "$playwright_image" \
-  bash -lc "$playwright_command"
+  bash -lc "$playwright_command; status=\$?; chown -R ${host_uid}:${host_gid} /work/artifacts/playwright; exit \$status"

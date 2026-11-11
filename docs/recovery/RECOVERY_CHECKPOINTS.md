@@ -23,6 +23,7 @@ pmcloud configuration directory.
 | `CP-VISUAL-07-20261110T221055Z` | Reviewed Linux visual baseline correction | 346 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-08-20261110T222519Z` | Deterministic pinned Linux visual runtime | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-09-20261111T022612Z` | Stable authenticated visual fixture and serialized CI | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-10-20261111T023554Z` | Visual artifact ownership handoff | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -99,6 +100,14 @@ action fixture; real-API deep-link and exact-record tests remain unchanged.
 Darwin and Linux mobile baselines were reviewed, and Linux lint, typecheck and
 all 13 Playwright/axe scenarios pass. Source and Git recovery artifacts were
 encrypted and verified with a separate mode-0600 key.
+
+CP-VISUAL-10 `20261111T023554Z` preserves the ownership handoff added after the
+official PR run passed the pinned Linux visual/axe gate but exposed root-owned
+Playwright reports blocking the later ZAP step. The container now restores those
+files to the runner UID/GID while preserving Playwright's exit status. ShellCheck
+and all 13 scenarios pass locally, and report/result ownership was verified.
+Source and Git recovery artifacts were encrypted and verified with a separate
+mode-0600 key.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and
