@@ -24,6 +24,7 @@ pmcloud configuration directory.
 | `CP-VISUAL-08-20261110T222519Z` | Deterministic pinned Linux visual runtime | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-09-20261111T022612Z` | Stable authenticated visual fixture and serialized CI | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-10-20261111T023554Z` | Visual artifact ownership handoff | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-11-20261111T025137Z` | Deterministic authenticated-session readiness | Tracked source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -108,6 +109,15 @@ files to the runner UID/GID while preserving Playwright's exit status. ShellChec
 and all 13 scenarios pass locally, and report/result ownership was verified.
 Source and Git recovery artifacts were encrypted and verified with a separate
 mode-0600 key.
+
+CP-VISUAL-11 `20261111T025137Z` preserves the authenticated browser-test
+readiness correction after the next PR run exposed a real OIDC callback race.
+The shared helper now waits for the final web redirect, a successful `/auth/me`
+response and the initial workspace before following a requested deep link.
+ESLint, TypeScript and two consecutive runs of all 13 scenarios pass without
+retries in the pinned Linux image. The encrypted tracked-source archive and
+complete Git bundle were verified; no database, environment value or customer
+data is included, and the separate key has mode 0600.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and

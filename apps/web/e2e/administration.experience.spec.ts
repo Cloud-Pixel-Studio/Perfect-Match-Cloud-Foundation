@@ -1,16 +1,16 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
+import { authenticateWithKeycloak } from "./support/auth";
+
 const password = process.env.KEYCLOAK_OWNER_PASSWORD;
-const apiURL = process.env.PLAYWRIGHT_API_URL ?? "http://127.0.0.1:8000";
 
 async function authenticateOwner(page: Page) {
-  await page.goto(`${apiURL}/auth/login`, { waitUntil: "domcontentloaded" });
-  await page.locator("#username").fill("pmc-local-owner");
-  await page.locator("#password").fill(String(password));
-  await page.locator("#kc-login").click();
-  await page.waitForURL(/^http:\/\/127\.0\.0\.1:(3000|8000)\//);
-  await page.goto("/#audit-heading", { waitUntil: "networkidle" });
+  await authenticateWithKeycloak(page, {
+    username: "pmc-local-owner",
+    password: String(password),
+    destination: "/#audit-heading",
+  });
   await expect(page.getByRole("heading", { name: "Audit trail" })).toBeVisible();
 }
 
