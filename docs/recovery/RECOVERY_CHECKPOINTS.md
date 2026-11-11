@@ -21,6 +21,7 @@ pmcloud configuration directory.
 | `CP-VISUAL-05-20261110T214408Z` | Persona navigation, workflow dialog and audit workspace | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-06-20261110T215335Z` | Post-review visual/security integration boundary | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-VISUAL-07-20261110T221055Z` | Reviewed Linux visual baseline correction | 346 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-08-20261110T222519Z` | Deterministic pinned Linux visual runtime | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -79,6 +80,15 @@ The official Playwright 1.64.1 Linux container passes all 13 scenarios against
 these files. The encrypted archive is restricted to Git-tracked source, and its
 complete Git bundle verifies; no database, environment value or customer data is
 included. Its separate key has mode 0600.
+
+CP-VISUAL-08 `20261110T222519Z` supersedes CP-VISUAL-07 for visual CI
+reproducibility. CI demonstrated that all six screenshot comparisons drifted on
+the mutable GitHub runner even when four untouched product baselines were used.
+The regression now runs in the official Playwright 1.64.1 Noble image pinned by
+manifest digest and receives only synthetic test credentials. ShellCheck,
+workflow YAML parsing, license policy and all 13 scenarios pass locally in that
+exact runtime. The encrypted tracked-source archive and complete Git bundle were
+verified; no database, environment value or customer data is included.
 
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and
