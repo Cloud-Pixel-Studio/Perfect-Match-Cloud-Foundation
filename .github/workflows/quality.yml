@@ -53,6 +53,7 @@ jobs:
       - run: shellcheck scripts/*.sh security/opengrep/test-rules.sh
       - run: node scripts/test-agent-intake-policy.mjs
       - run: python3 scripts/check-codex-agents.py
+      - run: python3 -m unittest discover -s tests -p 'test_codex_agent_manifest_validator.py'
 
   tenant-isolation:
     runs-on: ubuntu-24.04
