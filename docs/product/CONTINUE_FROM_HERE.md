@@ -102,3 +102,5 @@ bases ni copias de datos de clientes. Cada nueva etapa debe actualizar este hand
 
 
 Delivery: [draft PR31](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/31), functional commit `9b066a0e95ed531a48b6bed93bd892933d6b27ac`, tree `c650921234ce1295dd6d413c942561149484dab0` verified identical locally/remotely. This follow-up is documentation only. CI of the latest head remains to be verified.
+
+Entrega: [PR borrador32](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/32), sobre PR31. Commit funcional `072e309484b78144cf811bc228ab292361382bbc`, árbol `c0a934d0af58e38e8c7dba96f94004b145a80ca4` idéntico local/remoto. Este seguimiento solo documenta continuidad. CI del nuevo head pendiente, revisión independiente y aprobación humana antes de merge; sin producción.

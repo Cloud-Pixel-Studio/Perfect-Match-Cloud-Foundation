@@ -116,3 +116,5 @@ audit database: use reviewed forward fixes or restore the isolated backup first.
 Post-migration database recovery: **CP-AUDIT-SCOPE-DB-06-20261112T233026Z**, isolated restoration PASS
 in0042 with51 tables/45 forcedRLS tables, including demo scope. Final source/Git
 checkpoint: **CP-AUDIT-SCOPE-06-20261112T233207Z**; see the public manifests for verification status.
+
+Entrega: [PR borrador32](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/32), sobre PR31. Commit funcional `072e309484b78144cf811bc228ab292361382bbc`, árbol `c0a934d0af58e38e8c7dba96f94004b145a80ca4` idéntico local/remoto. Este seguimiento solo documenta continuidad. CI del nuevo head pendiente, revisión independiente y aprobación humana antes de merge; sin producción.
