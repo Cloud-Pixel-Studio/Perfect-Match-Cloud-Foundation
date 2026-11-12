@@ -20,7 +20,7 @@ def production_config() -> dict[str, object]:
 
 
 def test_production_accepts_https_public_origins() -> None:
-    settings = Settings(**production_config())
+    settings = Settings.model_validate(production_config())
     assert settings.environment == "production"
     assert settings.web_url == "https://qms.example.test"
 
@@ -41,14 +41,14 @@ def test_production_rejects_insecure_or_invalid_public_url(setting: str, value: 
     data = production_config()
     data[setting] = value
     with pytest.raises(ValueError, match=f"HTTPS {setting}"):
-        Settings(**data)
+        Settings.model_validate(data)
 
 
 def test_production_rejects_web_url_path() -> None:
     data = production_config()
     data["web_url"] = "https://qms.example.test/application"
     with pytest.raises(ValueError, match="web_url must be a public origin"):
-        Settings(**data)
+        Settings.model_validate(data)
 
 
 def test_development_preserves_loopback_urls() -> None:
