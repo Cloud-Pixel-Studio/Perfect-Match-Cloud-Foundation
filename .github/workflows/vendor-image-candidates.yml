@@ -99,8 +99,8 @@ jobs:
           set -euo pipefail
           jq -e '
             (.high_or_critical | type == "object") and
-            (.high_or_critical.keycloak | type == "number" and . == 0) and
-            (.high_or_critical.seaweedfs | type == "number" and . == 0)
+            ((.high_or_critical.keycloak | type) == "number" and .high_or_critical.keycloak == 0) and
+            ((.high_or_critical.seaweedfs | type) == "number" and .high_or_critical.seaweedfs == 0)
           ' artifacts/pr-candidate-gate.json >/dev/null
       - name: Prepare candidate scan artifacts
         if: github.event_name == 'workflow_dispatch'
