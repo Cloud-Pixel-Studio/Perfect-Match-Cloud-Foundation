@@ -16,7 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { workspaceSections, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
+import { type WorkspaceId, type WorkspaceItem, type WorkspaceTarget } from "../lib/workspace-navigation";
 import { ActionCenterWorkspace } from "./action-center-workspace";
 
 const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
@@ -32,7 +32,7 @@ const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
   audit: ScrollText,
 };
 
-export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { tenantName: string; role: string; canAudit: boolean; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
+export function WorkspaceOverview({ tenantName, role, sections, onNavigate }: { tenantName: string; role: string; sections: { label: string; items: WorkspaceItem[] }[]; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
   return <section className="qms-overview" aria-labelledby="overview-heading">
     <div className="qms-overview-hero">
       <div>
@@ -44,8 +44,8 @@ export function WorkspaceOverview({ tenantName, role, canAudit, onNavigate }: { 
     </div>
     <ActionCenterWorkspace compact role={role} onNavigate={onNavigate} />
     <div className="qms-overview-sections">
-      {workspaceSections.slice(1).map((section) => {
-        const visibleItems = section.items.filter((item) => item.id !== "audit" || canAudit);
+      {sections.slice(1).map((section) => {
+        const visibleItems = section.items;
         return <section key={section.label} aria-label={section.label}>
         <div className="qms-overview-section-heading"><p className="eyebrow">{section.label}</p><span>{visibleItems.length} areas</span></div>
         <div className="qms-overview-grid">{visibleItems.map((item, index) => {

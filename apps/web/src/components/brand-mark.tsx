@@ -3,15 +3,14 @@ import Image from "next/image";
 type BrandMarkProps = {
   className?: string;
   priority?: boolean;
-  size?: number;
+  size?: 26 | 40;
 };
 
 export function BrandMark({ className = "", priority = false, size = 40 }: BrandMarkProps) {
   return (
     <span
       aria-hidden="true"
-      className={`brand-mark ${className}`.trim()}
-      style={{ blockSize: size, inlineSize: size }}
+      className={`brand-mark brand-mark-${size} ${className}`.trim()}
     >
       <Image
         alt=""

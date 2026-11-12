@@ -83,8 +83,10 @@ segunda capa convierte procesos, documentos, controles, riesgos, NCR y CAPA en
 espacios de trabajo escaneables: registros laterales con desplazamiento,
 superficies de detalle jerarquizadas, metadatos y vínculos agrupados, y un
 catálogo de controles plegable en dos columnas. Las seis capturas Darwin fueron
-inspeccionadas y actualizadas; las equivalentes Linux deben regenerarse y
-revisarse en CI antes de cerrar la regresión multiplataforma.
+inspeccionadas y actualizadas. Las equivalentes Linux del workspace se
+regeneraron e inspeccionaron en el contenedor oficial Playwright 1.64.1; los 13
+escenarios pasaron en ese entorno y CI debe confirmar el nuevo baseline antes de
+cerrar la regresión multiplataforma.
 
 Objetivo de aceptación: WCAG 2.2 AA. El [criterio de contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
 exige 4.5:1 para texto normal y 3:1 para texto grande. El [contraste de controles](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast)
@@ -107,6 +109,13 @@ Los baselines están bajo `apps/web/e2e/__screenshots__`; traces, videos, report
 y capturas de fallo permanecen en `artifacts/` y no se versionan. Una actualización
 de baseline requiere inspección humana y debe corresponder a un cambio visual
 intencional.
+
+Para que el baseline del workspace no cambie según el contenido transaccional de
+cada base demo, únicamente las dos pruebas de screenshot interceptan la respuesta
+compacta del Centro de Acciones con una fixture visual fija y una hora estable.
+Las pruebas de deep link y apertura del registro exacto siguen usando la API real.
+En CI los escenarios se serializan en un worker y Linux usa el runtime Playwright
+fijado por digest; no se elevó la tolerancia de comparación.
 
 La ejecución local posterior al hito cubrió nueve escenarios: los cuatro del
 catálogo, workspace autenticado en móvil y escritorio, navegación desde una

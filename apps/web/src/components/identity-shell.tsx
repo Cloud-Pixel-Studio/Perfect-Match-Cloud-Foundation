@@ -15,8 +15,9 @@ import { NonconformitiesWorkspace } from "./nonconformities-workspace";
 import { CAPAWorkspace } from "./capa-workspace";
 import { WorkspaceOverview } from "./workspace-overview";
 import { ActionCenterWorkspace } from "./action-center-workspace";
+import { AuditWorkspace } from "./audit-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
-import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
+import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
 type Identity = {
   id: string;
@@ -26,7 +27,7 @@ type Identity = {
 };
 
 type Tenant = { id: string; name: string; slug: string; role: string };
-type AuditEvent = { id: string; occurred_at: string; actor_display_name: string; actor_role: string; action: string; resource_type: string; request_id: string; changed_fields: string[]; old_values: Record<string, unknown> | null; new_values: Record<string, unknown> | null };
+type CapabilitySummary = { capabilities: string[] };
 const apiUrl = "/api/identity";
 const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   overview: LayoutDashboard,
@@ -53,9 +54,7 @@ export function IdentityShell() {
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [busy, setBusy] = useState(false);
-  const [showAudit, setShowAudit] = useState(false);
-  const [events, setEvents] = useState<AuditEvent[]>([]);
-  const [auditError, setAuditError] = useState<string | null>(null);
+  const [capabilities, setCapabilities] = useState<string[]>([]);
   const [activeModule, setActiveModule] = useState<WorkspaceId>("overview");
   const [activeTarget, setActiveTarget] = useState<WorkspaceTarget | null>(null);
   const [unitByTenant, setUnitByTenant] = useState<Record<string, string>>({});
@@ -70,16 +69,21 @@ export function IdentityShell() {
         return;
       }
       const user = (await me.json()) as Identity;
-      const memberships = await fetch(`${apiUrl}/auth/tenants`, { credentials: "include" });
+      const [memberships, capabilityResponse] = await Promise.all([
+        fetch(`${apiUrl}/auth/tenants`, { credentials: "include" }),
+        user.current_tenant_id ? fetch(`${apiUrl}/qms-access/active-capabilities`, { credentials: "include" }) : Promise.resolve(null),
+      ]);
       if (!memberships.ok) throw new Error("memberships unavailable");
+      if (user.current_tenant_id && !capabilityResponse?.ok) throw new Error("capability summary unavailable");
       const availableTenants = (await memberships.json()) as Tenant[];
+      const summary = capabilityResponse?.ok ? (await capabilityResponse.json()) as CapabilitySummary : { capabilities: [] };
       const role = availableTenants.find((tenant) => tenant.id === user.current_tenant_id)?.role ?? "";
       const nextContextKey = `${user.id}:${user.current_tenant_id ?? ""}:${role}`;
       if (contextKey.current !== nextContextKey) {
         contextRevision.current += 1;
         contextKey.current = nextContextKey;
-        setShowAudit(false); setEvents([]); setAuditError(null);
       }
+      setCapabilities([...new Set(summary.capabilities)].sort());
       setIdentity(user);
       setTenants(availableTenants);
       setView("authenticated");
@@ -104,6 +108,26 @@ export function IdentityShell() {
     return () => { window.cancelAnimationFrame(frame); window.removeEventListener("hashchange", sync); window.removeEventListener("popstate", sync); };
   }, []);
 
+  const current = identity ? tenants.find((tenant) => tenant.id === identity.current_tenant_id) : undefined;
+  const canAudit = ["owner", "admin", "auditor"].includes(current?.role ?? "");
+  const visibleSections = current ? workspaceSectionsForContext(current.role, capabilities) : workspaceSections.slice(0, 1);
+  const visibleModuleIds = visibleSections.flatMap((section) => section.items.map((item) => item.id));
+  const activeModuleVisible = visibleModuleIds.includes(activeModule);
+
+  useEffect(() => {
+    if (view !== "authenticated" || !current || activeModuleVisible) return;
+    const overview = workspaceItems.find((item) => item.id === "overview");
+    if (!overview) return;
+    const timer = window.setTimeout(() => {
+      const url = setWorkspaceTarget(new URL(window.location.href), null);
+      url.hash = overview.hash;
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      setActiveModule("overview");
+      setActiveTarget(null);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [activeModuleVisible, current, view]);
+
   function navigateWorkspace(id: WorkspaceId, target: WorkspaceTarget | null = null) {
     if (busy) return;
     const item = workspaceItems.find((entry) => entry.id === id);
@@ -117,12 +141,10 @@ export function IdentityShell() {
       setUnitByTenant((previous) => ({ ...previous, [current.id]: target.unitId as string }));
     }
     window.scrollTo({ top: 0, behavior: "auto" });
-    if (id === "audit" && !showAudit) void loadAudit();
   }
 
   async function selectTenant(tenantId: string) {
     contextRevision.current += 1;
-    setShowAudit(false); setEvents([]); setAuditError(null);
     setBusy(true);
     const response = await fetch(`${apiUrl}/auth/tenant`, {
       method: "POST",
@@ -138,7 +160,6 @@ export function IdentityShell() {
 
   async function logout() {
     contextRevision.current += 1;
-    setShowAudit(false); setEvents([]); setAuditError(null);
     setBusy(true);
     const response = await fetch(`${apiUrl}/auth/logout`, {
       method: "POST",
@@ -152,23 +173,9 @@ export function IdentityShell() {
     }
     setIdentity(null);
     setTenants([]);
+    setCapabilities([]);
     setView("anonymous");
     setBusy(false);
-  }
-
-  async function loadAudit() {
-    const revision = contextRevision.current;
-    setShowAudit(true);
-    setAuditError(null);
-    try {
-      const response = await fetch(`${apiUrl}/audit/events?limit=50`, { credentials: "include" });
-      if (revision !== contextRevision.current) return;
-      if (!response.ok) { setAuditError(response.status === 403 ? "Audit Trail access is restricted to authorized roles." : "Audit Trail is unavailable."); return; }
-      const result = (await response.json()) as { items: AuditEvent[] };
-      if (revision === contextRevision.current) setEvents(result.items);
-    } catch {
-      if (revision === contextRevision.current) setAuditError("Audit Trail is unavailable.");
-    }
   }
 
   if (view === "loading") {
@@ -210,10 +217,11 @@ export function IdentityShell() {
     );
   }
 
-  const current = tenants.find((tenant) => tenant.id === identity.current_tenant_id);
-  const canAudit = ["owner", "admin", "auditor"].includes(current?.role ?? "");
-  const selectedItem = workspaceItems.find((item) => item.id === activeModule) ?? workspaceItems[0];
-  const selectedSection = workspaceSections.find((section) => section.items.some((item) => item.id === activeModule));
+  const visibleIds = new Set(visibleModuleIds);
+  const presentedModule: WorkspaceId = visibleIds.has(activeModule) ? activeModule : "overview";
+  const navigationSections = visibleSections;
+  const selectedItem = workspaceItems.find((item) => item.id === presentedModule) ?? workspaceItems[0];
+  const selectedSection = workspaceSections.find((section) => section.items.some((item) => item.id === presentedModule));
   const preferredUnitId = current ? activeTarget?.unitId ?? unitByTenant[current.id] ?? "" : "";
   const onUnitChange = (unitId: string) => {
     if (current) setUnitByTenant((previous) => ({ ...previous, [current.id]: unitId }));
@@ -224,19 +232,18 @@ export function IdentityShell() {
       <aside className="qms-app-sidebar" aria-label="Main navigation">
         <div className="qms-sidebar-intro"><span className="qms-sidebar-kicker">Perfect Match</span><strong>Quality workspace</strong><small>{current?.name ?? "Select an organization"}</small></div>
         <label className="qms-mobile-navigation">Module
-          <select value={activeModule} disabled={busy} onChange={(event) => navigateWorkspace(event.target.value as WorkspaceId)}>
-            {workspaceSections.map((section) => <optgroup key={section.label} label={section.label}>
-              {section.items.filter((item) => item.id !== "audit" || canAudit).map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}
-              {!canAudit && activeModule === "audit" && section.items.some((item) => item.id === "audit") && <option value="audit" disabled>Audit trail restricted</option>}
+          <select value={presentedModule} disabled={busy} onChange={(event) => navigateWorkspace(event.target.value as WorkspaceId)}>
+            {navigationSections.map((section) => <optgroup key={section.label} label={section.label}>
+              {section.items.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}
             </optgroup>)}
           </select>
         </label>
         <nav aria-label="QMS modules">
-          {workspaceSections.map((section) => <div className="qms-nav-section" key={section.label}>
+          {navigationSections.map((section) => <div className="qms-nav-section" key={section.label}>
             <p>{section.label}</p>
-            {section.items.filter((item) => item.id !== "audit" || canAudit).map((item) => {
+            {section.items.map((item) => {
               const Icon = workspaceIcons[item.id];
-              return <a key={item.id} href={`#${item.hash}`} aria-current={activeModule === item.id ? "page" : undefined} aria-disabled={busy} onClick={(event) => {
+              return <a key={item.id} href={`#${item.hash}`} aria-current={presentedModule === item.id ? "page" : undefined} aria-disabled={busy} onClick={(event) => {
                 event.preventDefault();
                 if (busy) return;
                 navigateWorkspace(item.id);
@@ -244,7 +251,7 @@ export function IdentityShell() {
             })}
           </div>)}
         </nav>
-        <div className="qms-sidebar-assurance"><ShieldCheck aria-hidden="true" size={17} /><span>Access follows your assigned responsibilities.</span></div>
+        <div className="qms-sidebar-assurance"><ShieldCheck aria-hidden="true" size={17} /><span>Visible areas follow your active QMS responsibilities.</span></div>
       </aside>
       <div className="qms-app-main">
         <header className="qms-app-topbar">
@@ -258,18 +265,18 @@ export function IdentityShell() {
         {busy && <p className="qms-context-status" role="status">Updating your organization context…</p>}
         {!current ? <div className="qms-empty-context" id="qms-active-workspace" tabIndex={-1}><ShieldCheck aria-hidden="true" size={24} /><h1>Choose an organization</h1><p>Select an active organization to open its quality workspace. If none appears, contact its administrator.</p></div> : <fieldset className="context-workspaces qms-active-workspace" id="qms-active-workspace" disabled={busy} aria-busy={busy}>
           <legend className="sr-only">{selectedItem.label}</legend>
-          {activeModule === "overview" && <WorkspaceOverview tenantName={current.name} role={current.role} canAudit={canAudit} onNavigate={navigateWorkspace} />}
-          {activeModule === "actions" && <ActionCenterWorkspace key={`actions-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
-          {activeModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
-          {activeModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
-          {activeModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
-          {activeModule === "risks" && <RisksWorkspace key={`risks-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "nonconformities" && <NonconformitiesWorkspace key={`ncr-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "capa" && <CAPAWorkspace key={`capa-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
-          {activeModule === "documents" && <DocumentsWorkspace key={`documents-${current.id}-${current.role}`} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
-          {activeModule === "workflows" && <WorkflowWorkspace key={`workflows-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} role={current.role} target={activeTarget} />}
-          {activeModule === "audit" && (canAudit ? <section className="audit-panel" aria-labelledby="audit-heading"><div className="audit-heading"><div><p className="eyebrow">Compliance history</p><h2 id="audit-heading">Audit trail</h2></div><button className="secondary-action compact-action" disabled={busy} onClick={() => void loadAudit()} type="button">Refresh history</button></div>{auditError ? <p className="denied-state">{auditError}</p> : !showAudit ? <p className="empty-state">Select refresh to load the latest history.</p> : events.length === 0 ? <p className="empty-state">No audit events for this organization.</p> : <div className="audit-list">{events.map((event) => <details className="audit-event" key={event.id}><summary><span><strong>{event.action}</strong><small>{event.actor_display_name} · {event.actor_role} · {event.resource_type}</small></span><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString()}</time></summary><dl><dt>Request ID</dt><dd>{event.request_id}</dd><dt>Changed fields</dt><dd>{event.changed_fields.join(", ") || "None"}</dd><dt>Before</dt><dd>{event.old_values ? JSON.stringify(event.old_values) : "None"}</dd><dt>After</dt><dd>{event.new_values ? JSON.stringify(event.new_values) : "None"}</dd></dl></details>)}</div>}</section> : <p className="denied-state">Audit Trail access is restricted to authorized roles.</p>)}
+          {presentedModule === "overview" && <WorkspaceOverview tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
+          {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
+          {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
+          {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
+          {presentedModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
+          {presentedModule === "risks" && <RisksWorkspace key={`risks-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
+          {presentedModule === "nonconformities" && <NonconformitiesWorkspace key={`ncr-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
+          {presentedModule === "capa" && <CAPAWorkspace key={`capa-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
+          {presentedModule === "documents" && <DocumentsWorkspace key={`documents-${current.id}-${current.role}`} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
+          {presentedModule === "workflows" && <WorkflowWorkspace key={`workflows-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} role={current.role} target={activeTarget} />}
+          {presentedModule === "audit" && (canAudit ? <AuditWorkspace key={`audit-${current.id}-${current.role}`} /> : <p className="denied-state">Audit Trail access is restricted to authorized roles.</p>)}
         </fieldset>}
       </div>
     </main>

@@ -25,6 +25,9 @@ the exact authorized record rather than only its module.
   capabilities. It does not turn read access into mutation authority.
 - CAPA verification and evidence review exclude the submitting/completing user from
   their personal queue, preserving segregation of duties.
+- Evidence-review actions are emitted only when the reviewer also has the control
+  and implementation read/manage context required to open and complete the exact
+  destination. An `evidence.review` grant alone never creates a dead-end action.
 - Workflow eligibility reuses the workflow engine's user, application-role and active
   organization-unit assignment resolution. Auditors do not receive executable
   workflow actions in their personal queue.

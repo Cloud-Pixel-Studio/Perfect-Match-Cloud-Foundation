@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "next build",
+    "design:render": "node scripts/render-design-studio-assets.mjs",
     "dev": "next dev",
     "lint": "eslint . --max-warnings=0",
     "start": "next start",
