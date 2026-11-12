@@ -26,9 +26,20 @@ def validate(compose: str, workflow: str) -> list[str]:
         if not PIN.fullmatch(image):
             errors.append(f"{service}: image is not digest-pinned")
             continue
-        # Literal command argument in security workflow; prevents scans from
-        # silently targeting a different digest after vendor upgrades.
-        if not re.search(r"^[ \t]*trivy image[ \t]+[^\n]*[ \t]+" + re.escape(image) + r"\s*$", workflow, re.M):
+        # Require the expected output artifact and exact digest on the same
+        # executable scanner line. A commented-out or renamed scan is invalid.
+        scan_service = "clamav" if service == "clamav-database-bootstrap" else service
+        expected_output = f"artifacts/trivy-{scan_service}-image.json"
+        commands = [
+            line.strip()
+            for line in workflow.splitlines()
+            if line.lstrip().startswith("trivy image ")
+        ]
+        if not any(
+            re.search(r"(?:^|\\s)--output\\s+" + re.escape(expected_output) + r"(?:\\s|$)", line)
+            and line.split()[-1] == image
+            for line in commands
+        ):
             errors.append(f"{service}: security scan does not target Compose digest")
     return errors
 
