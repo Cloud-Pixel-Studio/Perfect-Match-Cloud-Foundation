@@ -88,3 +88,35 @@ This milestone is backend planning infrastructure only. Scope, criteria, team,
 independence decisions, evidence, findings, NCR handoff, Action Center exposure,
 demo data and the premium UI remain later slices and must not be presented as
 implemented.
+
+## Slice 2 verified reference and SaaS rules
+
+The secondary Odoo repository was re-read at
+`d89330cc1a8e9a2ea16992c9b49394f1dc481b7f` before designing the next slice.
+Its source defines normalized scope lines, typed criteria, lightweight agenda
+lines, auditor/auditee membership, and explicit independence confirmation or
+documented override. Those are functional references only; the SaaS will not
+copy Odoo ACLs, models or infrastructure.
+
+The SaaS slice will enforce these stronger invariants:
+
+- Scope lines inherit the audit tenant and unit, may reference an in-scope
+  process and control implementations, and are mutable only in `draft` or
+  `planned`. A withdrawal is retained rather than deleting history.
+- Criteria are typed as internal control, company procedure, customer
+  requirement, regulation, external standard reference or other. External
+  standards store metadata only: identifier, edition and clause/reference.
+  Licensed requirement text is never seeded or copied.
+- Agenda lines use bounded duration minutes, an optional in-scope process, an
+  active tenant auditor, an optional active auditee and customer-authored notes.
+- Team membership is explicit and scoped. A tenant role or paid seat cannot add
+  someone to an audit team and cannot substitute for `audits.execute`.
+- Independence is a review command, not an editable checkbox. Confirmation and
+  override both require `audits.review`; an override requires a reason. The
+  reviewer cannot be the lead auditor, and the recorded actor/time are immutable.
+- `planned -> ready` requires an active scope line, an active criterion, an
+  active lead auditor represented on the team, and a confirmed or documented
+  independence decision. Direct state updates remain forbidden in PostgreSQL.
+
+Execution transitions, evidence and findings remain outside this slice so that
+readiness cannot be confused with completed fieldwork.
