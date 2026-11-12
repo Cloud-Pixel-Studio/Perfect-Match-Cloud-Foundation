@@ -62,15 +62,20 @@ export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
 (
   cd apps/api
   ready=false
-  for _ in $(seq 1 20); do
-    if uv run --no-sync python -m pmc_api.bootstrap_database >/dev/null 2>&1; then
+  bootstrap_log=$(mktemp)
+  trap 'rm -f "$bootstrap_log"' EXIT
+  for attempt in $(seq 1 20); do
+    if uv run --no-sync python -m pmc_api.bootstrap_database >"$bootstrap_log" 2>&1; then
       ready=true
       break
     fi
-    sleep 1
+    if [[ "$attempt" -lt 20 ]]; then
+      sleep 1
+    fi
   done
   if [[ "$ready" != true ]]; then
-    uv run --no-sync python -m pmc_api.bootstrap_database
+    echo "Database bootstrap failed after 20 attempts; last output follows:" >&2
+    cat "$bootstrap_log" >&2
     exit 1
   fi
   uv run --no-sync alembic upgrade head
