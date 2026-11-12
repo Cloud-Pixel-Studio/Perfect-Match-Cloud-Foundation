@@ -4,7 +4,7 @@ set -euo pipefail
 ./scripts/build-test-postgres.sh
 
 container="pmcloud-tenant-isolation-$$"
-port=${PMC_TEST_POSTGRES_PORT:-55432}
+port=${PMC_TEST_POSTGRES_PORT:-}
 bootstrap_password=$(openssl rand -hex 24)
 migration_password=$(openssl rand -hex 24)
 runtime_password=$(openssl rand -hex 24)
@@ -12,6 +12,14 @@ runtime_password=$(openssl rand -hex 24)
 cleanup() {
   docker rm -f "$container" >/dev/null 2>&1 || true
 }
+diagnose() {
+  local status=$?
+  echo "tenant-isolation failed (exit ${status}); container=${container}" >&2
+  docker ps -a --filter "name=${container}" --format '{{.Names}} {{.Status}}' >&2 || true
+  docker logs --tail 80 "$container" >&2 || true
+  exit "$status"
+}
+trap diagnose ERR
 trap cleanup EXIT
 
 docker run --detach --rm \
@@ -21,6 +29,15 @@ docker run --detach --rm \
   --env POSTGRES_USER=pmcloud_bootstrap \
   --env POSTGRES_PASSWORD="$bootstrap_password" \
   pmcloud-postgres:local >/dev/null
+
+if [[ -z "$port" ]]; then
+  binding=$(docker port "$container" 5432/tcp)
+  port=${binding##*:}
+  if [[ ! "$port" =~ ^[0-9]+$ ]]; then
+    echo "Unable to resolve Docker-assigned PostgreSQL port: $binding" >&2
+    exit 1
+  fi
+fi
 
 for _ in $(seq 1 30); do
   if docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null 2>&1; then
