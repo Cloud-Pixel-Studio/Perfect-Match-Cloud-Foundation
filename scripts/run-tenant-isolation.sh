@@ -55,7 +55,7 @@ if [[ "$ready" != true ]]; then
   exit 1
 fi
 # Confirm that the expected database is available, not merely the listener.
-docker exec "$container" psql -h 127.0.0.1 -U pmcloud_bootstrap -d pmcloud_isolation -Atqc 'SELECT 1' | grep -qx 1
+docker exec -e PGPASSWORD="$bootstrap_password" "$container" psql -h 127.0.0.1 -U pmcloud_bootstrap -d pmcloud_isolation -Atqc 'SELECT 1' | grep -qx 1
 
 export POSTGRES_DB=pmcloud_isolation
 export POSTGRES_MIGRATION_USER=pmcloud_migrator
