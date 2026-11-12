@@ -32,24 +32,31 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(rows[0]["cve"], "CVE-1")
 
     def test_no_fix_reported(self):
-        report = {"Results": [{"Vulnerabilities": [
+        report = {"Results": [{"Target": "os", "Vulnerabilities": [
             {"VulnerabilityID": "CVE-3", "PkgName": "pkg", "InstalledVersion": "1", "Severity": "CRITICAL"},
         ]}]}
         self.assertEqual(module.inventory(report, "digest")[0]["fixed_version"], "")
 
     def test_malformed_report_fails_closed(self):
-        for report in ({}, {"Results": None}, {"Results": [{} , "bad"]}, {"Results": [{"Vulnerabilities": "invalid"}]}):
+        for report in ({}, {"Results": None}, {"Results": [{"Target": "os"}, "bad"]}, {"Results": [{"Target": "os", "Vulnerabilities": "invalid"}]}):
             with self.subTest(report=report), self.assertRaises(ValueError):
                 module.inventory(report, "digest")
 
     def test_missing_severity_fails_closed(self):
         with self.assertRaises(ValueError):
-            module.inventory({"Results": [{"Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
+            module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
 
     def test_non_string_severity_fails_closed(self):
         for severity in ([], {}, 5, None):
             with self.subTest(severity=severity), self.assertRaises(ValueError):
-                module.inventory({"Results": [{"Vulnerabilities": [{"Severity": severity}]}]}, "digest")
+                module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"Severity": severity}]}]}, "digest")
+
+    def test_missing_or_blank_target_fails_closed(self):
+        for target in (None, "", "  ", [], {}):
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, "non-empty"):
+                module.inventory({"Results": [{"Target": target, "Vulnerabilities": []}]}, "digest")
+        with self.assertRaisesRegex(ValueError, "non-empty"):
+            module.inventory({"Results": [{"Vulnerabilities": []}]}, "digest")
 
     def test_invalid_target_fails_closed(self):
         with self.assertRaises(ValueError):
@@ -57,7 +64,7 @@ class InventoryTests(unittest.TestCase):
 
     def test_incomplete_high_fails_closed(self):
         with self.assertRaises(ValueError):
-            module.inventory({"Results": [{"Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
+            module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
 
 
     def test_cli_removes_stale_output_on_invalid_report(self):
