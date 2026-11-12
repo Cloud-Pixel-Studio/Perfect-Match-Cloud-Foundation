@@ -39,13 +39,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Validate candidate workflow structure on PR
         if: github.event_name == 'pull_request'
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('.github/workflows/vendor-image-candidates.yml').read_text()
-          required = ('workflow_dispatch:', 'pull_request:', 'sha256:', 'trivy image', 'candidate-gate.json', 'all(.value == 0)')
-          assert all(x in p for x in required), 'Candidate scan workflow missing a release safety invariant'
-          PY
+        run: python3 -m unittest discover -s tests -p 'test_vendor_candidate_workflow.py'
       - name: Install verified scanners
         if: github.event_name == 'workflow_dispatch'
         run: ./scripts/install-ci-security-tools.sh
