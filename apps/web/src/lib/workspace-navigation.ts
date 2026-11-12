@@ -4,6 +4,7 @@ export type WorkspaceId =
   | "processes"
   | "documents"
   | "controls"
+  | "internal-audits"
   | "risks"
   | "nonconformities"
   | "capa"
@@ -53,6 +54,7 @@ export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
       { id: "processes", label: "Processes", description: "Map and manage your processes.", hash: "process-title" },
       { id: "documents", label: "Documents", description: "Control revisions and release.", hash: "documents-heading" },
       { id: "controls", label: "Controls & evidence", description: "Implement controls and review evidence.", hash: "controls-heading" },
+      { id: "internal-audits", label: "Internal audits", description: "Plan audit programs, schedules and responsibilities.", hash: "internal-audits-heading" },
     ],
   },
   {
@@ -79,6 +81,7 @@ const capabilityFamilies: Partial<Record<WorkspaceId, string[]>> = {
   processes: ["processes."],
   documents: ["documents."],
   controls: ["controls.", "control_instances."],
+  "internal-audits": ["audits."],
   risks: ["risks."],
   nonconformities: ["ncr."],
   capa: ["capa."],

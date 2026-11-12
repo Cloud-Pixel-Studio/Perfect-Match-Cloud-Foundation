@@ -281,3 +281,19 @@ evidence is stored separately encrypted and checked against its PNG SHA256.
 No QMS runtime data/schema mutation or database restoration claimed. Final
 checks:199 disposable PostgreSQL,59 web unit,50 Darwin and50 Linux browser cases;
 no snapshot updates or retries. Mock writes do not establish backend persistence.
+
+
+## Internal audit planning UI · 12 November2026
+
+CP-AUDIT-UI-00-20261112T214141Z restores416 source files and Git before UI work.
+CP-AUDIT-UI-DB-00-20261112T215516Z-r12 restores48 tables at0039, every row/content
+hash, role/credential attributes, RLS and sequences in a network-isolated tmpfs
+container. Canonicalization exceptions (constant array casts and built-in role
+bootstrap grantor names) are explicit in the public manifest. Application grants
+and all Boolean operators/grouping were preserved. Earlier failed attempts remain
+retained; no migration was applied until r12 passed. Encrypted dump/globals,
+verified inventory and helper live in the protected external checkpoint directory;
+separate0600 key, AES-PBKDF2 plus HMAC. No dump, credential or key is committed.
+The runtime then upgraded only existing0040 and seeded synthetic planning records;
+0041 remains excluded. Restoring the older0039 backup would discard later local
+changes and requires an explicit recovery decision; never auto-downgrade history.

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Building2, CalendarRange, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -16,6 +16,7 @@ import { CAPAWorkspace } from "./capa-workspace";
 import { WorkspaceOverview } from "./workspace-overview";
 import { ActionCenterWorkspace } from "./action-center-workspace";
 import { AuditWorkspace } from "./audit-workspace";
+import { InternalAuditsWorkspace } from "./internal-audits-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
@@ -35,6 +36,7 @@ const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   processes: FolderKanban,
   documents: FileText,
   controls: ListChecks,
+  "internal-audits": CalendarRange,
   risks: ChartNoAxesCombined,
   nonconformities: AlertTriangle,
   capa: ClipboardCheck,
@@ -271,6 +273,7 @@ export function IdentityShell() {
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
           {presentedModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
+          {presentedModule === "internal-audits" && <InternalAuditsWorkspace key={`internal-audits-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "risks" && <RisksWorkspace key={`risks-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "nonconformities" && <NonconformitiesWorkspace key={`ncr-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "capa" && <CAPAWorkspace key={`capa-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}

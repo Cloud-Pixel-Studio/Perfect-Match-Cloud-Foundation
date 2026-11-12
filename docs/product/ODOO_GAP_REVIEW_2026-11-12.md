@@ -87,3 +87,8 @@ La rama `codex/capa-origin-workflow` implementa listado, apertura y creación
 de CAPA desde NCR/riesgo con comprobación de origen/empresa/unidad. Evidencia
 y límites en `CAPA_ORIGIN_WORKFLOW.md`. El conteo11parciales/9sinvertical
 no cambia: mejorar un bloque parcial no lo convierte en paridad completa.
+
+La rama posterior `codex/internal-audit-planning-ui` añade la interfaz de los
+programas y planificación0040. No contar criterios/equipo/independencia,
+ejecución/hallazgos/NCR como hechos. Evidencia y límites en
+`INTERNAL_AUDIT_PLANNING_UI.md`; el conteo11parciales/9sinvertical no cambia.

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from types import SimpleNamespace
 from typing import Any
@@ -27,12 +29,14 @@ from pmc_api.internal_audits import (
     create_program,
     get_audit,
     get_program,
+    list_audits,
+    list_programs,
     transition_audit,
     transition_program,
     update_audit,
     update_program,
 )
-from pmc_api.models import QMSAccessGrant
+from pmc_api.models import QMSAccessGrant, QMSAuditProgram, QMSInternalAudit
 from pmc_api.organization_service import OrganizationActor
 from pmc_api.qms_access import GrantInput, create_grant, require_capability, revoke_grant
 
@@ -438,3 +442,203 @@ def test_auditor_role_is_limited_to_read_and_execution_capabilities() -> None:
         require_capability(db, "audits.execute", UNIT_A)
         with pytest.raises(HTTPException):
             require_capability(db, "audits.manage", UNIT_A)
+
+
+@dataclass
+class PlanningRecords:
+    db: Session
+    programs: dict[UUID, list[QMSAuditProgram]]
+    audits: dict[UUID, list[QMSInternalAudit]]
+    read_grant_id: UUID
+
+
+@pytest.fixture
+def planning_records(seed_identity: None) -> Iterator[PlanningRecords]:
+    """Populate actual API records in three scopes, only in the disposable DB."""
+    membership_id = uuid4()
+    with _engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
+        connection.execute(
+            text(
+                "TRUNCATE qms_internal_audits, qms_audit_programs, qms_access_grants, "
+                "audit_events CASCADE"
+            )
+        )
+        # Grant tenant B's reader through the real service with an authorized
+        # owner, rather than manufacturing a grant or changing RLS policies.
+        connection.execute(
+            text(
+                "INSERT INTO memberships(id,tenant_id,user_id,role,status,created_at) "
+                "VALUES(:id,:tenant,:user,'owner','active',CURRENT_TIMESTAMP)"
+            ),
+            {"id": membership_id, "tenant": TENANT_B, "user": OWNER},
+        )
+    try:
+        with Session(_engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+            primary_read = _grant(db, MANAGER, "audits.read")
+            _grant(db, MANAGER, "audits.manage")
+            for capability in ("audits.read", "audits.manage"):
+                _grant(db, MANAGER, capability, UNIT_A_OTHER)
+                set_request_context(db, user_id=OWNER, tenant_id=TENANT_B)
+                create_grant(
+                    db,
+                    OrganizationActor(OWNER, str(OWNER), "owner", TENANT_B),
+                    uuid4(),
+                    GrantInput(user_id=MANAGER, unit_id=UNIT_B, capability=capability),
+                )
+            _grant(db, AUDITOR, "audits.read")
+            programs: dict[UUID, list[QMSAuditProgram]] = {}
+            audits: dict[UUID, list[QMSInternalAudit]] = {}
+            for unit, tenant in ((UNIT_A, TENANT_A), (UNIT_A_OTHER, TENANT_A), (UNIT_B, TENANT_B)):
+                programs[unit], audits[unit] = [], []
+                for index in range(3 if unit == UNIT_A else 1):
+                    suffix = f"{unit.hex[-1]}-{index + 1:02d}"
+                    program = create_program(
+                        _request(),
+                        ProgramInput(
+                            unit_id=unit,
+                            code=f"AP-LIST-{suffix}",
+                            name="Literal _%\\ finding" if index == 0 else "Ordinary finding",
+                            date_start=date(2027, 3 if index < 2 else 2, 1),
+                            date_end=date(2027, 12, 31),
+                            owner_user_id=MANAGER,
+                        ),
+                        db,
+                        _authenticated(MANAGER, tenant),
+                    )
+                    audit = create_audit(
+                        _request(),
+                        InternalAuditInput(
+                            unit_id=unit,
+                            program_id=program.id,
+                            code=f"IA-LIST-{suffix}",
+                            name="Synthetic listed audit",
+                            planned_start=date(2027, 4 if index < 2 else 3, 1),
+                            planned_end=date(2027, 12, 31),
+                            objective="Verify planning navigation and scope isolation",
+                        ),
+                        db,
+                        _authenticated(MANAGER, tenant),
+                    )
+                    programs[unit].append(program)
+                    audits[unit].append(audit)
+            yield PlanningRecords(db, programs, audits, primary_read.id)
+    finally:
+        with _engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
+            connection.execute(text("DELETE FROM memberships WHERE id=:id"), {"id": membership_id})
+
+
+def _planning_list(
+    kind: str,
+    db: Session,
+    unit_id: UUID = UNIT_A,
+    *,
+    user_id: UUID = MANAGER,
+    tenant_id: UUID = TENANT_A,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[QMSAuditProgram] | list[QMSInternalAudit]:
+    authenticated = _authenticated(user_id, tenant_id)
+    if kind == "program":
+        return list_programs(db, authenticated, unit_id, limit=limit, offset=offset)
+    return list_audits(db, authenticated, unit_id, limit=limit, offset=offset)
+
+
+def _planning_get(
+    kind: str,
+    db: Session,
+    record_id: UUID,
+    *,
+    user_id: UUID = MANAGER,
+    tenant_id: UUID = TENANT_A,
+) -> QMSAuditProgram | QMSInternalAudit:
+    authenticated = _authenticated(user_id, tenant_id)
+    if kind == "program":
+        return get_program(record_id, db, authenticated)
+    return get_audit(record_id, db, authenticated)
+
+
+def test_program_search_is_literal_and_cannot_expand_the_unit_scope(
+    planning_records: PlanningRecords,
+) -> None:
+    db, programs = planning_records.db, planning_records.programs
+    expected = programs[UNIT_A][0]
+    # The same literal name exists in other scopes; wildcard escaping alone
+    # must not be mistaken for tenant/unit isolation.
+    for query in ("_%", "\\", expected.code.lower()):
+        assert [row.id for row in list_programs(db, _authenticated(MANAGER), UNIT_A, q=query)] == [
+            expected.id
+        ]
+    assert {row.id for row in list_programs(db, _authenticated(MANAGER), UNIT_A, q=" ")} == {
+        row.id for row in programs[UNIT_A]
+    }
+
+
+@pytest.mark.parametrize("kind", ["program", "audit"])
+def test_planning_register_pages_are_stable_and_contain_only_the_requested_unit(
+    planning_records: PlanningRecords, kind: str
+) -> None:
+    db = planning_records.db
+    records = planning_records.programs if kind == "program" else planning_records.audits
+    field = "date_start" if kind == "program" else "planned_start"
+    scoped: list[QMSAuditProgram | QMSInternalAudit] = list(records[UNIT_A])
+    expected = sorted(scoped, key=lambda row: (-getattr(row, field).toordinal(), row.id))
+    assert [row.id for row in _planning_list(kind, db)] == [row.id for row in expected]
+    seen = [
+        row.id for offset in range(3) for row in _planning_list(kind, db, limit=1, offset=offset)
+    ]
+    assert seen == [row.id for row in expected]
+    assert len(set(seen)) == 3
+    assert _planning_list(kind, db, limit=1, offset=3) == []
+    assert {row.id for row in _planning_list(kind, db, UNIT_A_OTHER)} == {
+        row.id for row in records[UNIT_A_OTHER]
+    }
+
+
+@pytest.mark.parametrize("kind", ["program", "audit"])
+def test_a_valid_reader_in_another_company_cannot_resolve_foreign_planning_ids(
+    planning_records: PlanningRecords, kind: str
+) -> None:
+    db = planning_records.db
+    records = planning_records.programs if kind == "program" else planning_records.audits
+    assert {row.id for row in _planning_list(kind, db, UNIT_B, tenant_id=TENANT_B)} == {
+        row.id for row in records[UNIT_B]
+    }
+    with pytest.raises(HTTPException) as hidden_in_b:
+        _planning_get(kind, db, records[UNIT_A][0].id, tenant_id=TENANT_B)
+    assert hidden_in_b.value.status_code == 404
+    with pytest.raises(HTTPException) as hidden_in_a:
+        _planning_get(kind, db, records[UNIT_B][0].id)
+    assert hidden_in_a.value.status_code == 404
+
+
+@pytest.mark.parametrize("kind", ["program", "audit"])
+def test_read_revocation_clears_previously_visible_planning_history(
+    planning_records: PlanningRecords, kind: str
+) -> None:
+    db = planning_records.db
+    records = planning_records.programs if kind == "program" else planning_records.audits
+    assert len(_planning_list(kind, db)) == 3
+    set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+    revoke_grant(db, _actor(OWNER, "owner"), uuid4(), planning_records.read_grant_id)
+    # MANAGER keeps audits.manage. That must not imply read authority.
+    with pytest.raises(HTTPException) as denied:
+        _planning_list(kind, db)
+    assert denied.value.status_code == 403
+    with pytest.raises(HTTPException) as hidden:
+        _planning_get(kind, db, records[UNIT_A][0].id)
+    assert hidden.value.status_code == 404
+
+
+@pytest.mark.parametrize("kind", ["program", "audit"])
+def test_read_grant_in_one_unit_does_not_authorize_another_planning_scope(
+    planning_records: PlanningRecords, kind: str
+) -> None:
+    db = planning_records.db
+    records = planning_records.programs if kind == "program" else planning_records.audits
+    assert len(_planning_list(kind, db, user_id=AUDITOR)) == 3
+    with pytest.raises(HTTPException) as denied:
+        _planning_list(kind, db, UNIT_A_OTHER, user_id=AUDITOR)
+    assert denied.value.status_code == 403
+    with pytest.raises(HTTPException) as hidden:
+        _planning_get(kind, db, records[UNIT_A_OTHER][0].id, user_id=AUDITOR)
+    assert hidden.value.status_code == 404

@@ -25,6 +25,10 @@ const capabilities: Record<string, string> = {
   "ncr.review": "Review and close nonconformities",
   "capa.read": "Read corrective actions", "capa.manage": "Manage corrective action drafts",
   "capa.review": "Review corrective actions",
+  "audits.read": "Read internal-audit programs and schedules",
+  "audits.manage": "Manage internal-audit planning",
+  "audits.execute": "Internal-audit execution responsibility",
+  "audits.review": "Review internal-audit programs and cancellations",
 };
 const api = "/api/identity";
 
@@ -76,7 +80,7 @@ export function QMSAccessWorkspace({ role, userId, onAccessDenied }: {
 
   const selectedMember = members.find((member) => member.id === memberId);
   const eligibleCapabilities = Object.entries(capabilities).filter(([key]) =>
-    selectedMember?.role !== "auditor" || key.endsWith(".read"));
+    selectedMember?.role !== "auditor" || key.endsWith(".read") || key === "audits.execute");
   const duplicate = grants.some((grant) => grant.status === "active" &&
     grant.user_id === memberId && grant.unit_id === unitId && grant.capability === capability);
   const validTarget = members.some((member) => member.id === memberId && member.id !== userId);
@@ -140,7 +144,7 @@ export function QMSAccessWorkspace({ role, userId, onAccessDenied }: {
     {error && <p role="alert" className="denied-state">{error}</p>}
     {owner && state === "ready" && <form aria-label="Grant QMS access" className="qms-access-form" onSubmit={(event) => void create(event)}>
       <h3><KeyRound size={17} aria-hidden="true" /> Grant a responsibility</h3>
-      <p>Choose another active member and an exact scope. Auditors can receive read access only.</p>
+      <p>Choose another active member and an exact scope. Auditors can receive read access or internal-audit execution responsibility. Execution screens are not available yet.</p>
       <fieldset disabled={busy || state !== "ready"}>
         <label htmlFor="qms-member">Member<select id="qms-member" required value={memberId} onChange={(event) => {
           setMemberId(event.target.value); setCapability("documents.read");

@@ -64,4 +64,14 @@ describe("persona-aware workspace navigation", () => {
       "overview", "actions", "workflows", "permissions",
     ]);
   });
+
+  it("separates internal-audit responsibilities from technical audit-trail roles", () => {
+    expect(ids("member", ["audits.read"])).toEqual([
+      "overview", "actions", "workflows", "internal-audits", "permissions",
+    ]);
+    expect(ids("owner", [])).not.toContain("internal-audits");
+    expect(ids("auditor", [])).not.toContain("internal-audits");
+    expect(workspaceFromHash("#internal-audits-heading")).toBe("internal-audits");
+    expect(workspaceFromHash("#audit-heading")).toBe("audit");
+  });
 });
