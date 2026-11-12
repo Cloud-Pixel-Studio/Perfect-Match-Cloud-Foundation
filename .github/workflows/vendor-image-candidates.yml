@@ -70,7 +70,10 @@ jobs:
           trivy image --format json --scanners vuln --output artifacts/keycloak-pr-candidate.json "$KEYCLOAK_DIGEST"
           trivy image --format json --scanners vuln --output artifacts/seaweedfs-pr-candidate.json "$SEAWEEDFS_DIGEST"
           for report in artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json; do
-            jq -e '.Results | type == "array"' "$report" >/dev/null
+            jq -e '
+              (.Results | type == "array") and
+              ([.Results[] | has("Vulnerabilities") and (.Vulnerabilities | type == "array" or .Vulnerabilities == null)] | all)
+            ' "$report" >/dev/null
           done
           jq -n \
             --arg keycloak_image "$KEYCLOAK_DIGEST" \
