@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   ClipboardCheck,
+  Download,
   FileCheck2,
   Layers3,
   ListChecks,
@@ -14,9 +15,11 @@ import {
 } from "lucide-react";
 
 import { designAssetCatalog, type DesignAssetSpec } from "../../lib/design-studio";
+import { BrandMark } from "../../components/brand-mark";
+import { ThemeToggle } from "../../components/theme-toggle";
 
 export const metadata: Metadata = {
-  title: "AI Design Studio | Perfect Match QMS",
+  title: "AI Design Studio",
   description: "Controlled visual asset demonstration for Perfect Match QMS.",
 };
 
@@ -71,10 +74,14 @@ export default async function DesignStudioPage({ searchParams }: PageProps) {
   }
   return (
     <main className="studio-page">
-      <header className="studio-page-header"><Link href="/products"><ArrowLeft size={18} />Products</Link><AssetBrand /><span className="studio-status"><ShieldCheck size={16} />Human approval required</span></header>
-      <section className="studio-intro"><p className="studio-kicker">CONTROLLED CREATIVE FOUNDATION</p><h1>AI Design Studio</h1><p>A first verified asset set built from the existing brand system, generated backgrounds and real product captures with synthetic data. Provider execution and publishing remain disabled until their security and tenant controls are implemented.</p></section>
+      <header className="studio-page-header">
+        <Link href="/products"><ArrowLeft aria-hidden="true" size={18} />Products</Link>
+        <Link className="studio-page-brand" href="/"><BrandMark /><span><strong>PERFECT MATCH QMS</strong><small>Quality Operations Cloud</small></span></Link>
+        <div className="studio-page-tools"><span className="studio-status"><ShieldCheck aria-hidden="true" size={16} />Draft collection</span><ThemeToggle /></div>
+      </header>
+      <section className="studio-intro"><p className="studio-kicker">THE PERFECT MATCH VISUAL LIBRARY</p><h1>AI Design Studio</h1><p>Explore six brand and product visuals. Download the original PNGs for review, from a real workspace preview to illustrations of connected quality work.</p><span className="studio-review-note"><ShieldCheck aria-hidden="true" size={16} />Draft assets · human approval required before publishing</span></section>
       <section className="studio-gallery" aria-label="Initial Perfect Match QMS visual assets">
-        {designAssetCatalog.map((asset) => <figure key={asset.slug}><div className="studio-preview-frame"><DesignCanvas asset={asset} /></div><figcaption><span><strong>{asset.title}</strong><small>{asset.width} × {asset.height} · {asset.source}</small></span><small>{asset.disclosure}</small></figcaption></figure>)}
+        {designAssetCatalog.map((asset) => <figure key={asset.slug}><div className="studio-preview-frame"><Image alt={asset.purpose} height={asset.height} loading="eager" src={`/brand/design-studio/demo/${asset.slug}.png`} unoptimized width={asset.width} /></div><figcaption><div className="studio-asset-details"><strong>{asset.title}</strong><small>{asset.width} × {asset.height} · PNG</small><small>{asset.disclosure}</small></div><a className="studio-download" download={`${asset.slug}.png`} href={`/brand/design-studio/demo/${asset.slug}.png`} aria-label={`Download PNG: ${asset.title}`}><Download aria-hidden="true" size={16} />Download PNG</a></figcaption></figure>)}
       </section>
     </main>
   );

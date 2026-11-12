@@ -16,6 +16,8 @@ for (const viewport of viewports) {
     await expect(
       page.getByRole("heading", { name: "Your QMS foundation. Standards added by edition." }),
     ).toBeVisible();
+    await expect(page.locator(".product-brand .brand-mark")).toHaveCSS("width", "40px");
+    await expect(page.locator(".showcase-brand .brand-mark")).toHaveCSS("width", "26px");
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

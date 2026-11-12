@@ -16,6 +16,38 @@
 - Implemented six deterministic export compositions and rendered exact-size PNGs.
 - Added the `/design-studio` gallery and a product-catalog link.
 - Added asset provenance, dimensions, disclosures and SHA-256 verification.
+- Fixed shared brand dimensions without inline styles or a weaker CSP; both
+  26px and 40px variants are supported.
+- Added themed gallery navigation, direct downloads of all six original PNGs,
+  a mobile-accessible product-footer link and unique page titles.
+- The gallery displays the exact immutable PNG linked by each download. HTML
+  composition is retained only for the separate export renderer.
+- Preserved the unvalidated audit-scope draft in the separate recovery branch
+  `codex/wip-audit-scope-recovery`; it is not part of this implementation diff.
+
+## Follow-up verification
+
+The first follow-up browser run exposed two introduced issues: a legacy showcase
+selector overriding the small logo size, and a brand-link accessible name that
+did not include all visible text. Both were corrected. The same run later hit
+PostgreSQL disk exhaustion in the local VM. Only three task-created unused image
+IDs were removed; no volumes were deleted, and `/auth/login` returned303 again.
+Final verification: 43/43 Vitest, ESLint, TypeScript and production build PASS;
+Gitleaks worktree/history and license policy PASS; dependency audit has no
+High/Critical and one pre-existing Moderate. Darwin passed the complete16-test
+suite, then the three affected gallery/download tests after the exact-PNG
+adjustment. The pinned Linux image passed16/16 on the final code, followed by
+another16/16 with snapshot updates disabled and no retries. Responsive references
+for the catalog, workspace and gallery were updated; representative light/dark,
+mobile/desktop captures were visually inspected. The latest remote CI status
+must be read from PR #17; the earlier successful run on4ad33be is not evidence
+for a later commit.
+
+The local frontend runs at3000. Its final preview reused the existing Linux
+runtime and copied the host-compiled Next output (about3MB) to avoid another
+full dependency build in the space-constrained VM. CI continues using the normal
+Dockerfile. The previous local image is preserved for rollback. No production
+deployment, database migration, permission change or authentication change occurred.
 
 ## Demonstration assets
 

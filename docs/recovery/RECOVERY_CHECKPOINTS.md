@@ -31,6 +31,8 @@ pmcloud configuration directory.
 | `CP-DESIGN-STUDIO-01-20261111T181713Z` | AI Design Studio visual foundation | 373-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
 | `CP-DESIGN-STUDIO-02-20261111T182451Z` | Verified AI Design Studio pre-commit boundary | 378-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
 | `CP-DESIGN-STUDIO-03-20261111T183407Z` | Final Design Studio pre-integration boundary | Includes reviewed Darwin/Linux baselines and supersedes CP-DESIGN-STUDIO-02; encrypted hashes and restoration evidence recorded below |
+| `CP-DESIGN-STUDIO-04-20261112T014909Z` | Before visual polish and cross-chat handoff | Encrypted source archive listed and complete Git bundle verified; separate key mode0600; database unchanged |
+| `CP-DESIGN-STUDIO-05-20261112T023324Z` | Final visual polish and cross-chat handoff | 385-entry encrypted source listed, complete Git bundle verified, separate key0600;43 unit tests and final Linux16/16 repeated without snapshot updates |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -209,3 +211,19 @@ images retain five and one High findings respectively.
 
 This document contains identifiers and outcomes only. It intentionally excludes
 keys, secrets, environment values, database content and customer data.
+
+CP-DESIGN-STUDIO-04 preserves remote-synchronized commit `4ad33be` before
+the logo, theme and download follow-up. The encrypted source and bundle SHA-256
+are `5efa97a05eada1c2e44ff81d2b62628660624aaaf2153c776b85f3c522b1d68c`
+and `8864024bbb059db6077b51ec3ce790f6f50ae58235c0d20c1e4db9930202f72e`.
+Source listing and bundle verification passed; no database mutation is part of
+the visual change. The date suffix is UTC (11 November in America/New_York).
+
+CP-DESIGN-STUDIO-05 preserves the final visual follow-up and cross-chat guide
+before integration. Its encrypted source and bundle SHA-256 are
+`54285f2fc8f22d02929d19cef89f28f4de4ff879fce7275195c6c019ebd1781d`
+and `825d4ba26b51766dc7532c8e06ed3668226e91798edefc87818d3b4d3165040b`.
+The archive contains385 entries; stream decryption/listing and bundle verification
+passed. The key is stored separately with mode0600. No database, customer data
+or environment file was included. The snapshot is based on4ad33be and includes
+the uncommitted visual delta; the audit0041 draft remains in its separate branch.

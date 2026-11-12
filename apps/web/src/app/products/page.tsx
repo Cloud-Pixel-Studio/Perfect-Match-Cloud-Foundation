@@ -24,7 +24,7 @@ import { ThemeToggle } from "../../components/theme-toggle";
 import { BrandMark } from "../../components/brand-mark";
 
 export const metadata: Metadata = {
-  title: "Products | Perfect Match QMS",
+  title: "Products",
   description: "Perfect Match QMS platform, tenant seats and edition-controlled ISO addons.",
 };
 
@@ -159,7 +159,7 @@ export default async function ProductsPage() {
         </section>
       </main>
 
-      <footer className="product-footer"><span>Perfect Match QMS</span><span>Complete QMS · tenant seats · edition-controlled ISO addons</span></footer>
+      <footer className="product-footer"><span>Perfect Match QMS</span><Link className="product-library-link" href="/design-studio">Explore the visual library <ArrowRight aria-hidden="true" size={16} /></Link><span>Complete QMS · tenant seats · edition-controlled ISO addons</span></footer>
     </div>
   );
 }
