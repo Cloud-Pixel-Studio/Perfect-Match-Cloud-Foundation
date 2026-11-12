@@ -6,11 +6,11 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **`codex/capa-origin-workflow`**, basado en PR27/head `ba884bc`.
+Hito activo: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), basado en PR27/head `ba884bc`.
 Leer `CAPA_ORIGIN_WORKFLOW.md` y `ODOO_GAP_REVIEW_2026-11-12.md`: panel compartido
 de CAPA desde NCR/riesgo, filtros autorizados por origen en GET, apertura puntual
 y creación con origen/proceso fijos. No cambia POST, DB, migraciones, licencias
-o dependencias. El checkpoint principal registra resultados y entrega exactos.
+o dependencias. El checkpoint principal registra resultados y entrega exactos. Entrega funcional remota `f3a772f`, árbol `e0c405dd` idéntico al verificado local. Este seguimiento solo actualiza continuidad.
 
 Predecesor: **`codex/document-command-feedback`**, [PR27](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/27), entrega funcional683c68e con árbol idéntico. En `ba884bc`, calidad/CodeQL/runtime y36Playwright PASS;
 security FAILsolo Keycloak7High/SeaweedFS2High. Esto no acredita el head nuevo.

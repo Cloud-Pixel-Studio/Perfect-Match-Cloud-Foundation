@@ -74,7 +74,7 @@ persistida. No se crearon datos QMS en el runtime local.
 CP inicial **CP-CAPA-ORIGIN-00-20261112T154919Z**:410 archivos más Git cifrados
 fuera del repositorio, restauración aislada por hash y bundle verifyPASS. Clave
 0600 separada. Sin copia de datos de clientes ni restauración DB declarada.
-Checkpoint final **CP-CAPA-ORIGIN-06-20261112T212240Z**; resultados de restauración en su manifiesto público. PR se registra tras sincronizar.
+Checkpoint final **CP-CAPA-ORIGIN-06-20261112T212240Z**; resultados de restauración en su manifiesto público. [PR borrador30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), entrega funcional `f3a772fd2d7d986715cdd3f3efbeb1bdb29141a4`, árbol `e0c405dd0e0133000f87626ba5200d2b5eebce74` idéntico al verificado local. Seguimiento posterior solo documental.
 
 Preview local3000/API8000 actualizado mediante capas pequeñas. Imágenes previas
 retenidas en tags `pmcloud-{api,web}:before-capa-origin-20261112`; sin modificar
