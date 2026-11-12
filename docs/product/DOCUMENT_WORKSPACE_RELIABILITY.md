@@ -1,7 +1,7 @@
 # Fiabilidad del workspace de Documentos
 
 12 noviembre2026. Rama `codex/document-workspace-reliability`, base `acaf7dd` del
-PR25. Cambio acotado al componente existente y sus regresiones de navegador.
+PR25. [PR borrador #26](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/26), entrega funcional `3dfacae82d637082d76d52c3bfe5c6c18baf847c`, árbol `4f9e2445555c883af4396ac92cdc4f3e64171d32` verificado idéntico local/remoto. Cambio acotado al componente existente y sus regresiones de navegador.
 No reconstruye Documentos ni usa el prototipo externo `document_control.py`.
 
 ## Comportamiento corregido

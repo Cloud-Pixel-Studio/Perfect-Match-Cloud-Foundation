@@ -6,7 +6,7 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito más reciente: **`codex/document-workspace-reliability`**, basado en el PR25.
+Hito más reciente: **`codex/document-workspace-reliability`**, [PR borrador #26](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/26), basado en el PR25. Entrega funcional3dfacae; árbol local/remoto idéntico.
 Leer `DOCUMENT_WORKSPACE_RELIABILITY.md`: búsqueda/recarga de referencias,
 respuestas tardías, filtros vacíos, confirmaciones por registro y paginación.
 No hay cambio API/DB/autorización. El checkpoint principal registra las pruebas
