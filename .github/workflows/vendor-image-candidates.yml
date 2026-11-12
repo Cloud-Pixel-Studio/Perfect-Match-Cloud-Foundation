@@ -53,8 +53,12 @@ jobs:
           mkdir -p artifacts
           trivy image --format json --scanners vuln --output artifacts/keycloak-candidate.json "$KEYCLOAK_IMAGE"
           trivy image --format json --scanners vuln --output artifacts/seaweedfs-candidate.json "$SEAWEEDFS_IMAGE"
-          jq -e '.Results | type == "array"' artifacts/keycloak-candidate.json >/dev/null
-          jq -e '.Results | type == "array"' artifacts/seaweedfs-candidate.json >/dev/null
+          for report in artifacts/keycloak-candidate.json artifacts/seaweedfs-candidate.json; do
+            jq -e '
+              (.Results | type == "array") and
+              ([.Results[] | has("Vulnerabilities") and (.Vulnerabilities | type == "array" or .Vulnerabilities == null)] | all)
+            ' "$report" >/dev/null
+          done
           jq -n \
             --arg keycloak "$KEYCLOAK_IMAGE" \
             --arg seaweedfs "$SEAWEEDFS_IMAGE" \
