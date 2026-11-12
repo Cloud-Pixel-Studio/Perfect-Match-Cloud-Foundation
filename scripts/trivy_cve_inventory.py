@@ -27,7 +27,7 @@ def inventory(report: object, image: str) -> list[dict]:
             if not isinstance(vuln, dict):
                 raise ValueError("Trivy vulnerability must be an object")
             severity = vuln.get("Severity")
-            if severity not in {"UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL"}:
+            if not isinstance(severity, str) or severity not in {"UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL"}:
                 raise ValueError("Trivy vulnerability has invalid or missing Severity")
             if severity not in SEVERITIES:
                 continue
