@@ -36,7 +36,7 @@ def validate(compose: str, workflow: str) -> list[str]:
             if line.lstrip().startswith("trivy image ")
         ]
         if not any(
-            re.search(r"(?:^|\\s)--output\\s+" + re.escape(expected_output) + r"(?:\\s|$)", line)
+            re.search(r"(?:^|\s)--output\s+" + re.escape(expected_output) + r"(?:\s|$)", line)
             and line.split()[-1] == image
             for line in commands
         ):
