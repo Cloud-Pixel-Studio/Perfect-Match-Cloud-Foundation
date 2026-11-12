@@ -34,10 +34,10 @@ describe("interface design contracts", () => {
 
   it("presents the commercial model without conflating seats and authority", () => {
     expect(products).toContain("Perfect Match QMS");
-    expect(products).toContain("Seats inside each tenant");
-    expect(products).toContain("ISO standards by controlled edition");
-    expect(products).toContain("A purchased seat or platform role never grants approval authority by itself");
-    expect(products).toContain("Availability and pricing are intentionally not shown");
+    expect(products).toContain("Seats inside your company space");
+    expect(products).toContain("ISO addons by standard and edition");
+    expect(products).toContain("Access and approval responsibilities stay separately assigned");
+    expect(products).toContain("Commercial rollout and pricing are still in preparation");
   });
 
   it("distinguishes direct CAPA traceability and independently accepted evidence", () => {

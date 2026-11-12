@@ -14,10 +14,10 @@ for (const viewport of viewports) {
     await page.evaluate(() => document.fonts.ready);
 
     await expect(
-      page.getByRole("heading", { name: "Your QMS foundation. Standards added by edition." }),
+      page.getByRole("heading", { name: "Bring quality into focus. Keep the evidence connected." }),
     ).toBeVisible();
-    await expect(page.locator(".product-brand .brand-mark")).toHaveCSS("width", "40px");
-    await expect(page.locator(".showcase-brand .brand-mark")).toHaveCSS("width", "26px");
+    await expect(page.locator(".market-brand .brand-mark")).toHaveCSS("width", "40px");
+    await expect(page.locator(".market-hero-screen img")).toHaveJSProperty("naturalWidth", 1440);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
@@ -40,6 +40,10 @@ test("product catalog dark theme and keyboard focus", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.keyboard.press("Tab");
   await expect(page.locator(":focus-visible")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+    .analyze();
+  expect(accessibility.violations).toEqual([]);
   await expect(page).toHaveScreenshot("products-desktop-dark.png", {
     fullPage: true,
   });
