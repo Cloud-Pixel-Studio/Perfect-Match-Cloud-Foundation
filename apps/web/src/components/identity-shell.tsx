@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
 import { OrganizationWorkspace } from "./organization-workspace";
+import { WorkflowWorkspace } from "./workflow-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 
 type Identity = {
@@ -167,6 +168,7 @@ export function IdentityShell() {
         {auditError ? <p className="denied-state">{auditError}</p> : events.length === 0 ? <p className="empty-state">No audit events for this organization.</p> : <div className="audit-list">{events.map((event) => <details className="audit-event" key={event.id}><summary><span><strong>{event.action}</strong><small>{event.actor_display_name} · {event.actor_role} · {event.resource_type}</small></span><time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString()}</time></summary><dl><dt>Request ID</dt><dd>{event.request_id}</dd><dt>Changed fields</dt><dd>{event.changed_fields.join(", ") || "None"}</dd><dt>Before</dt><dd>{event.old_values ? JSON.stringify(event.old_values) : "None"}</dd><dt>After</dt><dd>{event.new_values ? JSON.stringify(event.new_values) : "None"}</dd></dl></details>)}</div>}
       </section>}
       {current && <OrganizationWorkspace role={current.role} />}
+      {current && <WorkflowWorkspace role={current.role} />}
     </main>
   );
 }

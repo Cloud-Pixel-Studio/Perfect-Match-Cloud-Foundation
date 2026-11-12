@@ -10,7 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="PMC_", case_sensitive=False)
 
-    app_version: str = "0.4.0"
+    app_version: str = "0.5.0"
     environment: Literal["development", "test", "production"] = "development"
     database_url: str = Field(
         default="postgresql+pg8000://pmcloud_app@postgres:5432/pmcloud_dev",
