@@ -92,6 +92,22 @@ class CandidateWorkflowTests(unittest.TestCase):
             self.content.index("name: Fail closed on PR candidate high or critical findings"),
         )
 
+    def test_cve_inventory_is_generated_before_artifact_upload_and_gate(self):
+        for label, upload, gate, expected in (
+            ("Generate PR candidate CVE inventory", "Upload PR candidate evidence",
+             "Fail closed on PR candidate high or critical findings", "pr-candidate-cve-inventory.json"),
+            ("Generate manual candidate CVE inventory", "Preserve immutable scanner evidence",
+             "Fail closed on high or critical vulnerabilities", "candidate-cve-inventory.json"),
+        ):
+            step = self._step(label)
+            self.assertIn("python3 scripts/trivy_cve_inventory.py", step)
+            self.assertIn("--report", step)
+            self.assertIn(expected, step)
+            self.assertLess(self.content.index("name: " + label),
+                            self.content.index("name: " + upload))
+            self.assertLess(self.content.index("name: " + upload),
+                            self.content.index("name: " + gate))
+
     @classmethod
     def _step(cls, name):
         # Steps have six-space indentation; capture until the next step.
