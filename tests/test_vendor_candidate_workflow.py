@@ -62,6 +62,18 @@ class CandidateWorkflowTests(unittest.TestCase):
         self.assertLess(self.content.index("name: Upload PR candidate evidence"),
                         self.content.index("name: Fail closed on PR candidate high or critical findings"))
 
+    def test_pr_workflow_regression_runs_before_expected_vulnerability_failure(self):
+        # Known vendor CVEs must not suppress the workflow's own structural tests.
+        regression = self._step("Validate candidate workflow structure on PR")
+        gate = self._step("Fail closed on PR candidate high or critical findings")
+        self.assertIn("python3 -m unittest discover", regression)
+        self.assertIn("if: github.event_name == 'pull_request'", regression)
+        self.assertIn("if: github.event_name == 'pull_request'", gate)
+        self.assertLess(
+            self.content.index("name: Validate candidate workflow structure on PR"),
+            self.content.index("name: Fail closed on PR candidate high or critical findings"),
+        )
+
     @classmethod
     def _step(cls, name):
         # Steps have six-space indentation; capture until the next step.
