@@ -255,3 +255,14 @@ GitHub integration. Encrypted source/Git and separate0600 keys remain outside
 the working tree; the public manifest records cipher hashes and verification.
 No QMS data or database schema changed. Tests:59 unit,26 Darwin and26 Linux
 browser scenarios; existing snapshots unchanged, no retries. No release approval.
+
+
+CP-DOC-FEEDBACK-00 `20261112T144935Z` preserves23b9abf and406 source files
+before command/upload feedback changes. Encrypted source restore matched every
+file hash and the Git bundle verified.
+
+CP-DOC-FEEDBACK-06-20261112T150700Z preserves the verified command-feedback source and Git history.
+Encrypted artifacts and separate0600 keys remain outside Git; the public
+manifest records source count, cipher hashes and isolated restore verification.
+No QMS data/schema change.59 unit,36 Darwin and36 Linux browser cases passed;
+no screenshot updates/retries. Mock writes do not claim backend integration.

@@ -50,6 +50,9 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
   const [referenceError, setReferenceError] = useState("");
   const scopeEpoch = useRef(0);
   const scopeRequest = useRef<AbortController | null>(null);
+  const mutationEpoch = useRef(0);
+  const preferredSelection = useRef<{ documentId: string; revisionId?: string } | null>(null);
+  const accessDeniedRef = useRef(onAccessDenied);
   const [unitsLoading, setUnitsLoading] = useState(true);
   const [message, setMessage] = useState("Loading document access…");
   const [error, setError] = useState("");
@@ -76,8 +79,17 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
     setUnitId(nextUnit);
   }, [initialPreferredUnitId]);
 
-  const loadScope = useCallback(async (unit: string, signal?: AbortSignal, pageOffset = 0, filter = "") => {
-    if (signal?.aborted) return;
+  useEffect(() => { accessDeniedRef.current = onAccessDenied; }, [onAccessDenied]);
+
+  const invalidateAccess = useCallback((message: string) => {
+    ++scopeEpoch.current; ++mutationEpoch.current;
+    scopeRequest.current?.abort(); preferredSelection.current = null;
+    setVerifiedUnitId(""); setCaps([]); setRows([]); setRevisions([]); setSelectedId(""); setSelectedRevision(""); setProcesses([]); setMembers([]); setReferencesReady(false); setReferenceError(""); setProcessHasNext(false); setMemberHasNext(false); setHasNext(false); setCreateDocument(false); setCreateRevision(false); setConfirmObsolete(false); setScopeLoading(false); setBusy(false); setMessage(""); setError(message);
+    accessDeniedRef.current?.();
+  }, []);
+
+  const loadScope = useCallback(async (unit: string, signal?: AbortSignal, pageOffset = 0, filter = "", selection?: { documentId: string; revisionId?: string }) => {
+    if (signal?.aborted) return false;
     const epoch = ++scopeEpoch.current;
     scopeRequest.current?.abort();
     const controller = new AbortController();
@@ -87,26 +99,31 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
     const current = () => !controller.signal.aborted && epoch === scopeEpoch.current;
     setScopeLoading(Boolean(unit)); setReferenceError(""); setError(""); setMessage(""); setVerifiedUnitId(""); setCaps([]); setProcesses([]); setMembers([]); setReferencesReady(false); setProcessHasNext(false); setMemberHasNext(false); setRows([]); setRevisions([]); setSelectedId(""); setSelectedRevision(""); setOffset(pageOffset); setHasNext(false); setCreateDocument(false); setCreateRevision(false); setConfirmObsolete(false);
     try {
-      if (!unit) { setMessage("No active organizational unit is available."); return; }
+      if (!unit) { setMessage("No active organizational unit is available."); return false; }
       const accessResponse = await fetch(`${api}/qms-access/effective?unit_id=${encodeURIComponent(unit)}`, { credentials: "include", signal: controller.signal });
-      if (!current()) return;
+      if (!current()) return false;
       if (!accessResponse.ok) throw new Error(accessResponse.status === 401 ? "Your session has expired. Sign in again." : "Unit permissions could not be verified.");
       const access = await accessResponse.json() as Capability;
-      if (!current()) return;
+      if (!current()) return false;
       if (access.unit_id !== unit) throw new Error("Unit permissions did not match the requested scope.");
-      if (!canView(access.capabilities)) { setMessage("No document responsibilities are assigned for this unit."); return; }
+      if (!canView(access.capabilities)) { setMessage("No document responsibilities are assigned for this unit."); return false; }
       const query = new URLSearchParams({ unit_id: unit, limit: "50", offset: String(pageOffset), search: filter });
       const response = await fetch(`${api}/documents?${query}`, { credentials: "include", signal: controller.signal });
-      if (!current()) return;
+      if (!current()) return false;
       if (!response.ok) throw new Error("Document register could not be loaded. Refresh your access.");
       const docs = await response.json() as DocumentRow[];
-      if (!current()) return;
+      if (!current()) return false;
       setVerifiedUnitId(unit); setCaps(access.capabilities); setReferenceGeneration(epoch);
-      setRows(docs.slice(0, 50)); setSelectedId(docs[0]?.id ?? "");
+      const page = docs.slice(0, 50);
+      const target = page.find((row) => row.id === selection?.documentId);
+      preferredSelection.current = target && selection ? selection : null;
+      setRows(page); setSelectedId(target?.id ?? page[0]?.id ?? "");
       setHasNext(docs.length > 50); setOffset(pageOffset); setAppliedSearch(filter);
       setMessage(docs.length ? "" : "No controlled documents in this unit yet.");
+      return true;
     } catch (cause) {
       if (current()) setError(cause instanceof Error ? cause.message : "Document service unavailable.");
+      return false;
     } finally {
       signal?.removeEventListener("abort", abort);
       if (current()) setScopeLoading(false);
@@ -140,7 +157,7 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
   }, [unitId, canAuthor, canReadProcesses, referenceGeneration, processSearch, memberSearch, processOffset, memberOffset]);
 
   useEffect(() => () => {
-    ++scopeEpoch.current;
+    ++scopeEpoch.current; ++mutationEpoch.current;
     scopeRequest.current?.abort();
   }, []);
 
@@ -163,29 +180,54 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
   useEffect(() => {
     if (!selected) return;
     const controller = new AbortController();
+    const epoch = scopeEpoch.current;
+    const current = () => !controller.signal.aborted && epoch === scopeEpoch.current;
     const timer = window.setTimeout(() => {
       void fetch(`${api}/documents/${selected.id}/revisions`, { credentials: "include", signal: controller.signal })
-        .then(async (response) => { if (!response.ok) throw new Error("Revision history unavailable."); return await response.json() as Revision[]; })
-        .then((data) => { if (!controller.signal.aborted) { setRevisions(data); setSelectedRevision(data[0]?.id ?? ""); } })
-        .catch(() => { if (!controller.signal.aborted) { setRevisions([]); setSelectedRevision(""); setError("Revision history could not be loaded."); } });
+        .then(async (response) => {
+          if (!current()) return null;
+          if (response.status === 401 || response.status === 403) {
+            invalidateAccess(response.status === 401 ? "Your session has expired. Sign in again." : "This document action is not permitted. Refresh your access before continuing.");
+            return null;
+          }
+          if (!response.ok) throw new Error("Revision history unavailable.");
+          return await response.json() as Revision[];
+        })
+        .then((data) => {
+          if (data && current()) {
+            const revisions = data.filter((row) => row.document_id === selected.id);
+            const preferred = preferredSelection.current?.documentId === selected.id ? preferredSelection.current.revisionId : undefined;
+            setRevisions(revisions); setSelectedRevision(revisions.find((row) => row.id === preferred)?.id ?? revisions[0]?.id ?? "");
+          }
+        })
+        .catch(() => { if (current()) { setRevisions([]); setSelectedRevision(""); setError("Revision history could not be loaded."); } });
     }, 0);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [selected]);
+  }, [selected, invalidateAccess]);
 
   const processName = useMemo(() => new Map(processes.map((item) => [item.id, `${item.code} · ${item.name}`])), [processes]);
 
   async function jsonMutation(path: string, body: object, method = "POST") {
+    const operation = ++mutationEpoch.current;
+    const current = () => operation === mutationEpoch.current;
+    const selection = selected ? { documentId: selected.id, revisionId: revision?.id } : undefined;
     setBusy(true); setError(""); setMessage("");
     try {
       const response = await fetch(`${api}${path}`, { method, credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf() }, body: JSON.stringify(body) });
+      if (!current()) return false;
       if (!response.ok) {
-        if (response.status === 401 || response.status === 403) { setCaps([]); setRows([]); setRevisions([]); onAccessDenied?.(); }
-        throw new Error(response.status === 409 ? "This record changed or its workflow state no longer permits that action. Refresh the register." : response.status === 403 ? "Your document responsibility is no longer active." : response.status === 401 ? "Your session has expired. Sign in again." : "The change could not be saved.");
+        if (response.status === 401 || response.status === 403) {
+          invalidateAccess(response.status === 401 ? "Your session has expired. Sign in again." : "This document action is not permitted. Refresh your access before continuing.");
+          return false;
+        }
+        if (response.status === 409 && "expected_version" in body) await loadScope(unitId, undefined, offset, appliedSearch, selection);
+        throw new Error(response.status === 409 ? "This record changed or its workflow state no longer permits that action. The register was refreshed when possible; review it before trying again." : response.status === 503 ? "The document service is temporarily unavailable. Your changes have not been confirmed." : "The change could not be saved.");
       }
-      await loadScope(unitId, undefined, offset, appliedSearch);
-      setMessage("The change was saved and recorded in the audit trail.");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Document service unavailable."); }
-    finally { setBusy(false); }
+      const loaded = await loadScope(unitId, undefined, offset, appliedSearch, selection);
+      if (current()) setMessage(loaded ? "The change was saved and recorded in the audit trail." : "The change was saved. Refresh the register to confirm its current state.");
+      return current();
+    } catch (cause) { if (current()) setError(cause instanceof Error ? cause.message : "Document service unavailable."); return false; }
+    finally { if (current()) setBusy(false); }
   }
 
   async function addDocument(event: React.FormEvent<HTMLFormElement>) {
@@ -193,28 +235,39 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
     if (!referencesReady || !canReadProcesses) return;
     const data = new FormData(event.currentTarget);
     if (!processes.some((process) => process.id === data.get("process_id"))) return;
-    await jsonMutation("/documents", { unit_id: unitId, process_id: data.get("process_id"), code: data.get("code"), title: data.get("title"), document_type: data.get("document_type"), owner_user_id: data.get("owner_user_id") || null });
-    setCreateDocument(false);
+    if (await jsonMutation("/documents", { unit_id: unitId, process_id: data.get("process_id"), code: data.get("code"), title: data.get("title"), document_type: data.get("document_type"), owner_user_id: data.get("owner_user_id") || null })) setCreateDocument(false);
   }
 
   async function addRevision(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!selected || !canAuthor || busy) return;
     const data = new FormData(event.currentTarget);
-    await jsonMutation(`/documents/${selected.id}/revisions`, { revision: data.get("revision"), change_summary: data.get("change_summary"), revision_date: data.get("revision_date") });
-    setCreateRevision(false);
+    if (await jsonMutation(`/documents/${selected.id}/revisions`, { revision: data.get("revision"), change_summary: data.get("change_summary"), revision_date: data.get("revision_date") })) setCreateRevision(false);
   }
 
   async function uploadFile(file: File | undefined) {
     if (!selected || !revision || !file || !canAuthor || busy) return;
+    const operation = ++mutationEpoch.current;
+    const current = () => operation === mutationEpoch.current;
+    const selection = { documentId: selected.id, revisionId: revision.id };
     setBusy(true); setError(""); setMessage("");
     try {
       const response = await fetch(`${api}/documents/${selected.id}/revisions/${revision.id}/file`, { method: "PUT", credentials: "include", headers: { "Content-Type": file.type || "application/octet-stream", "X-CSRF-Token": csrf() }, body: file });
-      if (!response.ok) throw new Error(response.status === 503 ? "The security scanner is unavailable or its signatures are stale. No file was accepted." : response.status === 415 ? "Only a valid PDF file is accepted." : response.status === 413 ? "The PDF exceeds the 20 MiB limit." : "The PDF could not be uploaded.");
+      if (!current()) return;
+      if (response.status === 401 || response.status === 403) {
+        invalidateAccess(response.status === 401 ? "Your session has expired. Sign in again." : "This document action is not permitted. Refresh your access before continuing.");
+        return;
+      }
+      if (response.status === 409) {
+        await loadScope(unitId, undefined, offset, appliedSearch, selection);
+        throw new Error("This record changed or its state no longer permits this upload. Review the refreshed revision before trying again.");
+      }
+      if (!response.ok) throw new Error(response.status === 503 ? "The document file service is temporarily unavailable. No successful upload was confirmed." : response.status === 415 ? "Only a valid PDF file is accepted." : response.status === 413 ? "The PDF exceeds the 20 MiB limit." : "The PDF could not be uploaded.");
       const result = await response.json() as { file_state: string };
-      await loadScope(unitId, undefined, offset, appliedSearch);
-      setMessage(result.file_state === "clean" ? "PDF accepted after the security scan." : "The scanner rejected this file; it is unavailable for use.");
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Upload unavailable."); }
-    finally { setBusy(false); }
+      if (!current()) return;
+      await loadScope(unitId, undefined, offset, appliedSearch, selection);
+      if (current()) setMessage(result.file_state === "clean" ? "PDF accepted after the security scan." : result.file_state === "rejected" ? "The scanner rejected this file; it is unavailable for use." : "Upload processed. Review the current file status before use.");
+    } catch (cause) { if (current()) setError(cause instanceof Error ? cause.message : "Upload unavailable."); }
+    finally { if (current()) setBusy(false); }
   }
 
   async function command(action: "submit" | "approve" | "reject" | "release") {
@@ -259,7 +312,7 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
       <label>Document owner (optional)<select name="owner_user_id" disabled={!referencesReady}><option value="">No owner assigned</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name} · {member.role}</option>)}</select></label>
       <div className="document-form-actions"><button className="primary-action compact-action" type="submit" disabled={!referencesReady || processes.length === 0}>Create document</button><button className="secondary-action compact-action" type="button" onClick={closeDocumentForm}>Cancel</button></div>
     </fieldset></form>}
-    <div className="documents-grid"><aside className="document-list"><h3>Register <span>{rows.length}</span></h3>{rows.length ? <ul>{rows.map((row) => <li key={row.id}><button type="button" disabled={busy || scopeLoading} className={row.id === selectedId ? "selected" : ""} onClick={() => { setRevisions([]); setSelectedRevision(""); setSelectedId(row.id); setCreateRevision(false); setConfirmObsolete(false); }}><strong>{row.code}</strong><span>{row.title}</span><small>{row.status} · {row.document_type}</small></button></li>)}</ul> : <p className="workspace-subtitle">No documents to display.</p>}</aside>
+    <div className="documents-grid"><aside className="document-list"><h3>Register <span>{rows.length}</span></h3>{rows.length ? <ul>{rows.map((row) => <li key={row.id}><button type="button" disabled={busy || scopeLoading} className={row.id === selectedId ? "selected" : ""} onClick={() => { if (row.id === selectedId) return; preferredSelection.current = null; setRevisions([]); setSelectedRevision(""); setSelectedId(row.id); setCreateRevision(false); setConfirmObsolete(false); }}><strong>{row.code}</strong><span>{row.title}</span><small>{row.status} · {row.document_type}</small></button></li>)}</ul> : <p className="workspace-subtitle">No documents to display.</p>}</aside>
       <div className="document-detail">{selected ? <><div className="detail-heading"><div><p className="eyebrow">{selected.code}</p><h3>{selected.title}</h3><p>{processName.get(selected.process_id) ?? "Linked process"} · {selected.status}</p></div><div className="document-heading-actions">{canAuthor && selected.status !== "obsolete" && <button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setCreateRevision((value) => !value)}>New revision</button>}{canObsolete && selected.status !== "obsolete" && (confirmObsolete ? <><button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => { void jsonMutation(`/documents/${selected.id}/obsolete`, { expected_version: selected.row_version }); setConfirmObsolete(false); }}>Confirm obsolete</button><button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setConfirmObsolete(false)}>Cancel</button></> : <button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setConfirmObsolete(true)}>Obsolete</button>)}</div></div>
         {createRevision && canAuthor && <form className="document-form" onSubmit={(event) => void addRevision(event)}><h4>Prepare a revision</h4><fieldset disabled={busy}><label>Revision code<input name="revision" required maxLength={40} /></label><label>Revision date<input name="revision_date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></label><label className="document-wide">Change summary<textarea name="change_summary" maxLength={4000} rows={3} /></label><div className="document-form-actions"><button className="primary-action compact-action" type="submit">Create revision</button><button className="secondary-action compact-action" type="button" onClick={() => setCreateRevision(false)}>Cancel</button></div></fieldset></form>}
         <h4 className="revision-heading">Revision history</h4>{revisions.length ? <div className="revision-table-scroll"><table className="qms-access-table"><thead><tr><th>Revision</th><th>Status</th><th>File</th><th>Prepared</th></tr></thead><tbody>{revisions.map((item) => <tr key={item.id}><td><button type="button" className="revision-select" onClick={() => setSelectedRevision(item.id)} aria-pressed={item.id === selectedRevision}>{item.revision}</button></td><td>{item.status}</td><td>{item.file_state} · {formatSize(item.file_size)}</td><td><time dateTime={item.created_at}>{new Date(item.created_at).toLocaleDateString()}</time></td></tr>)}</tbody></table></div> : <p className="workspace-subtitle">No revisions yet.</p>}
