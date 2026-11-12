@@ -227,3 +227,20 @@ The archive contains385 entries; stream decryption/listing and bundle verificati
 passed. The key is stored separately with mode0600. No database, customer data
 or environment file was included. The snapshot is based on4ad33be and includes
 the uncommitted visual delta; the audit0041 draft remains in its separate branch.
+
+
+CP-MARKETING-00 `20261112T024646Z` preserves91b26b5 before the public-product
+marketing change. Source768 entries and complete Git bundle are encrypted outside
+the worktree; stream decryption/listing and bundle verification passed again on
+12 November. Cipher hashes are
+`dd6dea0483b9c9bfea64e9ebb6b8bfba2b541653c9ae373fc0e451367868d60f`
+and `0bcd20a3f0e61230ef308d5d3744123b5923942b061c49633566ebc6c4771f67`.
+No environment file, database or customer data was included.
+
+CP-MARKETING-06 `20261112T140941Z` is the preintegration boundary for the
+product tour, synthetic UI captures, contact/brief flow, visual references and
+external-branch reconciliation. Encrypted source and Git history, per-file
+hashes and restoration verification live in protected external storage with
+a separate0600 key. No schema/data mutation: no new DB restore claimed.
+The final verification includes59 unit tests, lint/types/build, Darwin19 and
+Linux19 repeated without snapshot updates/retries; release remains blocked.

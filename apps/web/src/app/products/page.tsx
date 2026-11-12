@@ -2,164 +2,82 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
-import {
-  ArrowRight,
-  BadgeCheck,
-  BookOpenCheck,
-  Building2,
-  Check,
-  CheckCircle2,
-  ClipboardCheck,
-  FileCheck2,
-  Gauge,
-  Layers3,
-  ListChecks,
-  LockKeyhole,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
+import { ArrowDown, ArrowRight, Building2, Check, CheckCircle2, ClipboardCheck, FileCheck2, Layers3, LockKeyhole, Mail, ShieldCheck, UsersRound } from "lucide-react";
 
-import { ThemeToggle } from "../../components/theme-toggle";
 import { BrandMark } from "../../components/brand-mark";
+import { ThemeToggle } from "../../components/theme-toggle";
+import { ProductTour } from "../../components/product-tour";
+import { ProductDemoRequest } from "../../components/product-demo-request";
+import "./products.css";
 
 export const metadata: Metadata = {
-  title: "Products",
-  description: "Perfect Match QMS platform, tenant seats and edition-controlled ISO addons.",
+  title: "Quality management software for connected teams",
+  description: "Connect documents, risks and corrective actions in your company's own quality workspace. Explore Perfect Match QMS and request a product demonstration.",
 };
 
-const qmsCapabilities = [
-  "Processes and organization scope",
-  "Controlled documents and revisions",
-  "Controls, implementations and evidence",
-  "Risks and opportunities",
-  "Nonconformities and containment",
-  "Corrective and preventive actions",
-  "Controlled workflows and approvals",
-  "Audit history and explicit responsibilities",
+const capabilities = ["Processes & ownership", "Controlled documents", "Controls & evidence", "Risks & opportunities", "Nonconformities", "Corrective actions", "Workflows & approvals", "Action center & audit history"];
+const audiences = [
+  { icon: FileCheck2, role: "FOR QUALITY LEADERS", question: "Which revision is the right one?", copy: "Keep document revisions, independent reviews and release decisions together.", detail: "Document control · review history · private files" },
+  { icon: ClipboardCheck, role: "FOR PROCESS OWNERS", question: "What needs my attention next?", copy: "Follow assigned actions, responsibilities and due dates within your organization scope.", detail: "Action center · process scope · corrective actions" },
+  { icon: ShieldCheck, role: "FOR IT & ASSURANCE", question: "Who can see, change or approve it?", copy: "Keep company boundaries and QMS authority explicit, with recorded changes to inspect.", detail: "Tenant isolation · scoped capabilities · audit history" },
 ];
-
 const standards = [
-  { code: "ISO 9001", name: "Quality management", state: "In preparation", copy: "Edition-controlled guidance and mappings for the quality management system." },
-  { code: "ISO 14001", name: "Environmental management", state: "Planned", copy: "A future addon for environmental obligations, aspects and operational controls." },
-  { code: "ISO 45001", name: "Occupational health & safety", state: "Planned", copy: "A future addon for hazards, OH&S controls and worker participation." },
+  { code: "ISO 9001", title: "Quality management", state: "In preparation", detail: "Discuss the standard and edition relevant to your quality system." },
+  { code: "ISO 14001", title: "Environmental management", state: "Planned", detail: "Register interest in a future environmental management addon." },
+  { code: "ISO 45001", title: "Occupational health & safety", state: "Planned", detail: "Register interest in a future OH&S management addon." },
 ];
-
-const productPillars = [
-  { icon: Gauge, title: "One operating view", copy: "Priorities, records and governed work stay connected." },
-  { icon: LockKeyhole, title: "A private company space", copy: "Every tenant keeps its own people, configuration and records." },
-  { icon: ClipboardCheck, title: "Evidence in context", copy: "Approvals and improvement work retain their traceability." },
-  { icon: Sparkles, title: "Standards when needed", copy: "Activate only the ISO editions included in the contract." },
+const questions = [
+  ["Does each company have its own independent space?", "Yes. The tenant is your company's separate workspace for its people, configuration and records. Access is restricted to the organization and scope assigned to each person."],
+  ["What belongs to the core QMS?", "The QMS is one core product, rather than separately sold operational modules. The current product preview includes processes, document control, controls and evidence, risks, nonconformities, corrective actions, workflows and the Action Center. Additional capabilities continue to be developed."],
+  ["Is a seat the same as approval authority?", "No. Seats describe team capacity. QMS responsibilities determine what a person may read, change, review or approve within a defined organization scope."],
+  ["Which ISO addons can we discuss?", "ISO 9001 is in preparation. ISO 14001 and ISO 45001 are planned. Each future addon will identify its standard and edition. Availability, content licensing and commercial terms must be confirmed before contracting."],
+  ["Does using the platform certify our company?", "No. Software can support controlled work and evidence, but it does not grant ISO certification. ISO/IEC 27001 and NIST are security objectives for the platform, not certifications claimed by this website."],
+  ["Can we purchase or start a free trial here?", "Commercial rollout and pricing are still in preparation. The product tour shows the current foundation. Request a demo to discuss your processes, team size, standards and availability; no purchase or automatic trial is created."],
 ];
 
 export default async function ProductsPage() {
-  // Per-request rendering lets the CSP middleware attach its nonce to the
-  // client-side theme control instead of serving a stale build-time nonce.
   await connection();
   return (
-    <div className="product-page">
-      <header className="product-header">
-        <Link className="product-brand" href="/">
-          <BrandMark priority />
-          <span className="product-brand-name"><strong>PERFECT MATCH QMS</strong><small>Quality Operations Cloud</small></span>
-          <span className="sr-only">Home</span>
-        </Link>
-        <nav aria-label="Product navigation">
-          <a href="#platform">Platform</a><a href="#standards">ISO addons</a><a href="#security">Security</a><Link href="/design-studio">Design studio</Link>
-          <ThemeToggle />
-          <Link className="product-login" href="/">Open workspace <ArrowRight aria-hidden="true" size={16} /></Link>
-        </nav>
+    <div className="market-page">
+      <a className="skip-link" href="#market-main">Skip to product content</a>
+      <header className="market-header">
+        <Link className="market-brand" href="/"><BrandMark priority /><span><strong>PERFECT MATCH QMS</strong><small>Quality Operations Cloud</small></span></Link>
+        <nav className="market-navigation" aria-label="Product navigation"><a href="#product-tour">Product tour</a><a href="#teams">For your team</a><a href="#platform">The platform</a><a href="#standards">ISO addons</a><a href="#security">Security</a></nav>
+        <div className="market-header-actions"><ThemeToggle /><Link className="market-signin" href="/">Log in</Link><a className="market-button market-button-small" href="#demo">Request a demo <ArrowRight aria-hidden="true" size={15} /></a></div>
       </header>
 
-      <main className="product-main">
-        <section className="product-hero" aria-labelledby="product-heading">
-          <div className="product-hero-copy">
-            <p className="eyebrow"><span /> One controlled quality system</p>
-            <h1 id="product-heading">Your QMS foundation.<br /><em>Standards added by edition.</em></h1>
-            <p>Perfect Match QMS gives each company its own governed workspace, the seats its team needs and the ISO addons included in its contract.</p>
-            <div className="product-hero-actions">
-              <a className="primary-action" href="#platform">Explore the platform <ArrowRight aria-hidden="true" size={17} /></a>
-              <Link className="secondary-action compact-action" href="/">Open secure workspace</Link>
-            </div>
-            <div className="product-hero-trust" aria-label="Product principles">
-              <span><CheckCircle2 aria-hidden="true" size={16} />Private tenant workspace</span>
-              <span><CheckCircle2 aria-hidden="true" size={16} />Explicit QMS authority</span>
-              <span><CheckCircle2 aria-hidden="true" size={16} />Controlled audit history</span>
-            </div>
-          </div>
-
-          <div className="product-showcase" aria-label="Illustrative Perfect Match workspace preview">
-            <div className="showcase-window-bar"><span /><span /><span /><small>Perfect Match QMS · Tenant workspace</small></div>
-            <div className="showcase-layout">
-              <aside aria-hidden="true">
-                <div className="showcase-brand"><BrandMark size={26} /><span /></div>
-                <span className="showcase-nav active" /><span className="showcase-nav" /><span className="showcase-nav" /><span className="showcase-nav short" />
-              </aside>
-              <div className="showcase-content">
-                <header><div><small>Quality workspace</small><strong>Good morning</strong></div><span className="showcase-avatar">PM</span></header>
-                <div className="showcase-banner"><span><small>Current tenant</small><strong>Your company</strong></span><ShieldCheck aria-hidden="true" size={24} /></div>
-                <div className="showcase-metrics">
-                  <article><small>Assigned actions</small><strong>08</strong><span>3 due soon</span></article>
-                  <article><small>Documents</small><strong>24</strong><span>2 in review</span></article>
-                  <article><small>Open CAPA</small><strong>04</strong><span>1 verification</span></article>
-                </div>
-                <div className="showcase-work"><div><small>Priority work</small><strong>Corrective action review</strong></div><span>Open record <ArrowRight aria-hidden="true" size={13} /></span></div>
-              </div>
-            </div>
-            <span className="product-preview-label">Illustrative product preview</span>
-          </div>
+      <main id="market-main">
+        <section className="market-hero market-container" aria-labelledby="product-heading">
+          <p className="market-eyebrow"><span /> QUALITY MANAGEMENT, CONNECTED</p>
+          <h1 id="product-heading">Bring quality into focus. <br /><em>Keep the evidence connected.</em></h1>
+          <p className="market-lead">Documents, risks and corrective actions in one private workspace for your company. Give your team a clear place to act, review and improve.</p>
+          <div className="market-hero-actions"><a className="market-button" href="#product-tour">Explore the product <ArrowDown aria-hidden="true" size={18} /></a><a className="market-button market-button-secondary" href="#demo">Request a demo <ArrowRight aria-hidden="true" size={18} /></a></div>
+          <p className="market-availability"><span />Product preview · Commercial rollout in preparation</p>
+          <figure className="market-product-window">
+            <div className="market-window-bar"><span><i /><i /><i /></span><small>Perfect Match QMS / Your company workspace</small><LockKeyhole aria-hidden="true" size={14} /></div>
+            <div className="market-hero-screen"><Image alt="Real Perfect Match QMS workspace showing priorities and modules with synthetic demonstration data" height={1000} src="/brand/product/overview.png" width={1440} priority unoptimized /></div>
+            <figcaption><span><CheckCircle2 aria-hidden="true" size={15} />Real product interface</span><span>Synthetic demo data · illustrative counts</span><a href="#product-tour">See what is behind the screen <ArrowRight aria-hidden="true" size={14} /></a></figcaption>
+          </figure>
         </section>
 
-        <section className="product-principles" aria-label="Commercial model">
-          <span><Building2 aria-hidden="true" size={19} /><span><strong>One tenant</strong><small>A private company workspace</small></span></span>
-          <span><UsersRound aria-hidden="true" size={19} /><span><strong>Flexible seats</strong><small>Capacity for active members</small></span></span>
-          <span><BookOpenCheck aria-hidden="true" size={19} /><span><strong>ISO addons</strong><small>Contracted standard and edition</small></span></span>
-        </section>
+        <section className="market-proof-strip market-container" aria-label="Product principles"><span><Building2 aria-hidden="true" size={21} /><strong>Your company. Its own space.</strong></span><span><UsersRound aria-hidden="true" size={21} /><strong>Clear responsibilities for every seat.</strong></span><span><Layers3 aria-hidden="true" size={21} /><strong>One QMS. Standards added by edition.</strong></span></section>
 
-        <figure className="product-brand-art">
-          <Image alt="Abstract document and evidence pathways converging into one governed quality system" height={941} src="/brand/hero-quality-network.png" width={1672} />
-          <figcaption><strong>Aligned Evidence</strong><span>Requirements, responsibility and proof converge in one controlled workspace.</span></figcaption>
-        </figure>
+        <section className="market-section market-container" id="product-tour" aria-labelledby="tour-heading"><div className="market-section-heading"><div><p className="market-eyebrow">A CLOSER LOOK</p><h2 id="tour-heading">See the work.<br />Follow the evidence.</h2></div><p>Explore three everyday quality workflows in the current product. Each view is a real capture from our synthetic demonstration environment.</p></div><ProductTour /></section>
 
-        <section className="product-story" aria-labelledby="product-story-heading">
-          <div className="product-story-heading"><p className="eyebrow">What the platform brings together</p><h2 id="product-story-heading">Quality work feels clearer when everything has a place.</h2></div>
-          <div className="product-pillar-grid">{productPillars.map(({ icon: Icon, title, copy }, index) => <article key={title}><span className="product-pillar-number">0{index + 1}</span><Icon aria-hidden="true" size={22} /><h3>{title}</h3><p>{copy}</p></article>)}</div>
-        </section>
+        <section className="market-audiences" id="teams" aria-labelledby="teams-heading"><div className="market-container"><div className="market-section-heading"><div><p className="market-eyebrow">DIFFERENT RESPONSIBILITIES. ONE SYSTEM.</p><h2 id="teams-heading">Built around the questions<br />your team actually asks.</h2></div></div><div className="market-audience-grid">{audiences.map(({ icon: Icon, role, question, copy, detail }) => <article key={role}><Icon aria-hidden="true" size={25} /><p className="market-eyebrow">{role}</p><h3>{question}</h3><p>{copy}</p><small>{detail}</small></article>)}</div></div></section>
 
-        <section className="product-section product-platform-section" id="platform" aria-labelledby="platform-heading">
-          <div className="product-section-heading">
-            <div><p className="eyebrow">Core product</p><h2 id="platform-heading">Perfect Match QMS</h2><p>The operational foundation every tenant receives. Standards extend this system; they do not fragment it into separate applications.</p></div>
-            <span className="product-state ready"><BadgeCheck aria-hidden="true" size={15} /> QMS foundation</span>
-          </div>
-          <div className="product-core-grid">
-            <div className="product-core-copy">
-              <h3>Complete quality operations—not a bundle of disconnected modules.</h3>
-              <p>Processes, records, evidence and improvement work stay connected within the same governed organization structure.</p>
-              <div className="product-operating-flow" aria-label="Quality operating flow"><span><Layers3 aria-hidden="true" size={18} />Define</span><ArrowRight aria-hidden="true" size={16} /><span><ListChecks aria-hidden="true" size={18} />Operate</span><ArrowRight aria-hidden="true" size={16} /><span><FileCheck2 aria-hidden="true" size={18} />Prove</span></div>
-              <p className="product-note"><ShieldCheck aria-hidden="true" size={17} />A purchased seat or platform role never grants approval authority by itself. Responsibilities remain explicit and scoped.</p>
-            </div>
-            <ul className="product-capabilities">{qmsCapabilities.map((capability) => <li key={capability}><Check aria-hidden="true" size={16} />{capability}</li>)}</ul>
-          </div>
-        </section>
+        <section className="market-section market-container" id="platform" aria-labelledby="platform-heading"><div className="market-section-heading"><div><p className="market-eyebrow">A SIMPLE PRODUCT MODEL</p><h2 id="platform-heading">One company workspace.<br />A QMS that works together.</h2></div><p>Start the conversation with your company, your team and the standards you need. Operational QMS areas belong to the same core product.</p></div><div className="market-offer-grid"><article className="market-core-offer"><span className="market-offer-label">01 / THE CORE PRODUCT</span><h3>Perfect Match QMS</h3><p>A connected foundation for quality work, with responsibilities and evidence in context.</p><ul>{capabilities.map((capability) => <li key={capability}><Check aria-hidden="true" size={16} />{capability}</li>)}</ul><small>Current foundation shown in the product tour. Further capabilities remain in development.</small></article><div className="market-offer-options"><article><span className="market-offer-label">02 / YOUR TEAM</span><UsersRound aria-hidden="true" size={24} /><h3>Seats inside your company space</h3><p>Define the team capacity your organization needs. Access and approval responsibilities stay separately assigned.</p></article><article><span className="market-offer-label">03 / YOUR STANDARDS</span><Layers3 aria-hidden="true" size={24} /><h3>ISO addons by standard and edition</h3><p>Extend the core QMS with relevant standards as they become available. No separate purchase for each operational module.</p></article></div></div></section>
 
-        <section className="product-section product-seats" aria-labelledby="seats-heading">
-          <div><p className="eyebrow">Capacity with control</p><h2 id="seats-heading">Seats inside each tenant. Authority belongs to the process.</h2><p>Seats determine how many active members a tenant can maintain. QMS permissions stay separate, auditable and limited to the assigned organization scope.</p></div>
-          <div className="seat-model" aria-label="Seat model"><span><small>01</small>Tenant subscription</span><ArrowRight aria-hidden="true" size={17} /><span><small>02</small>Purchased seats</span><ArrowRight aria-hidden="true" size={17} /><span><small>03</small>Scoped responsibilities</span></div>
-        </section>
+        <section className="market-standards market-container" id="standards" aria-labelledby="standards-heading"><div className="market-section-heading"><div><p className="market-eyebrow">PLAN YOUR STANDARDS</p><h2 id="standards-heading">The standards you need.<br />An edition you can identify.</h2></div><p>Tell us which standards matter to your organization. These are the current development stages, not a list of released certifications.</p></div><div className="market-standard-grid">{standards.map((standard) => <article key={standard.code}><span className={`market-standard-state ${standard.state === "Planned" ? "is-planned" : ""}`}>{standard.state}</span><p>{standard.code}</p><h3>{standard.title}</h3><p>{standard.detail}</p><a href="#demo">Discuss your scope <ArrowRight aria-hidden="true" size={16} /></a></article>)}</div><p className="market-quiet-note">Addon availability, content licensing, editions and commercial terms will be confirmed before contracting.</p></section>
 
-        <section className="product-section" id="standards" aria-labelledby="standards-heading">
-          <div className="product-section-heading"><div><p className="eyebrow">Commercial addons</p><h2 id="standards-heading">ISO standards by controlled edition</h2><p>Each addon identifies its standard, edition, entitlement and lifecycle. Standards content will only be offered when licensing and product validation are complete.</p></div></div>
-          <div className="standard-grid">{standards.map((standard, index) => <article className="standard-card" key={standard.code}><div className="standard-card-top"><span className="standard-card-number">0{index + 1}</span><span className={`product-state ${standard.state === "In preparation" ? "preparing" : "planned"}`}>{standard.state}</span></div><p>{standard.code}</p><h3>{standard.name}</h3><p>{standard.copy}</p><dl><div><dt>Product type</dt><dd>QMS addon</dd></div><div><dt>Entitlement</dt><dd>Tenant + edition</dd></div></dl></article>)}</div>
-          <p className="catalog-disclaimer">Availability and pricing are intentionally not shown until commercial terms, content licensing and release evidence are approved.</p>
-        </section>
+        <section className="market-security market-container" id="security" aria-labelledby="security-heading"><div><span className="market-security-mark"><ShieldCheck aria-hidden="true" size={30} /></span><p className="market-eyebrow">CONTROL IS PART OF THE PRODUCT</p><h2 id="security-heading">Your quality data.<br />Clear boundaries.</h2><p>Ask how records are scoped, who can approve a change and how the history is preserved. The foundation already includes controls you can inspect in a demonstration.</p><a href="#demo">Include security in your demo <ArrowRight aria-hidden="true" size={16} /></a></div><ul><li><LockKeyhole aria-hidden="true" size={22} /><span><strong>Company-level separation</strong>Tenant isolation and explicitly scoped QMS capabilities.</span></li><li><FileCheck2 aria-hidden="true" size={22} /><span><strong>Controlled evidence</strong>Private file storage, malware scanning and revision history.</span></li><li><ClipboardCheck aria-hidden="true" size={22} /><span><strong>Decisions with a history</strong>Independent review controls and recorded changes.</span></li></ul><p className="market-security-note">ISO/IEC 27001 and NIST guide security objectives. No certification or production-readiness claim is made.</p></section>
 
-        <section className="product-security" id="security" aria-labelledby="security-heading">
-          <div><span className="security-icon"><ShieldCheck aria-hidden="true" size={26} /></span><p className="eyebrow">Security by design</p><h2 id="security-heading">Built for controlled, evidence-based operation.</h2><p>The architecture uses tenant isolation, explicit capabilities, append-only audit history, private object storage, malware scanning and controlled identity sessions.</p></div>
-          <ul><li><Check aria-hidden="true" size={16} /><span><strong>Security objectives</strong>ISO/IEC 27001 and NIST requirements are mapped as objectives.</span></li><li><Check aria-hidden="true" size={16} /><span><strong>Evidence before claims</strong>No certification or production readiness is claimed without verified evidence.</span></li><li><Check aria-hidden="true" size={16} /><span><strong>Separated boundaries</strong>Seats, roles and QMS authority remain independent controls.</span></li></ul>
-        </section>
+        <section className="market-section market-container market-faq" aria-labelledby="faq-heading"><div><p className="market-eyebrow">BEFORE WE TALK</p><h2 id="faq-heading">Good questions.<br />Clear answers.</h2><p>Understand the product model and current availability before planning your next step.</p></div><div>{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+
+        <section className="market-demo-section" id="demo" aria-labelledby="demo-heading"><div className="market-container market-demo-grid"><div><p className="market-eyebrow">LET’S LOOK AT YOUR QUALITY WORK</p><h2 id="demo-heading">Bring your questions.<br /><em>We’ll bring the product.</em></h2><p>Plan a focused demonstration around the work your company needs to control.</p><ol><li><span>01</span>Choose your team size and main priority.</li><li><span>02</span>Tell us which standards you want to discuss.</li><li><span>03</span>Review and send the prepared email.</li></ol><a className="market-demo-email" href="mailto:Demo@invperfectmatch.com"><Mail aria-hidden="true" size={17} />Demo@invperfectmatch.com</a><small>Product preview. Pricing and commercial rollout are in preparation.</small></div><ProductDemoRequest /></div></section>
       </main>
 
-      <footer className="product-footer"><span>Perfect Match QMS</span><Link className="product-library-link" href="/design-studio">Explore the visual library <ArrowRight aria-hidden="true" size={16} /></Link><span>Complete QMS · tenant seats · edition-controlled ISO addons</span></footer>
+      <footer className="market-footer market-container"><div><BrandMark /><span><strong>PERFECT MATCH QMS</strong><small>Quality work. Connected evidence.</small></span></div><nav aria-label="Product resources"><a href="#product-tour">Product tour</a><Link href="/design-studio">Explore the visual library</Link><a href="mailto:Demo@invperfectmatch.com">Contact</a><Link href="/">Client login</Link></nav><p>Independent QMS platform · Company workspaces · Seats · ISO editions</p></footer>
     </div>
   );
 }

@@ -1,0 +1,21 @@
+{
+  "id": "CP-MARKETING-06-20261112T140941Z",
+  "branch": "codex/product-marketing",
+  "baseCommit": "91b26b55166f043e53a44328fd12524a29d744ed",
+  "sourceEntries": 401,
+  "artifacts": {
+    "source.tar.gz.enc": "8c4634a4ed37c8cf34cc4841c896e1c3a8d7597068048ea5fb974faf4fbd172c",
+    "repository.bundle.enc": "98b1d69e993c5d0be8f3286d04d43d29994f13b715b82ccc7c29d9235f57d5fe"
+  },
+  "verification": "encrypted source restored to isolated temporary directory; all per-file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored dependencies/build/artifacts, environment files, database/customer data",
+  "database": "no mutation; no new DB backup or restore claimed",
+  "tests": {
+    "vitest": 59,
+    "darwinBrowser": 19,
+    "linuxBrowser": 19,
+    "linuxRepeatedNoUpdatesNoRetries": 19,
+    "lintTypesBuild": "PASS",
+    "secretsLicenses": "PASS"
+  }
+}
