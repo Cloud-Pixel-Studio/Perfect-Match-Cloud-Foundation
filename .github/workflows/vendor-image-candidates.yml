@@ -48,6 +48,17 @@ jobs:
           docker image inspect chrislusf/seaweedfs:4.53 --format '{{json .RepoDigests}}' > artifacts/seaweedfs-resolved-digests.json
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/keycloak-resolved-digests.json >/dev/null
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/seaweedfs-resolved-digests.json >/dev/null
+      - name: Install pinned Trivy for PR candidate scans
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.74.0
+          scan-type: image
+          image-ref: quay.io/keycloak/keycloak:26.8.2
+          scanners: vuln
+          format: json
+          exit-code: '0'
+          output: artifacts/keycloak-pr-bootstrap.json
       - name: Scan resolved candidate digests and record gate on PR
         if: github.event_name == 'pull_request'
         run: |
