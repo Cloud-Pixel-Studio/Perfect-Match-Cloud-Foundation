@@ -5,6 +5,10 @@ set -Eeuo pipefail
 
 container="pmcloud-tenant-isolation-$$"
 port=${PMC_TEST_POSTGRES_PORT:-}
+if [[ -n "$port" ]] && { [[ ! "$port" =~ ^[0-9]+$ ]] || (( 10#$port < 1 || 10#$port > 65535 )); }; then
+  echo "PMC_TEST_POSTGRES_PORT must be a TCP port between 1 and 65535" >&2
+  exit 2
+fi
 bootstrap_password=$(openssl rand -hex 24)
 migration_password=$(openssl rand -hex 24)
 runtime_password=$(openssl rand -hex 24)
@@ -44,18 +48,18 @@ fi
 # A socket pg_isready check can succeed during that temporary phase.
 ready=false
 for _ in $(seq 1 60); do
-  if docker exec "$container" pg_isready -h 127.0.0.1 -p 5432 -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null 2>&1; then
+  if docker exec -e PGPASSWORD="$bootstrap_password" "$container" \
+    psql -h 127.0.0.1 -U pmcloud_bootstrap -d pmcloud_isolation \
+    -Atqc 'SELECT 1' 2>/dev/null | grep -qx 1; then
     ready=true
     break
   fi
   sleep 1
 done
 if [[ "$ready" != true ]]; then
-  echo "PostgreSQL final TCP listener did not become ready within 60 seconds" >&2
+  echo "PostgreSQL final TCP connection/query did not become ready within 60 seconds" >&2
   exit 1
 fi
-# Confirm that the expected database is available, not merely the listener.
-docker exec -e PGPASSWORD="$bootstrap_password" "$container" psql -h 127.0.0.1 -U pmcloud_bootstrap -d pmcloud_isolation -Atqc 'SELECT 1' | grep -qx 1
 
 export POSTGRES_DB=pmcloud_isolation
 export POSTGRES_MIGRATION_USER=pmcloud_migrator
