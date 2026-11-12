@@ -13,7 +13,10 @@ test("live document search and refresh preserve creation references", async ({ p
   await authenticate(page);
   await page.goto("/#documents-heading", { waitUntil: "networkidle" });
   const panel = page.locator(".documents-workspace");
-  await panel.getByRole("combobox", { name: "Organizational unit" }).selectOption({ label: "Development access review · DEV-ACCESS-UI" });
+  const unit = panel.getByRole("combobox", { name: "Organizational unit" });
+  const demoUnit = unit.locator("option").filter({ hasText: "DEV-ACCESS-UI" });
+  await expect(demoUnit).toHaveCount(1);
+  await unit.selectOption(String(await demoUnit.getAttribute("value")));
   await expect(panel.getByRole("button", { name: "New document", exact: true })).toBeEnabled();
   await panel.getByRole("textbox", { name: "Find by code or title" }).fill("DEMO-DOC-001");
   await panel.getByRole("button", { name: "Search", exact: true }).click();
