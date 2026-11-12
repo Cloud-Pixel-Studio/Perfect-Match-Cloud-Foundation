@@ -672,10 +672,55 @@ def main() -> None:
                 )
             )
 
+        phase = "demo structured audit scope"
+        if audit is not None and audit["state"] in {"draft", "planned"}:
+            scope_title = "Recepción y aceptación de materiales — demostración"
+            existing_scope = []
+            for offset in range(0, 1_000_001, 50):
+                page = checked(
+                    author.get(
+                        f"{API}/internal-audits/audits/{audit['id']}/scopes",
+                        params={"limit": 50, "offset": offset},
+                    )
+                )
+                existing_scope.extend(page)
+                if len(page) < 50:
+                    break
+            if not any(item["title"] == scope_title for item in existing_scope):
+                current_audit = checked(
+                    author.get(f"{API}/internal-audits/audits/{audit['id']}")
+                )
+                occupied = {
+                    item["sequence"] for item in existing_scope if item["status"] == "active"
+                }
+                sequence = next(
+                    (value for value in range(10, 10001, 10) if value not in occupied), None
+                )
+                if sequence is None:
+                    raise ValueError("No available demonstration scope order")
+                checked(
+                    post(
+                        author,
+                        f"{API}/internal-audits/audits/{audit['id']}/scopes",
+                        {
+                            "expected_audit_version": current_audit["row_version"],
+                            "sequence": sequence,
+                            "title": scope_title,
+                            "description": (
+                                "Datos sintéticos: revisar registros de recepción, certificados y "
+                                "aceptación de materiales. No registra ejecución ni hallazgos."
+                            ),
+                            "process_id": process["id"] if process["status"] == "active" else None,
+                        },
+                    ),
+                    201,
+                )
+
         print(
             "Demo data ready: DEMO-PROC-001, DEMO-DOC-001, DEMO-CTL-001, "
             "DEMO-IMP-001, DEMO-RSK-001, DEMO-NCR-001 and DEMO-CAPA-001 "
-            "with direct control traceability; internal-audit planning demo preserved"
+            "with direct control traceability; internal-audit planning and structured scope "
+            "demo preserved"
         )
         for client in clients:
             if "pm_csrf" in client.cookies:

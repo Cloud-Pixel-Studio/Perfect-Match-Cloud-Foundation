@@ -1,5 +1,14 @@
 # QMS internal-audit architecture
 
+## Current verified implementation
+
+As of12November2026,0040 planning UI and0042 structured scope are implemented.
+Scope includes process references, versioned editing/withdrawal, forced RLS and
+technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
+The readiness/team/independence/execution/finding invariants below describe the
+target architecture; they are not implemented by this scope slice.0041 remains
+a reserved unvalidated recovery draft and must not be applied.
+
 ## Boundary
 
 Internal audits are operational QMS records. They are not the append-only
@@ -67,7 +76,8 @@ immutable. Destructive downgrades are rejected after operational history exists.
 1. **Implemented and tested locally:** program and audit planning schema,
    capabilities, forced RLS, optimistic versions, controlled program lifecycle,
    audit scheduling/cancellation and append-only technical events.
-2. Scope, criteria, agenda/team and independence review.
+2. **Scope implemented:** ordered, versioned process-linked items and reasoned
+   withdrawal/history. Criteria, agenda/team and independence review remain pending.
 3. Evidence and finding execution with traceable snapshots.
 4. Finding-to-NCR handoff and Action Center integration.
 5. Premium responsive workspace, demo records and regression coverage.
@@ -84,7 +94,7 @@ auditor tenant role cannot receive manage/review capabilities. It also verifies
 state-command guards, terminal immutability, duplicate/scope constraints,
 optimistic versions, event counts and fail-closed downgrade after history.
 
-This milestone is backend planning infrastructure only. Scope, criteria, team,
+The original0040 milestone was backend planning infrastructure only. Criteria, team,
 independence decisions, evidence, findings, NCR handoff, Action Center exposure,
 demo data and the premium UI remain later slices and must not be presented as
 implemented.
@@ -101,3 +111,10 @@ The workspace does not expose execution/readiness, team/independence review,
 evidence, findings or finding-to-NCR commands. Lead assignment does not establish
 independence. See `docs/product/INTERNAL_AUDIT_PLANNING_UI.md` for evidence,
 local0040 activation, encrypted recovery proof and remaining scope.
+
+## Scope delivery0042
+
+See `../product/INTERNAL_AUDIT_SCOPE.md`. No ready/in_progress/reporting command
+was added. The full parent is reconciled after conflicts so a concurrently
+cancelled audit does not retain scope-edit controls. Only local preview schema
+and synthetic demo records were updated, after isolated recovery verification.

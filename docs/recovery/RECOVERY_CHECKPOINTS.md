@@ -297,3 +297,23 @@ separate0600 key, AES-PBKDF2 plus HMAC. No dump, credential or key is committed.
 The runtime then upgraded only existing0040 and seeded synthetic planning records;
 0041 remains excluded. Restoring the older0039 backup would discard later local
 changes and requires an explicit recovery decision; never auto-downgrade history.
+
+
+## Structured audit scope ·12November2026
+
+- CP-AUDIT-SCOPE-00-20261112T230734Z: baseline422 source entries and Git bundle,
+  encrypted outside working tree; isolated source SHA256 and bundle verify PASS.
+- CP-AUDIT-SCOPE-DB-00-20261112T231842Z: separate pre-migration0040 database,
+  globals and inventory encrypted/HMAC-authenticated; isolated tmpfs/network-none
+  restoration PASS across50 tables,44 forcedRLS tables, content/schema/ACL/roles.
+  Source image unavailable: executable SHA256 verified against fallback image.
+  Strict deparser/built-in grantor normalization is documented in
+  `../product/INTERNAL_AUDIT_SCOPE.md`; not byte-identical images or raw DDL.
+- Local schema advanced explicitly0040→0042 only after recovery proof. Original
+  unvalidated0041 remains in its original checkout and remote recovery branch.
+  Synthetic demo scope added via API; no destructive rollback. Prior local API/web
+  images tagged before-audit-scope-20261112. Database/image rollback is a separate
+  reviewed recovery operation, never an automatic downgrade with history.
+
+- CP-AUDIT-SCOPE-DB-06-20261112T233026Z: post-migration0042 snapshot restored in isolation,51tables/45forcedRLS, all row/schema/role checks PASS.
+- CP-AUDIT-SCOPE-06-20261112T233207Z: final source/Git and separate visual evidence; consult public manifest for verified hashes.

@@ -15,11 +15,12 @@ const createdId = "77777777-7777-4777-8777-777777777777";
 const capabilities = ["audits.read", "audits.manage", "audits.review", "audits.execute"];
 type Kind = "programs" | "audits";
 type Row = { id: string; unit_id: string; code: string; name: string; state: string; row_version: number; [key: string]: unknown };
+type ScopeRow = { id: string; audit_id: string; unit_id: string; sequence: number; title: string; description: string; process_id: string | null; status: string; row_version: number; withdrawal_reason: string };
 type Mutation = { method: string; path: string; body: Record<string, unknown> };
 type FixtureState = {
   capabilities: string[]; programs: Row[]; audits: Row[]; writeStatus: number | null;
   conflict: boolean; hold: boolean; reads: Array<{ path: string; query: Record<string, string> }>;
-  writes: Mutation[]; unexpectedWrites: string[];
+  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean;
 };
 const fixtures = new WeakMap<Page, FixtureState>();
 test.afterEach(async ({ page }) => {
@@ -52,7 +53,7 @@ async function fixture(page: Page, assigned = capabilities) {
   const state: FixtureState = {
     capabilities: [...assigned], programs: [program(), program(programB, unitB, "AP-B", "Supplier assurance programme")],
     audits: [audit(), audit(auditB, unitB, "IA-B", "Supplier process audit")], writeStatus: null,
-    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [],
+    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false,
   };
   fixtures.set(page, state);
   let markPending = () => {}; let release = () => {}; let markSettled = () => {};
@@ -63,6 +64,28 @@ async function fixture(page: Page, assigned = capabilities) {
     const request = route.request(); const url = new URL(request.url());
     const path = url.pathname.replace("/api/identity", ""); const method = request.method();
     const endpoint = path.match(/^\/internal-audits\/(programs|audits)(?:\/([0-9a-f-]+)(\/transition)?)?$/i);
+    const scopeEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/scopes(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
+    if (method !== "GET" && scopeEndpoint) {
+      if (!((method === "POST" && (!scopeEndpoint[2] || scopeEndpoint[3])) || (method === "PATCH" && scopeEndpoint[2] && !scopeEndpoint[3]))) {
+        state.unexpectedWrites.push(`${method} ${path}`); return route.abort("blockedbyclient");
+      }
+      const body = request.postDataJSON() as Record<string, unknown>;
+      state.writes.push({ method, path, body });
+      const parent = state.audits.find(row => row.id === scopeEndpoint[1]);
+      const current = state.scopes.find(row => row.id === scopeEndpoint[2]);
+      const status = state.writeStatus ?? (scopeEndpoint[2] ? 200 : 201);
+      if (status === 403) state.capabilities = [];
+      if (status === 409 && state.conflict && parent) parent.row_version += 1;
+      if (status < 200 || status >= 300 || status === 202) return route.fulfill({ status, json: { detail: "Synthetic scope feedback" } });
+      if (!parent) return route.fulfill({ status: 404, json: { detail: "Missing parent" } });
+      const changes = { ...body }; delete changes.expected_version; delete changes.expected_audit_version;
+      const result: ScopeRow = current ? { ...current, ...(scopeEndpoint[3] ? { status: "withdrawn", withdrawal_reason: String(body.reason) } : changes), row_version: current.row_version + 1 } : {
+        id: createdId, audit_id: parent.id, unit_id: parent.unit_id, sequence: Number(body.sequence), title: String(body.title), description: String(body.description), process_id: body.process_id as string | null, status: "active", row_version: 1, withdrawal_reason: "",
+      };
+      if (current) state.scopes[state.scopes.indexOf(current)] = result; else state.scopes.push(result);
+      parent.row_version += 1;
+      return route.fulfill({ status, json: { scope: result, audit_version: parent.row_version } });
+    }
     if (method !== "GET") {
       const permitted = endpoint && ((method === "POST" && (!endpoint[2] || endpoint[3])) || (method === "PATCH" && endpoint[2] && !endpoint[3]));
       if (!permitted) { state.unexpectedWrites.push(`${method} ${path}`); return route.abort("blockedbyclient"); }
@@ -109,7 +132,13 @@ async function fixture(page: Page, assigned = capabilities) {
         display_name: index === 0 ? "Ana Quality" : `Planning person ${index + 1}`,
         role: "member", status: "active",
       })).filter((member) => member.display_name.toLowerCase().includes(q)).slice(offset, offset + limit);
-    } else if (endpoint) {
+    } else if (scopeEndpoint) {
+      body = state.scopes.filter(row => row.audit_id === scopeEndpoint[1] && row.status === url.searchParams.get("status")).slice(offset, offset + limit).map(row => state.scopeMismatch ? { ...row, unit_id: unitB } : row);
+    } else if (path === "/processes") {
+      const search = (url.searchParams.get("search") ?? "").toLowerCase();
+      body = Array.from({ length: 25 }, (_, index) => ({ id: `b0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`, unit_id: unit, code: `PROC-${index + 1}`, name: `Process ${index + 1}`, status: "active" })).filter(row => row.name.toLowerCase().includes(search)).slice(offset, offset + limit);
+    }
+    else if (endpoint) {
       const kind = endpoint[1] as Kind;
       if (endpoint[2]) {
         const row = state[kind].find((row) => row.id === endpoint[2]);
@@ -394,9 +423,159 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   await expect(panel).toContainText("DEMO-AP-001");
   await tab(panel,"Scheduled audits");
   await expect(panel).toContainText("DEMO-AUD-001");
+  await expect(panel).toContainText("Recepción y aceptación de materiales — demostración");
   await expect(panel).toContainText("pending");
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
   await page.screenshot({path:screenshot,fullPage:true});
   await testInfo.attach("live-audit-planning",{path:screenshot,contentType:"image/png"});
+});
+
+function scopeRow(index = 1): ScopeRow {
+  return { id: `c0000000-0000-4000-8000-${String(index).padStart(12, "0")}`, audit_id: auditA, unit_id: unitA, sequence: index, title: `Receiving scope ${index}`, description: "Inspect controlled receiving records.", process_id: null, status: "active", row_version: 1, withdrawal_reason: "" };
+}
+async function scopeDraft(panel: Locator) {
+  await panel.getByRole("button", { name: "Add scope item", exact: true }).click();
+  const form = panel.getByRole("form", { name: "Add audit scope", exact: true });
+  await form.getByLabel("Scope order", { exact: true }).fill("10");
+  await form.getByLabel("Scope title", { exact: true }).fill("Receiving and material inspection");
+  await form.getByLabel("Scope description", { exact: true }).fill("Sample incoming material acceptance records.");
+  return form;
+}
+
+test.describe("structured audit scope (mocked writes, real browser)", () => {
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+
+  test("scope creation, editing and withdrawal preserve versions and history", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    expect(state.writes[0]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/scopes`, body: { expected_audit_version: 3, sequence: 10, title: "Receiving and material inspection", description: "Sample incoming material acceptance records.", process_id: null } });
+    await panel.getByRole("button", { name: "Edit scope 10", exact: true }).click();
+    const edit = panel.getByRole("form", { name: "Edit audit scope", exact: true });
+    await edit.getByLabel("Scope title", { exact: true }).fill("Revised receiving scope");
+    await edit.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(edit).toHaveCount(0);
+    expect(state.writes[1]).toMatchObject({ method: "PATCH", body: { expected_audit_version: 4, expected_version: 1, title: "Revised receiving scope" } });
+    await panel.getByRole("button", { name: "Withdraw scope 10", exact: true }).click();
+    const withdraw = panel.getByRole("form", { name: "Withdraw audit scope", exact: true });
+    await withdraw.getByLabel("Scope withdrawal reason", { exact: true }).fill("Superseded after planning review.");
+    await withdraw.getByRole("button", { name: "Confirm scope withdrawal", exact: true }).click();
+    await expect(withdraw).toHaveCount(0);
+    expect(state.writes[2]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/scopes/${createdId}/withdraw`, body: { expected_audit_version: 5, expected_version: 2, reason: "Superseded after planning review." } });
+    await panel.getByLabel("Scope history", { exact: true }).selectOption("withdrawn");
+    await expect(panel).toContainText("Withdrawn: Superseded after planning review.");
+    await expect(panel.getByRole("button", { name: "Edit scope 10", exact: true })).toHaveCount(0);
+    expect(state.audits[0].row_version).toBe(6);
+  });
+
+  test("scope conflict locks replay until explicit parent reconciliation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.writeStatus = 409; state.conflict = true;
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save audit scope", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Scope title", { exact: true })).toHaveValue("Receiving and material inspection");
+    expect(state.writes).toHaveLength(1);
+    state.writeStatus = null;
+    await panel.getByRole("button", { name: "Refresh audit scope", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    const retry = await scopeDraft(panel);
+    await retry.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(retry).toHaveCount(0);
+    expect(state.writes).toHaveLength(2); expect(state.writes[1].body.expected_audit_version).toBe(4);
+  });
+
+  test("scope refresh also reconciles a cancelled parent state", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.audits[0].state = "cancelled"; state.audits[0].row_version += 1;
+    await panel.getByRole("button", { name: "Refresh audit scope", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Add scope item", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Edit planning details", exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("temporary scope failure preserves the draft and sends only one command", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 503;
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(form.getByLabel("Scope title", { exact: true })).toHaveValue("Receiving and material inspection");
+    await expect(form.getByRole("button", { name: "Save audit scope", exact: true })).toBeEnabled();
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("unconfirmed scope success blocks duplicate creation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 202;
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save audit scope", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Scope title", { exact: true })).toHaveValue("Receiving and material inspection");
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("scope denial closes the entire cached audit context", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 403;
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    await expect(panel.getByRole("heading", { name: "Receiving process audit", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Add scope item", exact: true })).toHaveCount(0);
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("read-only users can inspect paginated history without scope controls", async ({ page }) => {
+    const { state, panel } = await fixture(page, ["audits.read"]);
+    state.scopes = Array.from({ length: 21 }, (_, index) => scopeRow(index + 1));
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("button", { name: "Add scope item", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: /^Edit scope|^Withdraw scope/ })).toHaveCount(0);
+    await panel.getByRole("button", { name: "More scope", exact: true }).click();
+    await expect(panel).toContainText("21 · Receiving scope 21");
+    expect(state.reads.some(row => row.path.endsWith("/scopes") && row.query.offset === "20" && row.query.limit === "21" && row.query.status === "active")).toBe(true);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("scope from another unit is rejected rather than displayed", async ({ page }) => {
+    const { state, panel } = await fixture(page); state.scopes = [scopeRow()]; state.scopeMismatch = true;
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(panel.getByText("1 · Receiving scope 1", { exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("selected process survives paginated searches and uses the scoped contract", async ({ page }) => {
+    const { state, panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits");
+    const form = await scopeDraft(panel);
+    const process = form.getByLabel("Scope process (optional)", { exact: true });
+    const selected = "b0000000-0000-4000-8000-000000000001";
+    await expect(process).toBeEnabled(); await process.selectOption(selected);
+    await form.getByLabel("Find scope process", { exact: true }).fill("Process 25");
+    await form.getByRole("button", { name: "Search scope processes", exact: true }).click();
+    await expect(process.locator("option").filter({ hasText: "PROC-25" })).toHaveCount(1);
+    await expect(process).toHaveValue(selected);
+    await expect(process.locator(`option[value="${selected}"]`)).toContainText("PROC-1 · Process 1");
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form).toHaveCount(0); expect(state.writes[0].body.process_id).toBe(selected);
+    expect(state.reads.some(row => row.path === "/processes" && row.query.unit_id === unitA && row.query.search === "Process 25" && !("q" in row.query))).toBe(true);
+  });
+
+  test("scope forms reflow and pass axe in both themes", async ({ page }, testInfo) => {
+    const { panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits");
+    const form = await scopeDraft(panel);
+    await expect(form.getByLabel("Scope process (optional)", { exact: true })).toBeEnabled();
+    for (const width of [375, 1440]) for (const dark of [false, true]) {
+      await page.setViewportSize({ width, height: 1000 });
+      if (await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked() !== dark) await page.locator("label.theme-switch").click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const results = await new AxeBuilder({ page }).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(results.violations).toEqual([]);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      const screenshot = testInfo.outputPath(`scope-${width}-${dark ? "dark" : "light"}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      await testInfo.attach(`scope-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
+    }
+  });
 });
