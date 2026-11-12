@@ -82,6 +82,16 @@ jobs:
             --argjson seaweedfs "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/seaweedfs-pr-candidate.json)" \
             '{images: {keycloak: $keycloak_image, seaweedfs: $seaweedfs_image}, high_or_critical: {keycloak: $keycloak, seaweedfs: $seaweedfs}}' > artifacts/pr-candidate-gate.json
           cat artifacts/pr-candidate-gate.json
+      - name: Generate PR candidate CVE inventory
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          KEYCLOAK_DIGEST="$(jq -er '[.[] | select(startswith("quay.io/keycloak/keycloak@sha256:"))] | if length == 1 then .[0] else error("Expected exactly one Keycloak digest") end' artifacts/keycloak-resolved-digests.json)"
+          SEAWEEDFS_DIGEST="$(jq -er '[.[] | select(startswith("chrislusf/seaweedfs@sha256:"))] | if length == 1 then .[0] else error("Expected exactly one SeaweedFS digest") end' artifacts/seaweedfs-resolved-digests.json)"
+          python3 scripts/trivy_cve_inventory.py \
+            --report "$KEYCLOAK_DIGEST" artifacts/keycloak-pr-candidate.json \
+            --report "$SEAWEEDFS_DIGEST" artifacts/seaweedfs-pr-candidate.json \
+            --output artifacts/pr-candidate-cve-inventory.json
       - name: Upload PR candidate evidence
         if: always() && github.event_name == 'pull_request'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -137,6 +147,17 @@ jobs:
             --argjson keycloak_high "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/keycloak-candidate.json)" \
             --argjson seaweedfs_high "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/seaweedfs-candidate.json)" \
             '{images: {keycloak: $keycloak, seaweedfs: $seaweedfs}, high_or_critical: {keycloak: $keycloak_high, seaweedfs: $seaweedfs_high}}' > artifacts/candidate-gate.json
+      - name: Generate manual candidate CVE inventory
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          KEYCLOAK_IMAGE: ${{ inputs.keycloak_image }}
+          SEAWEEDFS_IMAGE: ${{ inputs.seaweedfs_image }}
+        run: |
+          set -euo pipefail
+          python3 scripts/trivy_cve_inventory.py \
+            --report "$KEYCLOAK_IMAGE" artifacts/keycloak-candidate.json \
+            --report "$SEAWEEDFS_IMAGE" artifacts/seaweedfs-candidate.json \
+            --output artifacts/candidate-cve-inventory.json
       - name: Preserve immutable scanner evidence
         if: always() && github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
