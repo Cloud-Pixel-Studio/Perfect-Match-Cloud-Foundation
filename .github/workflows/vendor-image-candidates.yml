@@ -48,26 +48,23 @@ jobs:
           docker image inspect chrislusf/seaweedfs:4.53 --format '{{json .RepoDigests}}' > artifacts/seaweedfs-resolved-digests.json
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/keycloak-resolved-digests.json >/dev/null
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/seaweedfs-resolved-digests.json >/dev/null
-      - name: Trivy candidate scan on PR
-        if: github.event_name == 'pull_request'
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          version: v0.74.0
-          scan-type: image
-          image-ref: quay.io/keycloak/keycloak:26.8.2
-          scanners: vuln
-          format: json
-          exit-code: '0'
-          output: artifacts/keycloak-pr-candidate.json
-      - name: Scan SeaweedFS candidate and record gate on PR
+      - name: Scan resolved candidate digests and record gate on PR
         if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
-          trivy image --format json --scanners vuln --output artifacts/seaweedfs-pr-candidate.json chrislusf/seaweedfs:4.53
+          KEYCLOAK_DIGEST="$(jq -r '.[0]' artifacts/keycloak-resolved-digests.json)"
+          SEAWEEDFS_DIGEST="$(jq -r '.[0]' artifacts/seaweedfs-resolved-digests.json)"
+          trivy image --format json --scanners vuln --output artifacts/keycloak-pr-candidate.json "$KEYCLOAK_DIGEST"
+          trivy image --format json --scanners vuln --output artifacts/seaweedfs-pr-candidate.json "$SEAWEEDFS_DIGEST"
           for report in artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json; do
             jq -e '.Results | type == "array"' "$report" >/dev/null
           done
-          jq -n --argjson keycloak "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/keycloak-pr-candidate.json)" --argjson seaweedfs "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/seaweedfs-pr-candidate.json)" '{keycloak: $keycloak, seaweedfs: $seaweedfs}' > artifacts/pr-candidate-gate.json
+          jq -n \
+            --arg keycloak_image "$KEYCLOAK_DIGEST" \
+            --arg seaweedfs_image "$SEAWEEDFS_DIGEST" \
+            --argjson keycloak "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/keycloak-pr-candidate.json)" \
+            --argjson seaweedfs "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/seaweedfs-pr-candidate.json)" \
+            '{images: {keycloak: $keycloak_image, seaweedfs: $seaweedfs_image}, high_or_critical: {keycloak: $keycloak, seaweedfs: $seaweedfs}}' > artifacts/pr-candidate-gate.json
           cat artifacts/pr-candidate-gate.json
       - name: Upload PR candidate evidence
         if: always() && github.event_name == 'pull_request'
