@@ -6,7 +6,7 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **`codex/document-command-feedback`**, basado en el PR26 corregido
+Hito activo: **`codex/document-command-feedback`**, [PR borrador #27](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/27), entrega funcional683c68e con árbol local/remoto idéntico. Basado en el PR26 corregido
 `a0d7675`. Leer `DOCUMENT_COMMAND_FEEDBACK.md` y el checkpoint actual. El código
 estable `DEV-ACCESS-UI` reemplaza una etiqueta demo que era distinta en CI limpio.
 No modificar el seed ni datos de empresas para adaptar una prueba.

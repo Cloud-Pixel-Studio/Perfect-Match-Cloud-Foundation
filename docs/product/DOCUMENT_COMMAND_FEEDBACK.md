@@ -1,6 +1,7 @@
 # Feedback y recuperación de acciones documentales
 
 12 noviembre2026. Continuación del PR26, rama `codex/document-command-feedback`.
+[PR borrador #27](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/27), entrega funcional `683c68e788623cd122645d1adedadb511b6a0114`, árbol `537ee01878abb20834490b1968c484e75328fb29` verificado idéntico local/remoto. El seguimiento posterior solo documenta el handoff.
 Se conserva el módulo existente; no cambia ningún contrato API, permiso, modelo,
 esquema, dependencia o servicio productivo.
 
