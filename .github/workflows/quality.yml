@@ -56,6 +56,7 @@ jobs:
       - run: python3 -m unittest discover -s tests -p 'test_codex_agent_manifest_validator.py'
       - run: python3 -m unittest discover -s tests -p 'test_agent_runner_lease.py'
       - run: python3 -m unittest discover -s tests -p 'test_agent_runner_reconcile.py'
+      - run: python3 -m unittest discover -s tests -p 'test_third_party_image_pins.py'
 
   tenant-isolation:
     runs-on: ubuntu-24.04
