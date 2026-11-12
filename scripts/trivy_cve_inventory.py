@@ -10,8 +10,8 @@ SEVERITIES = {"HIGH", "CRITICAL"}
 
 
 def inventory(report: object, image: str) -> list[dict]:
-    if not isinstance(report, dict) or not isinstance(report.get("Results"), list):
-        raise ValueError("Trivy report must contain a Results array")
+    if not isinstance(report, dict) or not isinstance(report.get("Results"), list) or not report["Results"]:
+        raise ValueError("Trivy report must contain a non-empty Results array")
     rows = []
     for result in report["Results"]:
         if not isinstance(result, dict):
