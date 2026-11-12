@@ -18,7 +18,7 @@ class CandidateWorkflowTests(unittest.TestCase):
 
     def test_pr_does_not_execute_candidate_scans(self):
         self.assertRegex(self.content, r"(?m)^  pull_request:\s*$")
-        for step in ("Install verified scanners", "Scan candidate images (do not deploy)", "Fail closed on high or critical vulnerabilities"):
+        for step in ("Scan Keycloak candidate with pinned Trivy action", "Scan candidate images (do not deploy)", "Fail closed on high or critical vulnerabilities"):
             block = self._step(step)
             self.assertIn("if: github.event_name == 'workflow_dispatch'", block)
 
@@ -32,6 +32,10 @@ class CandidateWorkflowTests(unittest.TestCase):
 
     def test_scans_are_saved_and_gate_fails_closed(self):
         scan = self._step("Scan candidate images (do not deploy)")
+        keycloak = self._step("Scan Keycloak candidate with pinned Trivy action")
+        self.assertIn("aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25", keycloak)
+        self.assertIn("image-ref: ${{ inputs.keycloak_image }}", keycloak)
+        self.assertIn("output: artifacts/keycloak-candidate.json", keycloak)
         self.assertIn("trivy image --format json --scanners vuln", scan)
         self.assertIn("artifacts/keycloak-candidate.json", scan)
         self.assertIn("artifacts/seaweedfs-candidate.json", scan)
