@@ -48,6 +48,14 @@ class CandidateWorkflowTests(unittest.TestCase):
         upload = self._step("Preserve immutable scanner evidence")
         self.assertIn("if: always() && github.event_name == 'workflow_dispatch'", upload)
 
+    def test_pr_scans_only_unique_expected_repository_digests(self):
+        scan = self._step("Scan resolved candidate digests and record gate on PR")
+        self.assertIn('select(startswith("quay.io/keycloak/keycloak@sha256:"))', scan)
+        self.assertIn('select(startswith("chrislusf/seaweedfs@sha256:"))', scan)
+        self.assertEqual(scan.count('if length == 1 then .[0] else error('), 2)
+        self.assertNotIn("jq -r '.[0]'", scan)
+        self.assertIn('trivy image --format json --scanners vuln', scan)
+
     def test_pr_candidate_scan_is_fail_closed_after_evidence_upload(self):
         scan = self._step("Scan resolved candidate digests and record gate on PR")
         upload = self._step("Upload PR candidate evidence")
