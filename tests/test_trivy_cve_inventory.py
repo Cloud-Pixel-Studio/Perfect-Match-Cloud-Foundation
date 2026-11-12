@@ -1,5 +1,9 @@
 """Regression tests for the standalone Trivy CVE inventory."""
 import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -54,6 +58,35 @@ class InventoryTests(unittest.TestCase):
     def test_incomplete_high_fails_closed(self):
         with self.assertRaises(ValueError):
             module.inventory({"Results": [{"Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
+
+
+    def test_cli_removes_stale_output_on_invalid_report(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "invalid.json"
+            report.write_text('{"Results": []}', encoding="utf-8")
+            output = root / "inventory.json"
+            output.write_text('{"stale": true}', encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), "--report", "image@sha256:" + "a" * 64, str(report), "--output", str(output)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertFalse(output.exists())
+
+    def test_cli_writes_complete_valid_inventory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "valid.json"
+            report.write_text(json.dumps({"Results": [{"Target": "os", "Vulnerabilities": []}]}), encoding="utf-8")
+            output = root / "inventory.json"
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), "--report", "image@sha256:" + "a" * 64, str(report), "--output", str(output)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["high_or_critical_count"], 0)
+            self.assertFalse(list(root.glob(".trivy-inventory-*.tmp")))
 
 
 if __name__ == "__main__":
