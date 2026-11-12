@@ -71,8 +71,8 @@ jobs:
           trivy image --format json --scanners vuln --output artifacts/seaweedfs-pr-candidate.json "$SEAWEEDFS_DIGEST"
           for report in artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json; do
             jq -e '
-              (.Results | type == "array") and
-              ([.Results[] | has("Vulnerabilities") and (.Vulnerabilities | type == "array" or .Vulnerabilities == null)] | all)
+              (.Results | type == "array" and length > 0) and
+              all(.Results[]; (type == "object") and ((.Vulnerabilities? // []) | type == "array"))
             ' "$report" >/dev/null
           done
           jq -n \
@@ -127,8 +127,8 @@ jobs:
           trivy image --format json --scanners vuln --output artifacts/seaweedfs-candidate.json "$SEAWEEDFS_IMAGE"
           for report in artifacts/keycloak-candidate.json artifacts/seaweedfs-candidate.json; do
             jq -e '
-              (.Results | type == "array") and
-              ([.Results[] | has("Vulnerabilities") and (.Vulnerabilities | type == "array" or .Vulnerabilities == null)] | all)
+              (.Results | type == "array" and length > 0) and
+              all(.Results[]; (type == "object") and ((.Vulnerabilities? // []) | type == "array"))
             ' "$report" >/dev/null
           done
           jq -n \
