@@ -39,13 +39,23 @@ if [[ -z "$port" ]]; then
   fi
 fi
 
-for _ in $(seq 1 30); do
-  if docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null 2>&1; then
+# The official PostgreSQL entrypoint starts a temporary socket-only server
+# during initdb, then shuts it down before starting the final TCP server.
+# A socket pg_isready check can succeed during that temporary phase.
+ready=false
+for _ in $(seq 1 60); do
+  if docker exec "$container" pg_isready -h 127.0.0.1 -p 5432 -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null 2>&1; then
+    ready=true
     break
   fi
   sleep 1
 done
-docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null
+if [[ "$ready" != true ]]; then
+  echo "PostgreSQL final TCP listener did not become ready within 60 seconds" >&2
+  exit 1
+fi
+# Confirm that the expected database is available, not merely the listener.
+docker exec "$container" psql -h 127.0.0.1 -U pmcloud_bootstrap -d pmcloud_isolation -Atqc 'SELECT 1' | grep -qx 1
 
 export POSTGRES_DB=pmcloud_isolation
 export POSTGRES_MIGRATION_USER=pmcloud_migrator
