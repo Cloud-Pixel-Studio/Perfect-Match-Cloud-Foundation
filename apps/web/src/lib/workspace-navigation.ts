@@ -35,10 +35,16 @@ const targetSources = new Set<WorkspaceTargetSource>(["workflow", "capa", "contr
 
 export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
   {
-    label: "Workspace",
+    label: "My work",
     items: [
       { id: "overview", label: "Overview", description: "Choose the work you need to do.", hash: "overview-heading" },
       { id: "actions", label: "Action center", description: "Prioritize assigned work and pending reviews.", hash: "action-center-heading" },
+    ],
+  },
+  {
+    label: "Coordination",
+    items: [
+      { id: "workflows", label: "Workflows", description: "Complete controlled approvals and assigned tasks.", hash: "workflow-heading" },
     ],
   },
   {
@@ -62,13 +68,35 @@ export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
     items: [
       { id: "organization", label: "Organization", description: "Units, assignments and scope.", hash: "organization-workspace-heading" },
       { id: "permissions", label: "Permissions", description: "Grant explicit QMS responsibilities.", hash: "qms-access-heading" },
-      { id: "workflows", label: "Workflows", description: "Manage controlled approvals.", hash: "workflow-heading" },
       { id: "audit", label: "Audit trail", description: "Review recorded changes.", hash: "audit-heading" },
     ],
   },
 ];
 
 export const workspaceItems = workspaceSections.flatMap((section) => section.items);
+
+const capabilityFamilies: Partial<Record<WorkspaceId, string[]>> = {
+  processes: ["processes."],
+  documents: ["documents."],
+  controls: ["controls.", "control_instances."],
+  risks: ["risks."],
+  nonconformities: ["ncr."],
+  capa: ["capa."],
+};
+
+export function workspaceSectionsForContext(role: string, capabilities: Iterable<string>) {
+  const assigned = [...capabilities];
+  const administration = role === "owner" || role === "admin";
+  const assurance = administration || role === "auditor";
+  const visible = (id: WorkspaceId) => {
+    if (id === "overview" || id === "actions" || id === "workflows" || id === "permissions") return true;
+    if (id === "organization" || id === "audit") return assurance;
+    return (capabilityFamilies[id] ?? []).some((prefix) => assigned.some((capability) => capability.startsWith(prefix)));
+  };
+  return workspaceSections
+    .map((section) => ({ ...section, items: section.items.filter((item) => visible(item.id)) }))
+    .filter((section) => section.items.length > 0);
+}
 
 export function workspaceFromHash(hash: string): WorkspaceId {
   const fragment = hash.replace(/^#/, "");

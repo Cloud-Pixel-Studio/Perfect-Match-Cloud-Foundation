@@ -154,7 +154,11 @@ def test_capa_evidence_link_requires_independent_acceptance() -> None:
             db,
             authenticated(),
         )
-        grant(db, user=OTHER, capabilities=("control_instances.read", "control_instances.manage"))
+        grant(
+            db,
+            user=OTHER,
+            capabilities=("control_instances.read", "control_instances.manage", "evidence.review"),
+        )
         current(db, OTHER)
         evidence = control_instance_evidence.review_evidence(
             request(),

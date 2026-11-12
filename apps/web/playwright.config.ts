@@ -6,6 +6,7 @@ export default defineConfig({
   snapshotPathTemplate: `{testDir}/__screenshots__/${process.platform}/{arg}{ext}`,
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
+  workers: process.env.CI ? 1 : undefined,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["line"], ["html", { outputFolder: "../../artifacts/playwright/report", open: "never" }]] : "line",
   use: {

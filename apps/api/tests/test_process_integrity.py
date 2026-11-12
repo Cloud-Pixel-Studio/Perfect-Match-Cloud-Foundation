@@ -214,7 +214,7 @@ def revoke_test_control_access() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "DELETE FROM qms_access_grants WHERE capability IN ('processes.read','controls.read','controls.manage','control_instances.read','control_instances.manage')"
+                "DELETE FROM qms_access_grants WHERE capability IN ('processes.read','controls.read','controls.manage','control_instances.read','control_instances.manage','evidence.review')"
             )
         )
 
@@ -1541,6 +1541,26 @@ def test_control_evidence_requires_independent_review_before_readiness() -> None
             actor(OWNER, "owner"),
             uuid4(),
             GrantInput(user_id=OTHER, unit_id=UNIT, capability="control_instances.manage"),
+        )
+        with pytest.raises(HTTPException) as missing_review_authority:
+            review_evidence(
+                request(),
+                evidence.id,
+                ReviewCommand(
+                    expected_version=3,
+                    target_status="accepted",
+                    decision="The evidence is acceptable.",
+                ),
+                db,
+                auth(OTHER),
+            )
+        assert missing_review_authority.value.status_code == 403
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        create_grant(
+            db,
+            actor(OWNER, "owner"),
+            uuid4(),
+            GrantInput(user_id=OTHER, unit_id=UNIT, capability="evidence.review"),
         )
         evidence = review_evidence(
             request(),

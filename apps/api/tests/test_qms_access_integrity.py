@@ -14,8 +14,15 @@ from test_workflow_integrity import MEMBER, OTHER, OWNER, TENANT_A, TENANT_B, UN
 
 from pmc_api import audit_service
 from pmc_api.database import set_request_context
+from pmc_api.models import QMSAccessGrant
 from pmc_api.organization_service import OrganizationActor
-from pmc_api.qms_access import GrantInput, create_grant, require_capability, revoke_grant
+from pmc_api.qms_access import (
+    GrantInput,
+    active_capabilities,
+    create_grant,
+    require_capability,
+    revoke_grant,
+)
 
 pytestmark = [
     pytest.mark.qms_access_integrity,
@@ -102,7 +109,7 @@ def actor(user: UUID = OWNER, role: str = "owner") -> OrganizationActor:
     return OrganizationActor(user, str(user), role, TENANT_A)
 
 
-def grant_to_member(db: Session, capability: str = "documents.author") -> object:
+def grant_to_member(db: Session, capability: str = "documents.author") -> QMSAccessGrant:
     set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
     return create_grant(
         db, actor(), uuid4(), GrantInput(user_id=MEMBER, unit_id=UNIT, capability=capability)
@@ -136,6 +143,65 @@ def test_explicit_grant_is_scoped_and_cross_tenant_isolation_is_forced() -> None
                 "SELECT relrowsecurity AND relforcerowsecurity FROM pg_class WHERE relname='qms_access_grants'"
             )
         )
+
+
+def test_active_capability_summary_is_complete_and_excludes_revoked_grants() -> None:
+    runtime = engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    with Session(runtime, expire_on_commit=False) as db:
+        author = grant_to_member(db, "documents.author")
+        review = grant_to_member(db, "documents.review")
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        assert active_capabilities(db, actor(MEMBER, "member")) == [
+            "documents.author",
+            "documents.review",
+        ]
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        revoke_grant(db, actor(), uuid4(), review.id)
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        assert active_capabilities(db, actor(MEMBER, "member")) == ["documents.author"]
+        assert author.status == "active"
+
+
+def test_active_capability_summary_is_not_truncated_by_management_list_limit() -> None:
+    unit_ids = [uuid4() for _ in range(101)]
+    now = datetime.now(UTC)
+    with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
+        connection.execute(
+            text(
+                "INSERT INTO organization_units "
+                "(id,tenant_id,unit_type,code,name,status,created_at,updated_at) "
+                "VALUES (:id,:tenant,'team',:code,:name,'active',:now,:now)"
+            ),
+            [
+                {
+                    "id": unit_id,
+                    "tenant": TENANT_A,
+                    "code": f"NAV-{index:03d}",
+                    "name": f"Navigation scope {index:03d}",
+                    "now": now,
+                }
+                for index, unit_id in enumerate(unit_ids)
+            ],
+        )
+    runtime = engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    with Session(runtime) as db:
+        for index, unit_id in enumerate(unit_ids):
+            set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+            create_grant(
+                db,
+                actor(),
+                uuid4(),
+                GrantInput(
+                    user_id=MEMBER,
+                    unit_id=unit_id,
+                    capability="risks.read" if index == 0 else "documents.author",
+                ),
+            )
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        assert active_capabilities(db, actor(MEMBER, "member")) == [
+            "documents.author",
+            "risks.read",
+        ]
 
 
 @pytest.mark.parametrize("user,role", [(MEMBER, "member"), (OWNER, "owner")])

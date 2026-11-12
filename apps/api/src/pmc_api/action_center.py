@@ -105,6 +105,18 @@ def _can(db: Session, capability: str, unit_id: UUID) -> bool:
     )
 
 
+def _can_review_evidence(db: Session, unit_id: UUID) -> bool:
+    return all(
+        _can(db, capability, unit_id)
+        for capability in (
+            "controls.read",
+            "control_instances.read",
+            "control_instances.manage",
+            "evidence.review",
+        )
+    )
+
+
 def _assignee_names(db: Session, items: list[ActionItem]) -> dict[UUID, str]:
     user_ids = {item.assigned_to_user_id for item in items if item.assigned_to_user_id}
     if not user_ids:
@@ -355,7 +367,7 @@ def _control_items(
     ):
         if not team:
             if evidence.unit_id not in review_cache:
-                review_cache[evidence.unit_id] = _can(db, "evidence.review", evidence.unit_id)
+                review_cache[evidence.unit_id] = _can_review_evidence(db, evidence.unit_id)
             if not review_cache[evidence.unit_id] or evidence.submitted_by_user_id == actor.user_id:
                 continue
         items.append(

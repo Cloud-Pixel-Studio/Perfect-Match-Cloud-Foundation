@@ -1,6 +1,9 @@
 from datetime import date
 from uuid import UUID
 
+import pytest
+
+from pmc_api import action_center
 from pmc_api.action_center import ActionItem, classify_urgency, summarize
 
 
@@ -52,3 +55,17 @@ def test_summary_counts_actionable_states() -> None:
     assert summary.due_soon == 1
     assert summary.unassigned == 1
     assert summary.by_source == {"capa": 3}
+
+
+def test_evidence_review_action_requires_the_complete_destination_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    granted = {"evidence.review"}
+    monkeypatch.setattr(
+        action_center,
+        "_can",
+        lambda _db, capability, _unit_id: capability in granted,
+    )
+    assert not action_center._can_review_evidence(None, UUID(int=1))  # type: ignore[arg-type]
+    granted.update({"controls.read", "control_instances.read", "control_instances.manage"})
+    assert action_center._can_review_evidence(None, UUID(int=1))  # type: ignore[arg-type]
