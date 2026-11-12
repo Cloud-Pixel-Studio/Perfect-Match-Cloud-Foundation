@@ -34,6 +34,14 @@ class InventoryTests(unittest.TestCase):
             with self.subTest(report=report), self.assertRaises(ValueError):
                 module.inventory(report, "digest")
 
+    def test_missing_severity_fails_closed(self):
+        with self.assertRaises(ValueError):
+            module.inventory({"Results": [{"Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
+
+    def test_invalid_target_fails_closed(self):
+        with self.assertRaises(ValueError):
+            module.inventory({"Results": [{"Target": [], "Vulnerabilities": []}]}, "digest")
+
     def test_incomplete_high_fails_closed(self):
         with self.assertRaises(ValueError):
             module.inventory({"Results": [{"Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
