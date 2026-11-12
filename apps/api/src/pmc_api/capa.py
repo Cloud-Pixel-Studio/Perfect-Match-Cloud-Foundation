@@ -578,10 +578,43 @@ def list_capas(
     source_type: Source | None = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 50,
     offset: Annotated[int, Query(ge=0, le=1_000_000)] = 0,
+    source_ncr_id: UUID | None = None,
+    source_risk_id: UUID | None = None,
 ) -> list[QMSCAPA]:
     actor = actor_context(db, authenticated)
     require_capability(db, "capa.read", unit_id)
+    if source_ncr_id is not None and source_risk_id is not None:
+        raise HTTPException(422, "Choose exactly one CAPA origin filter")
+    origin_type = "ncr" if source_ncr_id is not None else "risk" if source_risk_id else None
+    if origin_type and source_type and origin_type != source_type:
+        raise HTTPException(422, "CAPA origin filter does not match source_type")
+    if source_ncr_id is not None:
+        require_capability(db, "ncr.read", unit_id)
+        origin = db.scalar(
+            select(QMSNonconformity).where(
+                QMSNonconformity.id == source_ncr_id,
+                QMSNonconformity.tenant_id == actor.tenant_id,
+                QMSNonconformity.unit_id == unit_id,
+            )
+        )
+        if origin is None:
+            raise HTTPException(404, "CAPA origin not found")
+    elif source_risk_id is not None:
+        require_capability(db, "risks.read", unit_id)
+        risk_origin = db.scalar(
+            select(QMSRisk).where(
+                QMSRisk.id == source_risk_id,
+                QMSRisk.tenant_id == actor.tenant_id,
+                QMSRisk.unit_id == unit_id,
+            )
+        )
+        if risk_origin is None:
+            raise HTTPException(404, "CAPA origin not found")
     query = select(QMSCAPA).where(QMSCAPA.tenant_id == actor.tenant_id, QMSCAPA.unit_id == unit_id)
+    if source_ncr_id is not None:
+        query = query.where(QMSCAPA.source_ncr_id == source_ncr_id)
+    if source_risk_id is not None:
+        query = query.where(QMSCAPA.source_risk_id == source_risk_id)
     if source_type:
         query = query.where(QMSCAPA.source_type == source_type)
     if q and q.strip():

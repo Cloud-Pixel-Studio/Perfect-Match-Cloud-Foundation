@@ -43,7 +43,7 @@ export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
   uv run --no-sync alembic upgrade head
   uv run --no-sync alembic downgrade 0008_qms_capabilities
   uv run --no-sync alembic upgrade head
-  uv run --no-sync pytest -m process_integrity tests/test_process_integrity.py tests/test_risk_integrity.py tests/test_risk_link_integrity.py tests/test_nonconformity_integrity.py tests/test_ncr_link_integrity.py tests/test_ncr_evidence_link_integrity.py tests/test_capa_intake_integrity.py tests/test_capa_document_link_integrity.py tests/test_capa_trace_link_integrity.py
+  uv run --no-sync pytest -m process_integrity tests/test_process_integrity.py tests/test_risk_integrity.py tests/test_risk_link_integrity.py tests/test_nonconformity_integrity.py tests/test_ncr_link_integrity.py tests/test_ncr_evidence_link_integrity.py tests/test_capa_intake_integrity.py tests/test_capa_source_filter_integrity.py tests/test_capa_document_link_integrity.py tests/test_capa_trace_link_integrity.py
   if uv run --no-sync alembic downgrade 0008_qms_capabilities >"$downgrade_log" 2>&1; then
     echo "Process audit downgrade unexpectedly succeeded" >&2
     exit 1

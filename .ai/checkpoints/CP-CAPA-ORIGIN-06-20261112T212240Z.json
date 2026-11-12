@@ -1,0 +1,30 @@
+{
+  "id": "CP-CAPA-ORIGIN-06-20261112T212240Z",
+  "branch": "codex/capa-origin-workflow",
+  "baseCommit": "ba884bcba9e75422218a7b1f409d6d0a7b88876e",
+  "sourceEntries": 415,
+  "artifacts": {
+    "source.tar.gz.enc": "72796d1737ab02cb826b23f140f687f66b74412d647f9352fa8bfcce009db831",
+    "repository.bundle.enc": "4a9199533fd2ca3f79e0b0815e769130a44c1c7b7fa1528707d27dce7eef35e6",
+    "visual-evidence.png.enc": "ec62c06a5e3669c4d176a49198b9370dfeb07e3125a2182f144344e9f27ed263"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed",
+  "visual": {
+    "file": "live-ncr-related-capa.png",
+    "sha256": "d129fb31b3ec131fb8d73da5327372eaa810ac2471ba5eed65a09152812b06c9",
+    "restoration": "decrypted PNG bytes matched original PASS"
+  },
+  "tests": {
+    "postgresql_disposable": 199,
+    "api_unit_pass": 50,
+    "api_without_db_skipped": 299,
+    "web_unit": 59,
+    "playwright_darwin": 50,
+    "playwright_linux": 50,
+    "snapshots_updated": false,
+    "retries": 0,
+    "scope": "13 browser fixtures intercept QMS writes, 1 live source-to-CAPA read; no local runtime QMS data/schema mutations"
+  }
+}
