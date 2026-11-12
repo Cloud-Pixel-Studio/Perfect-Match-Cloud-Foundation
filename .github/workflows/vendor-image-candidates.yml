@@ -85,6 +85,9 @@ jobs:
           path: artifacts/
           if-no-files-found: warn
           retention-days: 30
+      - name: Validate candidate workflow structure on PR
+        if: github.event_name == 'pull_request'
+        run: python3 -m unittest discover -s tests -p 'test_vendor_candidate_workflow.py'
       - name: Fail closed on PR candidate high or critical findings
         if: github.event_name == 'pull_request'
         run: |
@@ -94,9 +97,6 @@ jobs:
             (.high_or_critical.keycloak | type == "number" and . == 0) and
             (.high_or_critical.seaweedfs | type == "number" and . == 0)
           ' artifacts/pr-candidate-gate.json >/dev/null
-      - name: Validate candidate workflow structure on PR
-        if: github.event_name == 'pull_request'
-        run: python3 -m unittest discover -s tests -p 'test_vendor_candidate_workflow.py'
       - name: Prepare candidate scan artifacts
         if: github.event_name == 'workflow_dispatch'
         run: mkdir -p artifacts
