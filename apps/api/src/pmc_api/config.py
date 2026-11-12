@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,6 +49,24 @@ class Settings(BaseSettings):
                 raise ValueError("production requires Secure session cookies")
             if not self.login_transaction_key:
                 raise ValueError("production requires a login transaction encryption key")
+            for field_name in ("web_url", "oidc_issuer", "oidc_callback_url"):
+                address = getattr(self, field_name)
+                parts = urlsplit(address)
+                if (
+                    parts.scheme != "https"
+                    or not parts.hostname
+                    or parts.username is not None
+                    or parts.password is not None
+                    or parts.fragment
+                    or parts.query
+                ):
+                    raise ValueError(f"production requires HTTPS {field_name} without URL credentials, query or fragment")
+                try:
+                    parts.port  # Reject malformed ports rather than accepting invalid public URLs.
+                except ValueError as exc:
+                    raise ValueError(f"production requires valid HTTPS {field_name}") from exc
+                if field_name == "web_url" and parts.path not in {"", "/"}:
+                    raise ValueError("production web_url must be a public origin, not a path")
         return self
 
 
