@@ -88,3 +88,16 @@ This milestone is backend planning infrastructure only. Scope, criteria, team,
 independence decisions, evidence, findings, NCR handoff, Action Center exposure,
 demo data and the premium UI remain later slices and must not be presented as
 implemented.
+
+
+## Planning workspace · 12 November2026
+
+`codex/internal-audit-planning-ui` exposes the existing0040 contracts through
+Internal audits in Quality operations. This is separate from the technical
+Audit trail. Programs and scheduled audits have separate scoped, paginated
+registers; only program search is supported by the current API. Creation,
+edits and controlled planning decisions use explicit unit capabilities.
+The workspace does not expose execution/readiness, team/independence review,
+evidence, findings or finding-to-NCR commands. Lead assignment does not establish
+independence. See `docs/product/INTERNAL_AUDIT_PLANNING_UI.md` for evidence,
+local0040 activation, encrypted recovery proof and remaining scope.

@@ -6,11 +6,16 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), basado en PR27/head `ba884bc`.
-Leer `CAPA_ORIGIN_WORKFLOW.md` y `ODOO_GAP_REVIEW_2026-11-12.md`: panel compartido
-de CAPA desde NCR/riesgo, filtros autorizados por origen en GET, apertura puntual
-y creación con origen/proceso fijos. No cambia POST, DB, migraciones, licencias
-o dependencias. El checkpoint principal registra resultados y entrega exactos. Entrega funcional remota `f3a772f`, árbol `e0c405dd` idéntico al verificado local. Este seguimiento solo actualiza continuidad.
+Hito activo: **`codex/internal-audit-planning-ui`**, basado en PR30/a7b2a9f.
+Leer `INTERNAL_AUDIT_PLANNING_UI.md`: programas y auditorías planificadas con
+capacidades explícitas; backend0040 sin cambios. La base local ya pasó de0039
+ a0040 tras recuperación cifrada/aislada verificada (CP-AUDIT-UI-DB-00-20261112T215516Z-r12).
+DemoAP001/AUD001 creado víaAPI, seed idempotente; independencia pendiente.
+No aplicar0041 ni exponer ejecución/hallazgos como implementados. El checkpoint
+principal registra pruebas y entrega exactas; validarCI del nuevohead.
+
+Hito anterior: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), finala7b2a9f. Calidad/CodeQL/runtime/50PlaywrightPASS;
+releaseFAILsoloKeycloak7High/SeaweedFS2High. No trasladar esta evidencia a otra rama.
 
 Predecesor: **`codex/document-command-feedback`**, [PR27](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/27), entrega funcional683c68e con árbol idéntico. En `ba884bc`, calidad/CodeQL/runtime y36Playwright PASS;
 security FAILsolo Keycloak7High/SeaweedFS2High. Esto no acredita el head nuevo.
@@ -90,3 +95,6 @@ persistencia. No contar manifiestos de agentes como plataforma autónoma termina
 
 Backups cifrados y claves separados, fuera del repo. GitHub no contiene secretos,
 bases ni copias de datos de clientes. Cada nueva etapa debe actualizar este handoff.
+
+
+Delivery: [draft PR31](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/31), functional commit `9b066a0e95ed531a48b6bed93bd892933d6b27ac`, tree `c650921234ce1295dd6d413c942561149484dab0` verified identical locally/remotely. This follow-up is documentation only. CI of the latest head remains to be verified.

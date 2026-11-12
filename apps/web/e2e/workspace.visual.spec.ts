@@ -52,6 +52,14 @@ const visualActions = {
 };
 
 async function stabilizeOverviewActions(page: Page) {
+  // Keep this existing visual baseline on its original collaborator persona.
+  // Audit planning has separate authorized-persona navigation and UI coverage.
+  await page.route("**/api/identity/qms-access/active-capabilities", async (route) => {
+    const response = await route.fetch();
+    if (!response.ok()) return route.fulfill({ response });
+    const access = await response.json() as { capabilities: string[] };
+    return route.fulfill({ response, json: { ...access, capabilities: access.capabilities.filter((capability) => !capability.startsWith("audits.")) } });
+  });
   await page.route("**/api/identity/action-center?scope=mine&limit=5", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(visualActions) });
   });
