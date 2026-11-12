@@ -64,6 +64,8 @@ se guardan fuera del árbol; claves0600 separadas. El manifiesto externo contien
 inventario/hash de archivos y cifrados. No hubo cambios de esquema/datos; no se
 capturó ni se atribuye una restauración nueva de base a este hito.
 
+Entrega sincronizada: [PR borrador #25](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/25), commit funcional `8cbc5c548c12d01c49b9071ed7faf7e6938c06c8`, árbol `a90e7d3ce74588113773894aa13d4006cc0846dd` idéntico al local verificado. Seguimiento de handoff solo documental.
+
 Rama dedicada: `codex/product-marketing`, base de revisión
 `codex/branding-identity-system`. Main no contiene aún todo el stack de la
 fundación. Consultar CI del head exacto del nuevo PR; esta evidencia local no

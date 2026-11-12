@@ -6,7 +6,7 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Leer `CHECKPOINT.md` en **`codex/product-marketing`**. El worktree activo es
+Leer `CHECKPOINT.md` en **`codex/product-marketing`**, [PR borrador #25](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/25). La entrega funcional remota `8cbc5c5` tiene el mismo árbol verificado local; el seguimiento posterior solo documenta el handoff. El worktree activo es
 `SaaS QMS PerfectMatchSystems Design Studio`; el checkout original conserva el
 WIP de Auditoría Interna0041. No resetear, limpiar ni mezclar ese borrador.
 

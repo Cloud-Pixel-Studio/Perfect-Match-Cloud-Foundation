@@ -1,10 +1,11 @@
 # Perfect Match QMS — continuidad · 2026-11-12
 
 ## Retomar aquí
-- Repo oficial: `Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation`. Trabajo actual en **`codex/product-marketing`**, worktree `SaaS QMS PerfectMatchSystems Design Studio`. Leer `docs/product/CONTINUE_FROM_HERE.md`, `SAAS_MARKETING_RESEARCH.md` y `EXTERNAL_PROGRESS_RECONCILIATION.md`.
+- Repo oficial: `Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation`. Trabajo actual en **`codex/product-marketing`**, [PR borrador #25](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/25), worktree `SaaS QMS PerfectMatchSystems Design Studio`. Leer `docs/product/CONTINUE_FROM_HERE.md`, `SAAS_MARKETING_RESEARCH.md` y `EXTERNAL_PROGRESS_RECONCILIATION.md`.
 - Baseline local `91b26b5` y remoto `codex/branding-identity-system@ae8f262` tienen el mismo árbol `547d0ec6b260aca88f5b571cd003ec5aa29719a9`. Los merges #17→#16→#15 llegaron a ramas; **no todo está en main**. `main@13e672a` contiene PMC-04. PR #19 consolida hacia la fundación #13, ambos pendientes.
 - La tarea actual mejora la web comercial `/products`: beneficio claro, capturas reales, recorrido documentos/riesgos/CAPA, preguntas por comprador, QMS base + seats + ISO, FAQ y brief de demo. Correo confirmado por el usuario: **Demo@invperfectmatch.com**. El botón prepara correo; el visitante revisa y envía. No hay backend de leads ni confirmación ficticia.
 - Probado: **59/59 Vitest**, lint/tipos/build, Gitleaks y licencias PASS; Darwin **19/19**, Linux **19/19** y reproducción **19/19 sin actualizar capturas ni reintentos**. Incluye axe/reflow, tabs, FAQ320px, correo preparado y descarga TXT exacta, además de módulos/login/galería existentes. Ver `MARKETING_IMPLEMENTATION_REPORT.md`; CI remoto del nuevo head sigue requerido.
+- Entrega funcional sincronizada en GitHub: `8cbc5c548c12d01c49b9071ed7faf7e6938c06c8`, árbol `a90e7d3ce74588113773894aa13d4006cc0846dd` idéntico al verificado local. Seguimiento de handoff solo documental. PR25 abierto como borrador, sin conflictos reportados; CI exacto pendiente de consultar. No merge/despliegue.
 - Recuperación inicial: `CP-MARKETING-00-20261112T024646Z`, fuente768 entradas y Git cifrados/verificados fuera del repo. Frontera preintegración: `CP-MARKETING-06-20261112T140941Z`. No cambia DB/esquema. No merge ni producción; rama/commit/PR sí autorizados.
 
 ## Producto y decisiones confirmadas
