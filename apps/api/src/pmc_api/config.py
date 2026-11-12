@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     s3_access_key: str = Field(default="", repr=False)
     s3_secret_key: str = Field(default="", repr=False)
     s3_region: str = "us-east-1"
+    s3_documents_bucket: str = "pmcloud-private-documents"
+    clamav_host: str = "clamav"
+    clamav_port: int = Field(default=3310, ge=1, le=65535)
+    clamav_timeout_seconds: float = Field(default=30, gt=0, le=120)
+    clamav_signature_max_age_seconds: int = Field(default=172800, ge=3600, le=604800)
 
     @model_validator(mode="after")
     def validate_security_configuration(self) -> Settings:

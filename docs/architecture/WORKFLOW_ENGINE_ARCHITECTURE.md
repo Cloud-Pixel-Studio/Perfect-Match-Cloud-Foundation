@@ -18,6 +18,17 @@ checks the caller's expected `row_version`, verifies the current step and assign
 increments the version, and appends domain history in one transaction. Owners and admins
 do not receive an implicit transition bypass. Completion and cancellation are terminal.
 
+Locking queries refresh objects already loaded in the request session before
+checking status/version. Tests cover requests populated before another
+transaction completed the instance. Migration 0006 checks both source and
+destination versions when configuration is moved, preserving published records.
+
+Publication locks and refreshes the version before validating its graph. Migration
+0007 makes configuration edits acquire shared locks on their parent versions,
+in stable order, so publication cannot race an update of existing steps. Lock
+timeout regressions exercise both inserts and updates while publication owns the
+version lock; a stale publication returns a conflict rather than a database error.
+
 Assignments target an active user, active organization unit membership, or application
 role (`owner`, `admin`, or `member`). Disabled users, revoked memberships, and archived
 units cannot satisfy an assignment. Organization lead assignments never escalate into

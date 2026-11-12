@@ -1,14 +1,11 @@
-const allowedRoots = new Set(["auth", "tenant", "audit", "organization", "workflows", "workflow-instances"]);
-const routeSegment = /^[a-z][a-z-]*$/;
+import { isAllowedIdentityPath } from "../../../../lib/identity-path";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
 async function proxy(request: Request, context: RouteContext): Promise<Response> {
   const { path } = await context.params;
   if (
-    path.length === 0 ||
-    !allowedRoots.has(path[0]) ||
-    path.some((segment) => !routeSegment.test(segment))
+    !isAllowedIdentityPath(path)
   ) {
     return Response.json({ detail: "identity route not found" }, { status: 404 });
   }

@@ -2,7 +2,10 @@ name: pmcloud
 
 services:
   postgres:
-    image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
+    image: pmcloud-postgres:local
+    build:
+      context: .
+      dockerfile: infrastructure/local/postgres.Dockerfile
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -50,7 +53,7 @@ services:
       - platform
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7.3@sha256:ff4257d0d64efbe99ed1ddfaf07765cc3c36dc7518bf8324d41961327f441c54
+    image: quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
     command: ["start-dev", "--hostname-strict=true"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
@@ -85,6 +88,8 @@ services:
       KEYCLOAK_INTERNAL_URL: http://keycloak:8080/
       KEYCLOAK_MULTI_USER_PASSWORD: ${KEYCLOAK_MULTI_USER_PASSWORD}
       KEYCLOAK_USER_A_PASSWORD: ${KEYCLOAK_USER_A_PASSWORD}
+      KEYCLOAK_OWNER_PASSWORD: ${KEYCLOAK_OWNER_PASSWORD}
+      PMC_ENVIRONMENT: ${PMC_ENVIRONMENT:-development}
       KEYCLOAK_USER_B_PASSWORD: ${KEYCLOAK_USER_B_PASSWORD}
       OIDC_CALLBACK_URL: ${OIDC_CALLBACK_URL}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-perfect-match-web}
@@ -101,7 +106,7 @@ services:
       - platform
 
   seaweedfs:
-    image: chrislusf/seaweedfs:4.45@sha256:fc9f76fa993ad69966ffeb2f65d0318fcae39c6f8e20cf68ef7b3a5cb97769e5
+    image: chrislusf/seaweedfs:4.51@sha256:f7a49e3f3972ebed5be2ed4befa4a0c68eb7bdddba6e692d42729ceb545134b8
     command:
       - server
       - -s3
@@ -128,13 +133,57 @@ services:
       - platform
       - edge
 
+  clamav-database-bootstrap:
+    image: clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
+    platform: linux/amd64
+    command: ["freshclam", "--foreground", "--stdout"]
+    restart: "no"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - clamav_egress
+
+  clamav:
+    image: clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
+    platform: linux/amd64
+    mem_limit: 3g
+    environment:
+      # Bound later reloads if FreshClam cannot deliver its immediate
+      # notification. The bootstrap below prevents a stale cold start.
+      CLAMD_CONF_SelfCheck: "60"
+    depends_on:
+      clamav-database-bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping=1 >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 300s
+    restart: unless-stopped
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - platform
+      - clamav_egress
+
   api:
     build:
       context: ./apps/api
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=1770
     environment:
       PMC_APP_VERSION: ${APP_VERSION:-0.4.0}
       PMC_COOKIE_SECURE: ${PMC_COOKIE_SECURE:-false}
       PMC_DATABASE_URL: postgresql+pg8000://${POSTGRES_RUNTIME_USER:-pmcloud_app}:${POSTGRES_RUNTIME_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PMC_CLAMAV_HOST: clamav
+      PMC_CLAMAV_PORT: 3310
       PMC_ENVIRONMENT: ${PMC_ENVIRONMENT:-development}
       PMC_LOGIN_TRANSACTION_KEY: ${PMC_LOGIN_TRANSACTION_KEY}
       PMC_OIDC_BACKCHANNEL_BASE_URL: ${OIDC_BACKCHANNEL_BASE_URL}
@@ -145,6 +194,7 @@ services:
       PMC_S3_ACCESS_KEY: ${SEAWEEDFS_ACCESS_KEY}
       PMC_S3_ENDPOINT: http://seaweedfs:8333
       PMC_S3_REGION: us-east-1
+      PMC_S3_DOCUMENTS_BUCKET: pmcloud-private-documents
       PMC_S3_SECRET_KEY: ${SEAWEEDFS_SECRET_KEY}
       PMC_WEB_URL: ${PMC_WEB_URL}
     depends_on:
@@ -153,6 +203,8 @@ services:
       identity-bootstrap:
         condition: service_completed_successfully
       seaweedfs:
+        condition: service_healthy
+      clamav:
         condition: service_healthy
     healthcheck:
       test:
@@ -163,7 +215,7 @@ services:
       interval: 5s
       timeout: 4s
       retries: 12
-      start_period: 5s
+      start_period: 300s
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped
@@ -176,6 +228,14 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       target: ${WEB_BUILD_TARGET:-runtime}
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=1770
     environment:
       API_INTERNAL_URL: http://api:8000
       HOSTNAME: 0.0.0.0
@@ -204,8 +264,10 @@ networks:
   platform:
     internal: true
   edge:
+  clamav_egress:
 
 volumes:
   keycloak_data:
   postgres_data:
   seaweedfs_data:
+  clamav_data:

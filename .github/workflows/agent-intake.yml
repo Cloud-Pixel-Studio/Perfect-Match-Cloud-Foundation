@@ -1,0 +1,58 @@
+name: Controlled agent intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Open issue approved for AI planning
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: agent-intake-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  authorize-and-record:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Validate activation authority and issue state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          set -euo pipefail
+          [[ "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          permission=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${GITHUB_ACTOR}/permission" --jq '.permission')
+          case "$permission" in
+            admin|maintain|write) ;;
+            *) echo "Only an authorized maintainer can activate agent intake" >&2; exit 1 ;;
+          esac
+          mkdir -p artifacts
+          gh api "repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}" > artifacts/issue.json
+          jq -e '.state == "open"' artifacts/issue.json >/dev/null
+          jq -e '[.labels[].name] | index("ai:ready") != null' artifacts/issue.json >/dev/null
+          jq -n \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg actor "$GITHUB_ACTOR" \
+            --arg sha "$GITHUB_SHA" \
+            --argjson issue "$(jq '{number,title,html_url,state,labels:[.labels[].name]}' artifacts/issue.json)" \
+            '{repository:$repository,activated_by:$actor,workflow_sha:$sha,issue:$issue,mode:"planning-only",untrusted_issue_body_executed:false}' \
+            > artifacts/agent-intake.json
+      - name: Validate planning-only manifest
+        run: |
+          jq -e '.mode == "planning-only" and .untrusted_issue_body_executed == false' artifacts/agent-intake.json >/dev/null
+      - name: Upload intake evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: agent-intake-${{ inputs.issue_number }}-${{ github.run_id }}
+          path: artifacts/agent-intake.json
+          if-no-files-found: error
+          retention-days: 30

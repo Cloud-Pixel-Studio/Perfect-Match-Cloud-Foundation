@@ -3,7 +3,10 @@
 import { CheckCircle2, GitBranch, ListChecks, Plus, Rocket, Workflow } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-type Props = { role: string };
+import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+import type { WorkspaceTarget } from "../lib/workspace-navigation";
+
+type Props = { role: string; target?: WorkspaceTarget | null };
 type Definition = { id: string; code: string; name: string; description: string | null; status: string };
 type Version = { id: string; definition_id: string; version_number: number; status: string };
 type Step = { id: string; step_key: string; name: string; step_type: string; is_start: boolean; position: number };
@@ -31,7 +34,7 @@ async function detail(response: Response, fallback: string): Promise<string> {
   try { const body = (await response.json()) as { detail?: string }; return typeof body.detail === "string" ? body.detail : fallback; } catch { return fallback; }
 }
 
-export function WorkflowWorkspace({ role }: Props) {
+export function WorkflowWorkspace({ role, target }: Props) {
   const canWrite = role === "owner" || role === "admin";
   const [definitions, setDefinitions] = useState<Definition[]>([]);
   const [instances, setInstances] = useState<Instance[]>([]);
@@ -52,17 +55,29 @@ export function WorkflowWorkspace({ role }: Props) {
   const [newAssignment, setNewAssignment] = useState({ step_id: "", target_type: "application_role", target_user_id: "", target_application_role: "member" });
   const [newInstance, setNewInstance] = useState({ workflow_version_id: "", title: "", reference: "" });
   const [cancelReason, setCancelReason] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [definitionResponse, instanceResponse, memberResponse] = await Promise.all([call("/workflows"), call("/workflow-instances"), call("/organization/members")]);
-    if (definitionResponse.ok) setDefinitions((await definitionResponse.json()) as Definition[]);
-    if (memberResponse.ok) setMembers((await memberResponse.json()) as Member[]);
-    if (instanceResponse.ok) {
+    try {
+      const [definitionResponse, instanceResponse, memberResponse] = await Promise.all([call("/workflows"), call("/workflow-instances"), call("/organization/members")]);
+      if (!definitionResponse.ok || !instanceResponse.ok || !memberResponse.ok) throw new Error("Workflow workspace could not be loaded.");
+      setDefinitions((await definitionResponse.json()) as Definition[]);
+      setMembers((await memberResponse.json()) as Member[]);
       const rows = (await instanceResponse.json()) as Instance[]; setInstances(rows);
       const pairs = await Promise.all(rows.map(async (item) => { const response = await call(`/workflow-instances/${item.id}/actions`); return [item.id, response.ok ? (await response.json()) as Action[] : []] as const; }));
       setActionsByInstance(Object.fromEntries(pairs));
+      const requested = target?.source === "workflow" ? rows.find((item) => item.id === target.recordId) : undefined;
+      if (requested) {
+        setSelectedInstance(requested);
+        const historyResponse = await call(`/workflow-instances/${requested.id}/history?limit=100`);
+        if (historyResponse.ok) setHistory((await historyResponse.json()) as Event[]);
+      }
+    } catch (cause) {
+      setMessage(cause instanceof Error ? cause.message : "Workflow workspace is unavailable.");
+    } finally {
+      setInitialLoading(false);
     }
-  }, []);
+  }, [target]);
 
   useEffect(() => { const timer = window.setTimeout(() => void load(), 0); return () => window.clearTimeout(timer); }, [load]);
 
@@ -161,6 +176,7 @@ export function WorkflowWorkspace({ role }: Props) {
     <section className="workflow-workspace" aria-labelledby="workflow-heading">
       <div className="workspace-heading"><div><p className="eyebrow">Controlled operations</p><h2 id="workflow-heading"><Workflow aria-hidden="true" size={21} /> Workflow Engine</h2><p className="workspace-subtitle">Versioned approvals and tasks for this organization.</p></div><span className="status-note"><CheckCircle2 aria-hidden="true" size={16} /> {canWrite ? "Configuration access" : "Read-only access"}</span></div>
       {message && <p className="workflow-message" role="status">{message}</p>}
+      {initialLoading ? <RecordWorkspaceSkeleton label="Loading workflow workspace" /> : <>
       <div className="workflow-grid">
         <div className="workflow-list"><h3><ListChecks aria-hidden="true" size={18} /> Definitions</h3>{definitions.length === 0 ? <p className="empty-state">No workflow definitions yet.</p> : <ul>{definitions.map((item) => <li key={item.id}><button type="button" className={selected?.id === item.id ? "selected" : ""} onClick={() => void choose(item)}><strong>{item.name}</strong><small>{item.code} · {item.status}</small></button></li>)}</ul>}
           {canWrite && <form className="workflow-form" onSubmit={(event) => void submitDefinition(event)}><h4>New definition</h4><label>Code<input required maxLength={40} value={newDefinition.code} onChange={(event) => setNewDefinition({ ...newDefinition, code: event.target.value })} /></label><label>Name<input required maxLength={160} value={newDefinition.name} onChange={(event) => setNewDefinition({ ...newDefinition, name: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Plus aria-hidden="true" size={17} /> Create definition</button></form>}
@@ -169,8 +185,9 @@ export function WorkflowWorkspace({ role }: Props) {
         <div className="workflow-detail">{!selected ? <div className="empty-state"><GitBranch aria-hidden="true" size={20} /><span>Select a definition to inspect its versions.</span></div> : <><div className="detail-heading"><div><h3>{selected.name}</h3><p>{selected.code} · {selected.status}</p></div>{canWrite && <button className="secondary-action compact-action" type="button" onClick={() => void createVersion()}><Plus aria-hidden="true" size={16} /> Draft version</button>}</div><div className="version-tabs" role="tablist" aria-label="Workflow versions">{versions.map((item) => <button key={item.id} className={version?.id === item.id ? "selected" : ""} type="button" role="tab" aria-selected={version?.id === item.id} onClick={() => void chooseVersion(item)}>v{item.version_number} · {item.status}</button>)}</div>{version && <><div className="builder-heading"><h4>Version {version.version_number}</h4>{canWrite && version.status === "draft" && <button className="primary-action compact-action" type="button" onClick={() => void publish()}><Rocket aria-hidden="true" size={16} /> Publish</button>}</div><ol className="step-list">{steps.map((step) => <li key={step.id}><strong>{step.name}</strong><small>{step.step_key} · {step.step_type}{step.is_start ? " · start" : ""}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editStep(step)}>Edit step</button>}</li>)}</ol><ul className="step-list">{transitions.map((item) => <li key={item.id}><strong>{item.label}</strong><small>{item.transition_key} · {item.from_step_id.slice(0, 8)} to {item.to_step_id.slice(0, 8)}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editTransition(item)}>Edit transition</button>}</li>)}</ul><h4>Assignments</h4><ul className="step-list">{assignments.map((item) => <li key={item.id}><strong>{steps.find((step) => step.id === item.step_id)?.name ?? item.step_id.slice(0, 8)}</strong><small>{item.target_type} · {item.target_user_id?.slice(0, 8) ?? item.target_application_role ?? item.target_organization_unit_id?.slice(0, 8)}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editAssignment(item)}>Edit assignment</button>}</li>)}</ul>{canWrite && version.status === "draft" && <form className="workflow-form" onSubmit={(event) => void addAssignment(event)}><h4>Add assignment</h4><label>Step<select required value={newAssignment.step_id} onChange={(event) => setNewAssignment({ ...newAssignment, step_id: event.target.value })}><option value="">Select step</option>{steps.filter((step) => step.step_type !== "end").map((step) => <option key={step.id} value={step.id}>{step.name}</option>)}</select></label><label>Target type<select value={newAssignment.target_type} onChange={(event) => setNewAssignment({ ...newAssignment, target_type: event.target.value })}><option value="application_role">Application role</option><option value="user">Member</option></select></label>{newAssignment.target_type === "user" ? <label>Member<select required value={newAssignment.target_user_id} onChange={(event) => setNewAssignment({ ...newAssignment, target_user_id: event.target.value })}><option value="">Select member</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label> : <label>Role<select value={newAssignment.target_application_role} onChange={(event) => setNewAssignment({ ...newAssignment, target_application_role: event.target.value })}><option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option></select></label>}<button className="secondary-action compact-action" type="submit"><Plus aria-hidden="true" size={16} /> Add assignment</button></form>}</>}</>}</div>
       </div>
       {canWrite && <form className="workflow-form" onSubmit={(event) => void startInstance(event)}><h3>Start instance</h3><label>Published version<select required value={newInstance.workflow_version_id} onChange={(event) => setNewInstance({ ...newInstance, workflow_version_id: event.target.value })}><option value="">Select published version</option>{versions.filter((item) => item.status === "published").map((item) => <option key={item.id} value={item.id}>v{item.version_number}</option>)}</select></label><label>Title<input required maxLength={200} value={newInstance.title} onChange={(event) => setNewInstance({ ...newInstance, title: event.target.value })} /></label><label>Reference<input maxLength={200} value={newInstance.reference} onChange={(event) => setNewInstance({ ...newInstance, reference: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Rocket aria-hidden="true" size={16} /> Start instance</button></form>}
-      <div className="workflow-instances"><div className="assignment-heading"><h3>Instances</h3><span>{instances.length} visible</span></div>{instances.length === 0 ? <p className="empty-state">No active or completed instances.</p> : <ul className="step-list">{instances.map((item) => <li key={item.id}><button type="button" className="secondary-action compact-action" onClick={() => void inspectInstance(item)}>Inspect</button><strong>{item.title}</strong><small>{item.status} · step {item.current_step_id.slice(0, 8)} · version {item.row_version}</small>{item.status === "active" && role !== "auditor" && <div className="instance-actions">{(actionsByInstance[item.id] ?? []).map((action) => <button key={action.id} className="secondary-action compact-action" type="button" onClick={() => void transitionInstance(item, action)}><GitBranch aria-hidden="true" size={16} /> {action.label}</button>)}</div>}</li>)}</ul>}</div>
+      <div className="workflow-instances"><div className="assignment-heading"><h3>Instances</h3><span>{instances.length} visible</span></div>{instances.length === 0 ? <p className="empty-state">No active or completed instances.</p> : <ul className="step-list">{instances.map((item) => <li id={`workflow-instance-${item.id}`} className={selectedInstance?.id === item.id ? "action-target-record" : undefined} key={item.id}><button type="button" className="secondary-action compact-action" onClick={() => void inspectInstance(item)}>Inspect</button><strong>{item.title}</strong><small>{item.status} · step {item.current_step_id.slice(0, 8)} · version {item.row_version}</small>{item.status === "active" && role !== "auditor" && <div className="instance-actions">{(actionsByInstance[item.id] ?? []).map((action) => <button key={action.id} className="secondary-action compact-action" type="button" onClick={() => void transitionInstance(item, action)}><GitBranch aria-hidden="true" size={16} /> {action.label}</button>)}</div>}</li>)}</ul>}</div>
       {selectedInstance && <div className="workflow-instances"><div className="detail-heading"><div><h3>{selectedInstance.title}</h3><p>{selectedInstance.status} · version {selectedInstance.workflow_version_id.slice(0, 8)}</p></div></div><h4>History</h4><ul className="step-list">{history.map((event) => <li key={event.id}><strong>{event.event_type}</strong><small>{new Date(event.occurred_at).toLocaleString()}{event.reason ? ` · ${event.reason}` : ""}</small></li>)}</ul>{canWrite && selectedInstance.status === "active" && <div className="instance-actions"><input aria-label="Cancellation reason" required maxLength={500} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="Cancellation reason" /><button className="secondary-action compact-action" type="button" onClick={() => void cancelSelected()}>Cancel instance</button></div>}</div>}
+      </>}
     </section>
   );
 }

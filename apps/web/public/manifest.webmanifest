@@ -1,0 +1,13 @@
+{
+  "name": "Perfect Match QMS",
+  "short_name": "PM QMS",
+  "description": "Quality operations, evidence and compliance in one governed workspace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F4F6F7",
+  "theme_color": "#123A3A",
+  "icons": [
+    { "src": "/brand/raster/app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/raster/app-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

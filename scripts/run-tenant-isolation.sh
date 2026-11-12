@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+./scripts/build-test-postgres.sh
+
 container="pmcloud-tenant-isolation-$$"
 port=${PMC_TEST_POSTGRES_PORT:-55432}
 bootstrap_password=$(openssl rand -hex 24)
@@ -18,7 +20,7 @@ docker run --detach --rm \
   --env POSTGRES_DB=pmcloud_isolation \
   --env POSTGRES_USER=pmcloud_bootstrap \
   --env POSTGRES_PASSWORD="$bootstrap_password" \
-  postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2 >/dev/null
+  pmcloud-postgres:local >/dev/null
 
 for _ in $(seq 1 30); do
   if docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_isolation >/dev/null 2>&1; then

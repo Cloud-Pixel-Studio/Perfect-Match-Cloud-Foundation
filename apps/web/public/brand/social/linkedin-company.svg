@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Perfect Match QMS LinkedIn template</title>
+  <desc id="desc">Square commercial template with the Aligned Evidence brand identity.</desc>
+  <rect width="1200" height="1200" fill="#EFFCFB"/>
+  <path d="M0 790C250 640 412 900 650 760s344-118 550-40v480H0Z" fill="#D8F3F0"/>
+  <path d="M0 894c250-140 420 108 678-40s346-60 522-4v350H0Z" fill="#123A3A"/>
+  <g transform="translate(76 70)"><path d="M22 33 51 16a26 26 0 0 1 26 0l29 17v35L77 85a26 26 0 0 1-26 0L22 68Z" fill="none" stroke="#123A3A" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path d="m42 65 15 15 31-36" fill="none" stroke="#14A39A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><circle cx="96" cy="33" r="9" fill="#FF6B57"/><path d="M42 98h44" stroke="#123A3A" stroke-width="12" stroke-linecap="round"/></g>
+  <text x="224" y="128" fill="#123A3A" font-family="Inter,Arial,sans-serif" font-size="42" font-weight="700" letter-spacing="-1">Perfect Match</text><text x="226" y="165" fill="#52706F" font-family="Inter,Arial,sans-serif" font-size="22" font-weight="650" letter-spacing="4">QMS</text>
+  <text x="76" y="374" fill="#087F79" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="700" letter-spacing="3">INSIGHT TEMPLATE</text>
+  <text x="76" y="470" fill="#172026" font-family="Inter,Arial,sans-serif" font-size="72" font-weight="700" letter-spacing="-3">Quality work.</text>
+  <text x="76" y="550" fill="#172026" font-family="Inter,Arial,sans-serif" font-size="72" font-weight="700" letter-spacing="-3">Clear evidence.</text>
+  <text x="76" y="625" fill="#5C6870" font-family="Inter,Arial,sans-serif" font-size="28">Replace this line with one verified insight.</text>
+  <circle cx="980" cy="268" r="72" fill="#FF6B57"/>
+  <path d="M906 590l62 62 142-170" fill="none" stroke="#14A39A" stroke-width="46" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="76" y="1080" fill="#EAF7F6" font-family="Inter,Arial,sans-serif" font-size="24" font-weight="650">perfectmatchsystems.com</text>
+</svg>

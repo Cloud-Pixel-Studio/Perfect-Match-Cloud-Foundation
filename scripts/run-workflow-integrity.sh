@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+./scripts/build-test-postgres.sh
+
 container="pmcloud-workflow-integrity-$$"
 port=${PMC_TEST_POSTGRES_PORT:-55434}
 bootstrap_password=$(openssl rand -hex 24)
@@ -12,7 +14,7 @@ trap cleanup EXIT
 docker run --detach --rm --name "$container" --publish "127.0.0.1:${port}:5432" \
   --env POSTGRES_DB=pmcloud_workflow --env POSTGRES_USER=pmcloud_bootstrap \
   --env POSTGRES_PASSWORD="$bootstrap_password" \
-  postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2 >/dev/null
+  pmcloud-postgres:local >/dev/null
 for _ in $(seq 1 30); do
   docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_workflow >/dev/null 2>&1 && break
   sleep 1
@@ -36,7 +38,7 @@ export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
   test "$ready" = true
   uv run --no-sync alembic upgrade head
   uv run --no-sync alembic downgrade 0004_organization_structure
-  uv run --no-sync alembic upgrade 0005_workflow_engine
+  uv run --no-sync alembic upgrade head
   uv run --no-sync pytest -m workflow_integrity tests/test_workflow_integrity.py
   if uv run --no-sync alembic downgrade 0004_organization_structure; then
     echo "workflow audit downgrade unexpectedly succeeded" >&2
