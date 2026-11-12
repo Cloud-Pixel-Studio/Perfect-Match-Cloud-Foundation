@@ -10,8 +10,12 @@ spec.loader.exec_module(module)
 
 
 class InventoryTests(unittest.TestCase):
-    def test_empty_results(self):
-        self.assertEqual(module.inventory({"Results": []}, "image@sha256:" + "a" * 64), [])
+    def test_empty_results_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "non-empty Results"):
+            module.inventory({"Results": []}, "image@sha256:" + "a" * 64)
+
+    def test_valid_results_with_no_vulnerabilities(self):
+        self.assertEqual(module.inventory({"Results": [{"Target": "os", "Vulnerabilities": []}]}, "image@sha256:" + "a" * 64), [])
 
     def test_valid_high_and_critical_only(self):
         report = {"Results": [{"Target": "os", "Vulnerabilities": [
