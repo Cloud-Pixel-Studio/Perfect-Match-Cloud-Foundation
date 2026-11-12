@@ -17,8 +17,8 @@ def inventory(report: object, image: str) -> list[dict]:
     for result in report["Results"]:
         if not isinstance(result, dict):
             raise ValueError("Trivy Results entries must be objects")
-        if not isinstance(result.get("Target", ""), str):
-            raise ValueError("Trivy Target must be a string")
+        if not isinstance(result.get("Target"), str) or not result["Target"].strip():
+            raise ValueError("Trivy Target must be a non-empty string")
         vulns = result.get("Vulnerabilities", [])
         if vulns is None:
             vulns = []
