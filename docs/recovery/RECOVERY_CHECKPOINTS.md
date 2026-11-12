@@ -266,3 +266,18 @@ Encrypted artifacts and separate0600 keys remain outside Git; the public
 manifest records source count, cipher hashes and isolated restore verification.
 No QMS data/schema change.59 unit,36 Darwin and36 Linux browser cases passed;
 no screenshot updates/retries. Mock writes do not claim backend integration.
+
+
+## CAPA origin workflow · 12 November2026
+
+CP-CAPA-ORIGIN-00-20261112T154919Z preserves ba884bc and410 source files before
+origin-filter API and related-CAPA UI changes. Encrypted source restoration
+matched every hash; Git bundle verification passed.
+
+CP-CAPA-ORIGIN-06-20261112T212240Z preserves the final verified source before GitHub integration.
+See its public manifest for cipher hashes, isolated restoration and Git bundle
+verification. Keys0600 and actual backups stay outside the working tree. Visual
+evidence is stored separately encrypted and checked against its PNG SHA256.
+No QMS runtime data/schema mutation or database restoration claimed. Final
+checks:199 disposable PostgreSQL,59 web unit,50 Darwin and50 Linux browser cases;
+no snapshot updates or retries. Mock writes do not establish backend persistence.

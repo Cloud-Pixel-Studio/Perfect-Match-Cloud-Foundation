@@ -4,6 +4,7 @@ import { AlertTriangle, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { NCRLinks } from "./ncr-links";
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+import { RelatedCAPAs } from "./related-capas";
 
 type Unit = { id: string; code: string; name: string; status: string };
 type Process = { id: string; code: string; name: string; status: string };
@@ -338,6 +339,9 @@ export function NonconformitiesWorkspace({ onAccessDenied, preferredUnitId, onUn
           ["Opened", selected.opened_at, selected.opened_by_user_id], ["Last reviewed", selected.reviewed_at, selected.reviewed_by_user_id],
           ["Closed", selected.closed_at, selected.closed_by_user_id], ["Cancelled", selected.cancelled_at, selected.cancelled_by_user_id],
         ] as const).map(([title, date, person]) => <div key={title}><dt>{title}</dt><dd>{dateLabel(date)}{person && <small>{memberName(person)}</small>}</dd></div>)}</dl></details>
+        <RelatedCAPAs key={`capa-${selected.id}-${selected.unit_id}-${selected.process_id}`} origin={{ ...selected, kind: "ncr" }} capabilities={caps} disabled={busy || editing || creating}
+          onBusyChange={(value) => { mutationBusy.current = value; setLinksBusy(value); }}
+          onAccessChanged={() => { invalidate(); setRefresh((value) => value + 1); denied.current?.(); }} />
         <NCRLinks ncr={selected} capabilities={caps} disabled={busy || editing || creating}
           onVersionChange={(version) => setRows((current) => current.map((row) => row.id === selected.id ? { ...row, row_version: version } : row))}
           onBusyChange={(value) => { mutationBusy.current = value; setLinksBusy(value); }}
