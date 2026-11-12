@@ -38,6 +38,11 @@ class InventoryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             module.inventory({"Results": [{"Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
 
+    def test_non_string_severity_fails_closed(self):
+        for severity in ([], {}, 5, None):
+            with self.subTest(severity=severity), self.assertRaises(ValueError):
+                module.inventory({"Results": [{"Vulnerabilities": [{"Severity": severity}]}]}, "digest")
+
     def test_invalid_target_fails_closed(self):
         with self.assertRaises(ValueError):
             module.inventory({"Results": [{"Target": [], "Vulnerabilities": []}]}, "digest")
