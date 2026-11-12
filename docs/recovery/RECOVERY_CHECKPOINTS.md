@@ -244,3 +244,14 @@ hashes and restoration verification live in protected external storage with
 a separate0600 key. No schema/data mutation: no new DB restore claimed.
 The final verification includes59 unit tests, lint/types/build, Darwin19 and
 Linux19 repeated without snapshot updates/retries; release remains blocked.
+
+
+CP-DOCUMENTS-00 `20261112T143052Z` preservesacaf7dd before document workspace
+reliability changes. Encrypted source402 entries and complete Git bundle were
+verified by stream decryption, every file hash and git bundle verify.
+
+CP-DOCUMENTS-06-20261112T144338Z preserves the final reliability change and regression suite before
+GitHub integration. Encrypted source/Git and separate0600 keys remain outside
+the working tree; the public manifest records cipher hashes and verification.
+No QMS data or database schema changed. Tests:59 unit,26 Darwin and26 Linux
+browser scenarios; existing snapshots unchanged, no retries. No release approval.

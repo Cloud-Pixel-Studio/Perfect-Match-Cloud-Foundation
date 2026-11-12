@@ -1,7 +1,7 @@
 "use client";
 
 import { FileCheck2, FilePlus2, RefreshCw, ShieldCheck, Upload } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
 
@@ -43,19 +43,27 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
   const [createRevision, setCreateRevision] = useState(false);
   const [confirmObsolete, setConfirmObsolete] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [scopeLoading, setScopeLoading] = useState(false);
+  const [verifiedUnitId, setVerifiedUnitId] = useState("");
+  const [referenceGeneration, setReferenceGeneration] = useState(0);
+  const [referencesReady, setReferencesReady] = useState(false);
+  const [referenceError, setReferenceError] = useState("");
+  const scopeEpoch = useRef(0);
+  const scopeRequest = useRef<AbortController | null>(null);
   const [unitsLoading, setUnitsLoading] = useState(true);
   const [message, setMessage] = useState("Loading document access…");
   const [error, setError] = useState("");
 
-  const selected = rows.find((row) => row.id === selectedId) ?? null;
-  const revision = revisions.find((row) => row.id === selectedRevision) ?? null;
-  const canAuthor = caps.includes("documents.author");
-  const canReadProcesses = caps.includes("processes.read");
-  const canCreateDocument = canAuthor && canReadProcesses && processes.length > 0;
-  const canReview = caps.includes("documents.review");
-  const canApprove = caps.includes("documents.approve");
-  const canRelease = caps.includes("documents.release");
-  const canObsolete = caps.includes("documents.obsolete");
+  const selected = verifiedUnitId === unitId ? rows.find((row) => row.id === selectedId && row.unit_id === unitId) ?? null : null;
+  const revision = revisions.find((row) => row.id === selectedRevision && row.document_id === selected?.id) ?? null;
+  const verifiedCaps = verifiedUnitId === unitId ? caps : [];
+  const canAuthor = verifiedCaps.includes("documents.author");
+  const canReadProcesses = verifiedCaps.includes("processes.read");
+  const canCreateDocument = canAuthor && canReadProcesses && referencesReady;
+  const canReview = verifiedCaps.includes("documents.review");
+  const canApprove = verifiedCaps.includes("documents.approve");
+  const canRelease = verifiedCaps.includes("documents.release");
+  const canObsolete = verifiedCaps.includes("documents.obsolete");
 
   const loadUnits = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`${api}/organization/units?limit=100`, { credentials: "include", signal });
@@ -69,32 +77,50 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
   }, [initialPreferredUnitId]);
 
   const loadScope = useCallback(async (unit: string, signal?: AbortSignal, pageOffset = 0, filter = "") => {
-    if (!unit) { setCaps([]); setProcesses([]); setMembers([]); setRows([]); setRevisions([]); setMessage("No active organizational unit is available."); return; }
-    setBusy(true); setError(""); setMessage(""); setCaps([]); setProcesses([]); setMembers([]); setRows([]); setRevisions([]); setSelectedId(""); setSelectedRevision(""); setOffset(pageOffset); setHasNext(false);
+    if (signal?.aborted) return;
+    const epoch = ++scopeEpoch.current;
+    scopeRequest.current?.abort();
+    const controller = new AbortController();
+    scopeRequest.current = controller;
+    const abort = () => controller.abort();
+    signal?.addEventListener("abort", abort, { once: true });
+    const current = () => !controller.signal.aborted && epoch === scopeEpoch.current;
+    setScopeLoading(Boolean(unit)); setReferenceError(""); setError(""); setMessage(""); setVerifiedUnitId(""); setCaps([]); setProcesses([]); setMembers([]); setReferencesReady(false); setProcessHasNext(false); setMemberHasNext(false); setRows([]); setRevisions([]); setSelectedId(""); setSelectedRevision(""); setOffset(pageOffset); setHasNext(false); setCreateDocument(false); setCreateRevision(false); setConfirmObsolete(false);
     try {
-      const accessResponse = await fetch(`${api}/qms-access/effective?unit_id=${encodeURIComponent(unit)}`, { credentials: "include", signal });
+      if (!unit) { setMessage("No active organizational unit is available."); return; }
+      const accessResponse = await fetch(`${api}/qms-access/effective?unit_id=${encodeURIComponent(unit)}`, { credentials: "include", signal: controller.signal });
+      if (!current()) return;
       if (!accessResponse.ok) throw new Error(accessResponse.status === 401 ? "Your session has expired. Sign in again." : "Unit permissions could not be verified.");
       const access = await accessResponse.json() as Capability;
-      if (signal?.aborted) return;
-      setCaps(access.capabilities);
+      if (!current()) return;
+      if (access.unit_id !== unit) throw new Error("Unit permissions did not match the requested scope.");
       if (!canView(access.capabilities)) { setMessage("No document responsibilities are assigned for this unit."); return; }
       const query = new URLSearchParams({ unit_id: unit, limit: "50", offset: String(pageOffset), search: filter });
-      const responses = await Promise.all([fetch(`${api}/documents?${query}`, { credentials: "include", signal })]);
-      if (responses.some((response) => !response.ok)) throw new Error("Document register could not be loaded. Refresh your access.");
-      const docs = await responses[0].json() as DocumentRow[];
-      if (signal?.aborted) return;
+      const response = await fetch(`${api}/documents?${query}`, { credentials: "include", signal: controller.signal });
+      if (!current()) return;
+      if (!response.ok) throw new Error("Document register could not be loaded. Refresh your access.");
+      const docs = await response.json() as DocumentRow[];
+      if (!current()) return;
+      setVerifiedUnitId(unit); setCaps(access.capabilities); setReferenceGeneration(epoch);
       setRows(docs.slice(0, 50)); setSelectedId(docs[0]?.id ?? "");
       setHasNext(docs.length > 50); setOffset(pageOffset); setAppliedSearch(filter);
       setMessage(docs.length ? "" : "No controlled documents in this unit yet.");
     } catch (cause) {
-      if (!signal?.aborted) { setCaps([]); setProcesses([]); setMembers([]); setRows([]); setError(cause instanceof Error ? cause.message : "Document service unavailable."); }
-    } finally { if (!signal?.aborted) setBusy(false); }
+      if (current()) setError(cause instanceof Error ? cause.message : "Document service unavailable.");
+    } finally {
+      signal?.removeEventListener("abort", abort);
+      if (current()) setScopeLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     if (!unitId || !canAuthor || !canReadProcesses) return;
     const controller = new AbortController();
+    const epoch = referenceGeneration;
+    const current = () => !controller.signal.aborted && epoch === scopeEpoch.current;
     const timer = window.setTimeout(() => {
+      if (!current()) return;
+      setReferenceError(""); setReferencesReady(false); setProcesses([]); setMembers([]); setProcessHasNext(false); setMemberHasNext(false);
       const processQuery = new URLSearchParams({ unit_id: unitId, limit: "50", offset: String(processOffset), search: processSearch });
       const memberQuery = new URLSearchParams({ limit: "50", offset: String(memberOffset), search: memberSearch });
       void Promise.all([
@@ -103,14 +129,20 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
       ]).then(async ([processResponse, memberResponse]) => {
         if (!processResponse.ok || !memberResponse.ok) throw new Error("Document creation references could not be loaded.");
         const [processRows, memberRows] = await Promise.all([processResponse.json() as Promise<ProcessRef[]>, memberResponse.json() as Promise<Member[]>]);
-        if (!controller.signal.aborted) {
+        if (current()) {
           setProcesses(processRows); setMembers(memberRows);
           setProcessHasNext(processRows.length === 50); setMemberHasNext(memberRows.length === 50);
+          setReferencesReady(true);
         }
-      }).catch(() => { if (!controller.signal.aborted) { setProcesses([]); setMembers([]); setError("Document creation references could not be loaded."); } });
+      }).catch(() => { if (current()) { setProcesses([]); setMembers([]); setReferencesReady(false); setReferenceError("Document creation references could not be loaded. Refresh or adjust the reference search to retry."); } });
     }, 180);
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [unitId, canAuthor, canReadProcesses, processSearch, memberSearch, processOffset, memberOffset]);
+  }, [unitId, canAuthor, canReadProcesses, referenceGeneration, processSearch, memberSearch, processOffset, memberOffset]);
+
+  useEffect(() => () => {
+    ++scopeEpoch.current;
+    scopeRequest.current?.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -158,7 +190,9 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
 
   async function addDocument(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!canAuthor || !unitId || busy) return;
+    if (!referencesReady || !canReadProcesses) return;
     const data = new FormData(event.currentTarget);
+    if (!processes.some((process) => process.id === data.get("process_id"))) return;
     await jsonMutation("/documents", { unit_id: unitId, process_id: data.get("process_id"), code: data.get("code"), title: data.get("title"), document_type: data.get("document_type"), owner_user_id: data.get("owner_user_id") || null });
     setCreateDocument(false);
   }
@@ -188,6 +222,10 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
     await jsonMutation(`/documents/${selected.id}/revisions/${revision.id}/${action}`, { expected_version: revision.row_version });
   }
 
+  function closeDocumentForm() {
+    setCreateDocument(false); setProcessSearch(""); setMemberSearch(""); setProcessOffset(0); setMemberOffset(0);
+  }
+
   const formatSize = (size: number | null) => size == null ? "Not uploaded" : `${(size / (1024 * 1024)).toFixed(2)} MiB`;
   const formatDate = (value: string | null, includeTime = false) => {
     if (!value) return "Not recorded";
@@ -197,28 +235,31 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
     if (dateOnly) options.timeZone = "UTC";
     return new Intl.DateTimeFormat(undefined, options).format(new Date(value));
   };
-  return <section className="documents-workspace" aria-labelledby="documents-heading">
+  return <section className="documents-workspace" aria-labelledby="documents-heading" aria-busy={scopeLoading}>
     <div className="workspace-heading"><div><p className="eyebrow">Controlled information</p><h2 id="documents-heading"><FileCheck2 aria-hidden="true" size={22} /> Document control</h2><p className="workspace-subtitle">Controlled revisions, independent review, approval and release.</p></div>
-      <button className="secondary-action compact-action" type="button" disabled={busy} onClick={() => void loadScope(unitId, undefined, offset, appliedSearch)}><RefreshCw size={16} aria-hidden="true" /> Refresh</button></div>
+      <button className="secondary-action compact-action" type="button" disabled={busy || scopeLoading} onClick={() => void loadScope(unitId, undefined, offset, appliedSearch)}><RefreshCw size={16} aria-hidden="true" /> Refresh</button></div>
     <p className="qms-access-note"><ShieldCheck size={17} aria-hidden="true" /> Files are scanned before private storage. Access and workflow transitions are validated by the server.</p>
     {error && <p role="alert" className="denied-state">{error}</p>}{message && <p role={error ? "status" : "status"} className="workflow-message">{message}</p>}
-    {unitsLoading || (busy && Boolean(unitId) && rows.length === 0 && !error) ? <RecordWorkspaceSkeleton label="Loading document control" /> : <>
-    <div className="documents-toolbar"><label htmlFor="documents-unit">Organizational unit<select id="documents-unit" value={unitId} disabled={busy} onChange={(event) => { setOffset(0); setProcessOffset(0); setMemberOffset(0); setProcessSearch(""); setMemberSearch(""); setUnitId(event.target.value); onUnitChange?.(event.target.value); }}><option value="">Select a unit</option>{units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name} · {unit.code}</option>)}</select></label>
-      <form className="document-search" onSubmit={(event) => { event.preventDefault(); void loadScope(unitId, undefined, 0, search.trim()); }}><label htmlFor="document-search">Find by code or title<input id="document-search" maxLength={160} value={search} onChange={(event) => setSearch(event.target.value)} /></label><button className="secondary-action compact-action" type="submit" disabled={busy}>Search</button></form>
-      {canAuthor && <button className="primary-action compact-action" type="button" disabled={busy || !canCreateDocument} onClick={() => setCreateDocument((value) => !value)}><FilePlus2 size={16} aria-hidden="true" /> New document</button>}</div>
+    {unitsLoading || (scopeLoading && Boolean(unitId) && rows.length === 0 && !error) ? <RecordWorkspaceSkeleton label="Loading document control" /> : <>
+    <div className="documents-toolbar"><label htmlFor="documents-unit">Organizational unit<select id="documents-unit" value={unitId} disabled={busy} onChange={(event) => { setOffset(0); setProcessOffset(0); setMemberOffset(0); setProcessSearch(""); setMemberSearch(""); setCreateDocument(false); setCreateRevision(false); setConfirmObsolete(false); setUnitId(event.target.value); onUnitChange?.(event.target.value); }}><option value="">Select a unit</option>{units.map((unit) => <option key={unit.id} value={unit.id}>{unit.name} · {unit.code}</option>)}</select></label>
+      <form className="document-search" onSubmit={(event) => { event.preventDefault(); void loadScope(unitId, undefined, 0, search.trim()); }}><label htmlFor="document-search">Find by code or title<input id="document-search" maxLength={160} value={search} onChange={(event) => setSearch(event.target.value)} /></label><button className="secondary-action compact-action" type="submit" disabled={busy || scopeLoading}>Search</button></form>
+      {canAuthor && <button className="primary-action compact-action" type="button" disabled={busy || scopeLoading || !canCreateDocument} onClick={() => setCreateDocument((value) => !value)}><FilePlus2 size={16} aria-hidden="true" /> New document</button>}</div>
     {canAuthor && !canReadProcesses && <p className="qms-history-caption">Document creation also requires process read access so each controlled document can be linked to an authorized active process.</p>}
-    {createDocument && canAuthor && <form className="document-form" onSubmit={(event) => void addDocument(event)}><h3>Register a controlled document</h3><fieldset disabled={busy}>
+    {canAuthor && canReadProcesses && !referencesReady && !referenceError && <p className="qms-history-caption" role="status">Loading authorized processes and owners…</p>}
+    {referenceError && canAuthor && canReadProcesses && <p className="denied-state document-reference-error" role="alert">{referenceError}</p>}
+    {createDocument && canAuthor && canReadProcesses && <form className="document-form" onSubmit={(event) => void addDocument(event)}><h3>Register a controlled document</h3><fieldset disabled={busy || scopeLoading}>
       <label>Code<input name="code" required maxLength={40} /></label><label>Title<input name="title" required maxLength={200} /></label>
       <label>Document type<select name="document_type"><option value="procedure">Procedure</option><option value="policy">Policy</option><option value="work_instruction">Work instruction</option><option value="form">Form</option><option value="record_template">Record template</option><option value="manual">Manual</option><option value="other">Other</option></select></label>
-      <label>Find process<input maxLength={160} value={processSearch} onChange={(event) => { setProcessSearch(event.target.value); setProcessOffset(0); }} placeholder="Search code or name" /></label>
-      <nav className="document-pagination" aria-label="Process search pages"><button type="button" className="secondary-action compact-action" disabled={processOffset === 0} onClick={() => setProcessOffset(Math.max(0, processOffset - 50))}>Previous processes</button><span>Results {processOffset + (processes.length ? 1 : 0)}–{processOffset + processes.length}</span><button type="button" className="secondary-action compact-action" disabled={!processHasNext} onClick={() => setProcessOffset(processOffset + 50)}>More processes</button></nav>
-      <label>Process<select name="process_id" required><option value="">Select an active process</option>{processes.map((process) => <option key={process.id} value={process.id}>{process.code} · {process.name}</option>)}</select></label>
-      <label>Find document owner<input maxLength={160} value={memberSearch} onChange={(event) => { setMemberSearch(event.target.value); setMemberOffset(0); }} placeholder="Search tenant members" /></label>
-      <nav className="document-pagination" aria-label="Member search pages"><button type="button" className="secondary-action compact-action" disabled={memberOffset === 0} onClick={() => setMemberOffset(Math.max(0, memberOffset - 50))}>Previous members</button><span>Results {memberOffset + (members.length ? 1 : 0)}–{memberOffset + members.length}</span><button type="button" className="secondary-action compact-action" disabled={!memberHasNext} onClick={() => setMemberOffset(memberOffset + 50)}>More members</button></nav>
-      <label>Document owner (optional)<select name="owner_user_id"><option value="">No owner assigned</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name} · {member.role}</option>)}</select></label>
-      <div className="document-form-actions"><button className="primary-action compact-action" type="submit">Create document</button><button className="secondary-action compact-action" type="button" onClick={() => setCreateDocument(false)}>Cancel</button></div>
+      <label>Find process<input maxLength={160} value={processSearch} onChange={(event) => { setReferencesReady(false); setProcessSearch(event.target.value); setProcessOffset(0); }} placeholder="Search code or name" /></label>
+      <nav className="document-pagination" aria-label="Process search pages"><button type="button" className="secondary-action compact-action" disabled={processOffset === 0} onClick={() => { setReferencesReady(false); setProcessOffset(Math.max(0, processOffset - 50)); }}>Previous processes</button><span>Results {processOffset + (processes.length ? 1 : 0)}–{processOffset + processes.length}</span><button type="button" className="secondary-action compact-action" disabled={!processHasNext} onClick={() => { setReferencesReady(false); setProcessOffset(processOffset + 50); }}>More processes</button></nav>
+      <label>Process<select name="process_id" required disabled={!referencesReady}><option value="">Select an active process</option>{processes.map((process) => <option key={process.id} value={process.id}>{process.code} · {process.name}</option>)}</select></label>
+      {referencesReady && processes.length === 0 && <p className="qms-history-caption">No active processes match this search. Adjust the process search before creating the document.</p>}
+      <label>Find document owner<input maxLength={160} value={memberSearch} onChange={(event) => { setReferencesReady(false); setMemberSearch(event.target.value); setMemberOffset(0); }} placeholder="Search tenant members" /></label>
+      <nav className="document-pagination" aria-label="Member search pages"><button type="button" className="secondary-action compact-action" disabled={memberOffset === 0} onClick={() => { setReferencesReady(false); setMemberOffset(Math.max(0, memberOffset - 50)); }}>Previous members</button><span>Results {memberOffset + (members.length ? 1 : 0)}–{memberOffset + members.length}</span><button type="button" className="secondary-action compact-action" disabled={!memberHasNext} onClick={() => { setReferencesReady(false); setMemberOffset(memberOffset + 50); }}>More members</button></nav>
+      <label>Document owner (optional)<select name="owner_user_id" disabled={!referencesReady}><option value="">No owner assigned</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name} · {member.role}</option>)}</select></label>
+      <div className="document-form-actions"><button className="primary-action compact-action" type="submit" disabled={!referencesReady || processes.length === 0}>Create document</button><button className="secondary-action compact-action" type="button" onClick={closeDocumentForm}>Cancel</button></div>
     </fieldset></form>}
-    <div className="documents-grid"><aside className="document-list"><h3>Register <span>{rows.length}</span></h3>{rows.length ? <ul>{rows.map((row) => <li key={row.id}><button type="button" className={row.id === selectedId ? "selected" : ""} onClick={() => { setRevisions([]); setSelectedRevision(""); setSelectedId(row.id); setCreateRevision(false); }}><strong>{row.code}</strong><span>{row.title}</span><small>{row.status} · {row.document_type}</small></button></li>)}</ul> : <p className="workspace-subtitle">No documents to display.</p>}</aside>
+    <div className="documents-grid"><aside className="document-list"><h3>Register <span>{rows.length}</span></h3>{rows.length ? <ul>{rows.map((row) => <li key={row.id}><button type="button" disabled={busy || scopeLoading} className={row.id === selectedId ? "selected" : ""} onClick={() => { setRevisions([]); setSelectedRevision(""); setSelectedId(row.id); setCreateRevision(false); setConfirmObsolete(false); }}><strong>{row.code}</strong><span>{row.title}</span><small>{row.status} · {row.document_type}</small></button></li>)}</ul> : <p className="workspace-subtitle">No documents to display.</p>}</aside>
       <div className="document-detail">{selected ? <><div className="detail-heading"><div><p className="eyebrow">{selected.code}</p><h3>{selected.title}</h3><p>{processName.get(selected.process_id) ?? "Linked process"} · {selected.status}</p></div><div className="document-heading-actions">{canAuthor && selected.status !== "obsolete" && <button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setCreateRevision((value) => !value)}>New revision</button>}{canObsolete && selected.status !== "obsolete" && (confirmObsolete ? <><button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => { void jsonMutation(`/documents/${selected.id}/obsolete`, { expected_version: selected.row_version }); setConfirmObsolete(false); }}>Confirm obsolete</button><button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setConfirmObsolete(false)}>Cancel</button></> : <button type="button" className="secondary-action compact-action" disabled={busy} onClick={() => setConfirmObsolete(true)}>Obsolete</button>)}</div></div>
         {createRevision && canAuthor && <form className="document-form" onSubmit={(event) => void addRevision(event)}><h4>Prepare a revision</h4><fieldset disabled={busy}><label>Revision code<input name="revision" required maxLength={40} /></label><label>Revision date<input name="revision_date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></label><label className="document-wide">Change summary<textarea name="change_summary" maxLength={4000} rows={3} /></label><div className="document-form-actions"><button className="primary-action compact-action" type="submit">Create revision</button><button className="secondary-action compact-action" type="button" onClick={() => setCreateRevision(false)}>Cancel</button></div></fieldset></form>}
         <h4 className="revision-heading">Revision history</h4>{revisions.length ? <div className="revision-table-scroll"><table className="qms-access-table"><thead><tr><th>Revision</th><th>Status</th><th>File</th><th>Prepared</th></tr></thead><tbody>{revisions.map((item) => <tr key={item.id}><td><button type="button" className="revision-select" onClick={() => setSelectedRevision(item.id)} aria-pressed={item.id === selectedRevision}>{item.revision}</button></td><td>{item.status}</td><td>{item.file_state} · {formatSize(item.file_size)}</td><td><time dateTime={item.created_at}>{new Date(item.created_at).toLocaleDateString()}</time></td></tr>)}</tbody></table></div> : <p className="workspace-subtitle">No revisions yet.</p>}
@@ -232,8 +273,8 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
           {revision.file_state === "clean" && caps.includes("documents.read") && <a className="secondary-action compact-action" href={`${api}/documents/${selected.id}/revisions/${revision.id}/file`}>Download PDF</a>}
         </div>}
       </> : <div className="empty-state"><FileCheck2 size={22} aria-hidden="true" /><div><strong>Select a document</strong><p>Choose a record to inspect its revisions and controlled status.</p></div></div>}</div>
-      <nav className="document-pagination" aria-label="Document register pages"><button type="button" className="secondary-action compact-action" disabled={busy || offset === 0} onClick={() => void loadScope(unitId, undefined, Math.max(0, offset - 50), appliedSearch)}>Previous</button><span>Showing {rows.length ? offset + 1 : 0}–{offset + rows.length}</span><button type="button" className="secondary-action compact-action" disabled={busy || !hasNext} onClick={() => void loadScope(unitId, undefined, offset + 50, appliedSearch)}>Next</button></nav>
     </div>
+    <nav className="document-pagination" aria-label="Document register pages"><button type="button" className="secondary-action compact-action" disabled={busy || scopeLoading || offset === 0} onClick={() => void loadScope(unitId, undefined, Math.max(0, offset - 50), appliedSearch)}>Previous</button><span>Showing {rows.length ? offset + 1 : 0}–{offset + rows.length}</span><button type="button" className="secondary-action compact-action" disabled={busy || scopeLoading || !hasNext} onClick={() => void loadScope(unitId, undefined, offset + 50, appliedSearch)}>Next</button></nav>
     </>}
   </section>;
 }

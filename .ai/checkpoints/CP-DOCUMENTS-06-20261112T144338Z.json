@@ -1,0 +1,21 @@
+{
+  "id": "CP-DOCUMENTS-06-20261112T144338Z",
+  "branch": "codex/document-workspace-reliability",
+  "baseCommit": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+  "sourceEntries": 405,
+  "artifacts": {
+    "source.tar.gz.enc": "7b0f9e83db7282f617286b60dfb0bca9113bc36304437d293cfa9c9f209d8cab",
+    "repository.bundle.enc": "9e7eb09c5c2652dfe9ef353b9a4fd894ca3760e40e0b7573b333b6b639176e78"
+  },
+  "verification": "isolated encrypted source restore and every SHA256 matched; git bundle verify PASS",
+  "database": "no QMS data/schema changes; no new DB restore claimed",
+  "excluded": "ignored build/dependencies/artifacts, secrets, customer data",
+  "tests": {
+    "unit": 59,
+    "darwin": 26,
+    "linux": 26,
+    "snapshotUpdates": false,
+    "retries": 0,
+    "lintTypesBuildSecretsLicenses": "PASS"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "CP-DOCUMENTS-00-20261112T143052Z",
+  "baseCommit": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+  "sourceEntries": 402,
+  "artifacts": {
+    "source.tar.gz.enc": "370ed10d6d9e7532af67f80d29464204496ad952f6f27c6a9c910b604e402d18",
+    "repository.bundle.enc": "89dc7e3ae1d1d3e1fb9c03bd0e9caca12d60663a311f16ab3d5322ab2f42b218"
+  },
+  "verification": "source stream decrypt and every file hash matched; git bundle verify PASS",
+  "database": "no data/schema mutations; no new DB backup/restore claimed",
+  "excludes": "ignored artifacts/dependencies, secrets and customer data"
+}
