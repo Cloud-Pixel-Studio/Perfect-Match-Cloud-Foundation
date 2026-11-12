@@ -2,6 +2,7 @@
 """Generate a deterministic, fail-closed inventory from Trivy vulnerability JSON."""
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -15,6 +16,8 @@ def inventory(report: object, image: str) -> list[dict]:
     for result in report["Results"]:
         if not isinstance(result, dict):
             raise ValueError("Trivy Results entries must be objects")
+        if not isinstance(result.get("Target", ""), str):
+            raise ValueError("Trivy Target must be a string")
         vulns = result.get("Vulnerabilities", [])
         if vulns is None:
             vulns = []
@@ -23,7 +26,10 @@ def inventory(report: object, image: str) -> list[dict]:
         for vuln in vulns:
             if not isinstance(vuln, dict):
                 raise ValueError("Trivy vulnerability must be an object")
-            if vuln.get("Severity") not in SEVERITIES:
+            severity = vuln.get("Severity")
+            if severity not in {"UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL"}:
+                raise ValueError("Trivy vulnerability has invalid or missing Severity")
+            if severity not in SEVERITIES:
                 continue
             required = ("VulnerabilityID", "PkgName", "InstalledVersion", "Severity")
             if any(not isinstance(vuln.get(k), str) or not vuln[k] for k in required):
@@ -51,7 +57,7 @@ def main() -> int:
     try:
         findings = []
         for image, path in args.report:
-            if "@sha256:" not in image or len(image.rsplit("@sha256:", 1)[-1]) != 64:
+            if not re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", image):
                 raise ValueError("image reference must include an immutable sha256 digest")
             findings.extend(inventory(json.loads(Path(path).read_text(encoding="utf-8")), image))
         result = {"schema_version": 1, "high_or_critical_count": len(findings), "findings": sorted(findings, key=lambda r: (r["image"], r["target"], r["cve"], r["package"]))}
