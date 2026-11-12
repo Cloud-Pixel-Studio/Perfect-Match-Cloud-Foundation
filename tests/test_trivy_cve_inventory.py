@@ -32,24 +32,31 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(rows[0]["cve"], "CVE-1")
 
     def test_no_fix_reported(self):
-        report = {"Results": [{"Vulnerabilities": [
+        report = {"Results": [{"Target": "os", "Vulnerabilities": [
             {"VulnerabilityID": "CVE-3", "PkgName": "pkg", "InstalledVersion": "1", "Severity": "CRITICAL"},
         ]}]}
         self.assertEqual(module.inventory(report, "digest")[0]["fixed_version"], "")
 
     def test_malformed_report_fails_closed(self):
-        for report in ({}, {"Results": None}, {"Results": [{} , "bad"]}, {"Results": [{"Vulnerabilities": "invalid"}]}):
+        for report in ({}, {"Results": None}, {"Results": [{"Target": "os"}, "bad"]}, {"Results": [{"Target": "os", "Vulnerabilities": "invalid"}]}):
             with self.subTest(report=report), self.assertRaises(ValueError):
                 module.inventory(report, "digest")
 
     def test_missing_severity_fails_closed(self):
         with self.assertRaises(ValueError):
-            module.inventory({"Results": [{"Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
+            module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"VulnerabilityID": "CVE-1"}]}]}, "digest")
 
     def test_non_string_severity_fails_closed(self):
         for severity in ([], {}, 5, None):
             with self.subTest(severity=severity), self.assertRaises(ValueError):
-                module.inventory({"Results": [{"Vulnerabilities": [{"Severity": severity}]}]}, "digest")
+                module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"Severity": severity}]}]}, "digest")
+
+    def test_missing_or_blank_target_fails_closed(self):
+        for target in (None, "", "  ", [], {}):
+            with self.subTest(target=target), self.assertRaisesRegex(ValueError, "non-empty"):
+                module.inventory({"Results": [{"Target": target, "Vulnerabilities": []}]}, "digest")
+        with self.assertRaisesRegex(ValueError, "non-empty"):
+            module.inventory({"Results": [{"Vulnerabilities": []}]}, "digest")
 
     def test_invalid_target_fails_closed(self):
         with self.assertRaises(ValueError):
@@ -57,7 +64,7 @@ class InventoryTests(unittest.TestCase):
 
     def test_incomplete_high_fails_closed(self):
         with self.assertRaises(ValueError):
-            module.inventory({"Results": [{"Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
+            module.inventory({"Results": [{"Target": "os", "Vulnerabilities": [{"Severity": "HIGH"}]}]}, "digest")
 
 
     def test_cli_removes_stale_output_on_invalid_report(self):
@@ -87,6 +94,30 @@ class InventoryTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["high_or_critical_count"], 0)
             self.assertFalse(list(root.glob(".trivy-inventory-*.tmp")))
+
+
+    def test_cli_summarizes_each_image_and_fix_availability(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "first.json"
+            second = root / "second.json"
+            first.write_text(json.dumps({"Results": [{"Target": "os", "Vulnerabilities": [
+                {"VulnerabilityID": "CVE-1", "PkgName": "a", "InstalledVersion": "1", "FixedVersion": "2", "Severity": "HIGH"},
+                {"VulnerabilityID": "CVE-2", "PkgName": "b", "InstalledVersion": "1", "Severity": "CRITICAL"},
+            ]}]}), encoding="utf-8")
+            second.write_text(json.dumps({"Results": [{"Target": "os", "Vulnerabilities": []}]}), encoding="utf-8")
+            a, b = ("first@sha256:" + "a" * 64, "second@sha256:" + "b" * 64)
+            output = root / "inventory.json"
+            result = subprocess.run([sys.executable, str(SCRIPT), "--report", a, str(first),
+                                     "--report", b, str(second), "--output", str(output)],
+                                    capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["high_or_critical_count"], 2)
+            self.assertEqual(payload["image_summaries"][a], {
+                "high": 1, "critical": 1, "with_fixed_version": 1, "without_fixed_version": 1})
+            self.assertEqual(payload["image_summaries"][b], {
+                "high": 0, "critical": 0, "with_fixed_version": 0, "without_fixed_version": 0})
 
 
 if __name__ == "__main__":
