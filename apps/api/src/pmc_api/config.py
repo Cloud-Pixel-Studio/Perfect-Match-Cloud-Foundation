@@ -60,7 +60,9 @@ class Settings(BaseSettings):
                     or parts.fragment
                     or parts.query
                 ):
-                    raise ValueError(f"production requires HTTPS {field_name} without URL credentials, query or fragment")
+                    raise ValueError(
+                        f"production requires HTTPS {field_name} without URL credentials, query or fragment"
+                    )
                 try:
                     parts.port  # Reject malformed ports rather than accepting invalid public URLs.
                 except ValueError as exc:
