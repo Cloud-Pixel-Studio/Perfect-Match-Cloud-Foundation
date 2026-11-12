@@ -96,5 +96,29 @@ class InventoryTests(unittest.TestCase):
             self.assertFalse(list(root.glob(".trivy-inventory-*.tmp")))
 
 
+    def test_cli_summarizes_each_image_and_fix_availability(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = root / "first.json"
+            second = root / "second.json"
+            first.write_text(json.dumps({"Results": [{"Target": "os", "Vulnerabilities": [
+                {"VulnerabilityID": "CVE-1", "PkgName": "a", "InstalledVersion": "1", "FixedVersion": "2", "Severity": "HIGH"},
+                {"VulnerabilityID": "CVE-2", "PkgName": "b", "InstalledVersion": "1", "Severity": "CRITICAL"},
+            ]}]}), encoding="utf-8")
+            second.write_text(json.dumps({"Results": [{"Target": "os", "Vulnerabilities": []}]}), encoding="utf-8")
+            a, b = ("first@sha256:" + "a" * 64, "second@sha256:" + "b" * 64)
+            output = root / "inventory.json"
+            result = subprocess.run([sys.executable, str(SCRIPT), "--report", a, str(first),
+                                     "--report", b, str(second), "--output", str(output)],
+                                    capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["high_or_critical_count"], 2)
+            self.assertEqual(payload["image_summaries"][a], {
+                "high": 1, "critical": 1, "with_fixed_version": 1, "without_fixed_version": 1})
+            self.assertEqual(payload["image_summaries"][b], {
+                "high": 0, "critical": 0, "with_fixed_version": 0, "without_fixed_version": 0})
+
+
 if __name__ == "__main__":
     unittest.main()
