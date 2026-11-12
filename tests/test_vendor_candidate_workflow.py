@@ -48,6 +48,20 @@ class CandidateWorkflowTests(unittest.TestCase):
         upload = self._step("Preserve immutable scanner evidence")
         self.assertIn("if: always() && github.event_name == 'workflow_dispatch'", upload)
 
+    def test_pr_candidate_scan_is_fail_closed_after_evidence_upload(self):
+        scan = self._step("Scan resolved candidate digests and record gate on PR")
+        upload = self._step("Upload PR candidate evidence")
+        gate = self._step("Fail closed on PR candidate high or critical findings")
+        self.assertIn("artifacts/pr-candidate-gate.json", scan)
+        self.assertIn("if: always() && github.event_name == 'pull_request'", upload)
+        self.assertIn("if: github.event_name == 'pull_request'", gate)
+        self.assertIn("set -euo pipefail", gate)
+        self.assertIn("artifacts/pr-candidate-gate.json", gate)
+        self.assertIn(".high_or_critical.keycloak", gate)
+        self.assertIn(".high_or_critical.seaweedfs", gate)
+        self.assertLess(self.content.index("name: Upload PR candidate evidence"),
+                        self.content.index("name: Fail closed on PR candidate high or critical findings"))
+
     @classmethod
     def _step(cls, name):
         # Steps have six-space indentation; capture until the next step.
