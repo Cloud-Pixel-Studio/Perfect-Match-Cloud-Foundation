@@ -69,7 +69,7 @@ live usaba el nombre local “Development access review”; el seed limpio crea
 “Perfect Match Demonstration Site”, con el mismo código `DEV-ACCESS-UI`.
 Se corrigió únicamente la selección del test por código/valor en
 `a0d7675ff1987feec6e887adb6325058e6ce1027`, sin cambiar seed, empresas o producción.
-Revisar checks sobre esa corrección; no convertir25/1 en un PASS histórico.
+La correccióna0d7675 pasó calidad/CodeQL/runtime y26/26Playwright/axe. Security43242951782 fallósolo por Keycloak7High/SeaweedFS2High; API/web/PostgreSQL/ClamAV0High/Critical,5SBOMválidos,ZAP0High/Medium/Lowy13informativos. Artifact13955698379 SHA256 `48e704faa036caaeed03ca2ab7222d45006390b6c0350162245780dcfda86026`. Esta evidencia no acredita el head nuevo de PR27 ni convierte25/1 en un PASS histórico.
 Artifact13955166926, SHA256 `b9fb8968dca07344411a3034fca2f86d374f81313a60688b857d22b239f313e7`.
 
 ## Recuperación y pendientes
