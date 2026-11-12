@@ -1,0 +1,66 @@
+name: Vendor image candidate security evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      keycloak_image:
+        description: 'Keycloak candidate (tag@sha256:digest)'
+        required: true
+        type: string
+      seaweedfs_image:
+        description: 'SeaweedFS candidate (tag@sha256:digest)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  scan-vendor-candidates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Validate candidate references
+        env:
+          KEYCLOAK_IMAGE: ${{ inputs.keycloak_image }}
+          SEAWEEDFS_IMAGE: ${{ inputs.seaweedfs_image }}
+        run: |
+          set -euo pipefail
+          for image in "$KEYCLOAK_IMAGE" "$SEAWEEDFS_IMAGE"; do
+            if [[ ! "$image" =~ ^[a-zA-Z0-9][a-zA-Z0-9._/:@-]*@sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::Candidate must be digest-pinned"
+              exit 1
+            fi
+          done
+          [[ "$KEYCLOAK_IMAGE" == quay.io/keycloak/keycloak:* ]] || { echo "::error::Unexpected Keycloak registry"; exit 1; }
+          [[ "$SEAWEEDFS_IMAGE" == chrislusf/seaweedfs:* ]] || { echo "::error::Unexpected SeaweedFS registry"; exit 1; }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Install verified scanners
+        run: ./scripts/install-ci-security-tools.sh
+      - name: Scan candidate images (do not deploy)
+        env:
+          KEYCLOAK_IMAGE: ${{ inputs.keycloak_image }}
+          SEAWEEDFS_IMAGE: ${{ inputs.seaweedfs_image }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          trivy image --format json --scanners vuln --output artifacts/keycloak-candidate.json "$KEYCLOAK_IMAGE"
+          trivy image --format json --scanners vuln --output artifacts/seaweedfs-candidate.json "$SEAWEEDFS_IMAGE"
+          jq -e '.Results | type == "array"' artifacts/keycloak-candidate.json >/dev/null
+          jq -e '.Results | type == "array"' artifacts/seaweedfs-candidate.json >/dev/null
+          jq -n \
+            --arg keycloak "$KEYCLOAK_IMAGE" \
+            --arg seaweedfs "$SEAWEEDFS_IMAGE" \
+            --argjson keycloak_high "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/keycloak-candidate.json)" \
+            --argjson seaweedfs_high "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/seaweedfs-candidate.json)" \
+            '{images: {keycloak: $keycloak, seaweedfs: $seaweedfs}, high_or_critical: {keycloak: $keycloak_high, seaweedfs: $seaweedfs_high}}' > artifacts/candidate-gate.json
+      - name: Preserve immutable scanner evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vendor-candidate-security-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Fail closed on high or critical vulnerabilities
+        run: jq -e '.high_or_critical | to_entries | all(.value == 0)' artifacts/candidate-gate.json >/dev/null
