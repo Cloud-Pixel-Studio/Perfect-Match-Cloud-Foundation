@@ -52,6 +52,7 @@ jobs:
           node-version-file: .nvmrc
       - run: shellcheck scripts/*.sh security/opengrep/test-rules.sh
       - run: node scripts/test-agent-intake-policy.mjs
+      - run: python3 scripts/check-codex-agents.py
 
   tenant-isolation:
     runs-on: ubuntu-24.04
