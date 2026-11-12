@@ -142,6 +142,9 @@ jobs:
             --argjson api "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-api-image.json)" \
             --argjson web "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-web-image.json)" \
             '{api: $api, web: $web}' > artifacts/application-image-gate.json
+      - name: Verify third-party image digest parity before scanning
+        if: always()
+        run: python3 scripts/check-third-party-image-pins.py
       - name: Third-party image scans
         if: always()
         id: third-party-images
