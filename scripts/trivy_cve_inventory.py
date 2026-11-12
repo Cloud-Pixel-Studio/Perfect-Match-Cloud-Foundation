@@ -64,7 +64,14 @@ def main() -> int:
             if not re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", image):
                 raise ValueError("image reference must include an immutable sha256 digest")
             findings.extend(inventory(json.loads(Path(path).read_text(encoding="utf-8")), image))
-        result = {"schema_version": 1, "high_or_critical_count": len(findings), "findings": sorted(findings, key=lambda r: (r["image"], r["target"], r["cve"], r["package"]))}
+        images = {}
+        for image, _ in args.report:
+            images[image] = {"high": 0, "critical": 0, "with_fixed_version": 0, "without_fixed_version": 0}
+        for finding in findings:
+            summary = images[finding["image"]]
+            summary[finding["severity"].lower()] += 1
+            summary["with_fixed_version" if finding["fixed_version"] else "without_fixed_version"] += 1
+        result = {"schema_version": 1, "high_or_critical_count": len(findings), "image_summaries": dict(sorted(images.items())), "findings": sorted(findings, key=lambda r: (r["image"], r["target"], r["cve"], r["package"]))}
         # Publish only a complete inventory; interrupted writes cannot masquerade as evidence.
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=output.parent, prefix=".trivy-inventory-", suffix=".tmp", delete=False) as handle:
             temporary = Path(handle.name)
