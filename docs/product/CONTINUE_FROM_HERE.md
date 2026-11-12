@@ -95,3 +95,6 @@ persistencia. No contar manifiestos de agentes como plataforma autónoma termina
 
 Backups cifrados y claves separados, fuera del repo. GitHub no contiene secretos,
 bases ni copias de datos de clientes. Cada nueva etapa debe actualizar este handoff.
+
+
+Delivery: [draft PR31](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/31), functional commit `9b066a0e95ed531a48b6bed93bd892933d6b27ac`, tree `c650921234ce1295dd6d413c942561149484dab0` verified identical locally/remotely. This follow-up is documentation only. CI of the latest head remains to be verified.
