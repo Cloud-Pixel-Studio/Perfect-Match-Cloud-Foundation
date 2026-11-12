@@ -4,6 +4,7 @@ import argparse
 import json
 import re
 import sys
+import tempfile
 from pathlib import Path
 
 SEVERITIES = {"HIGH", "CRITICAL"}
@@ -55,13 +56,27 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     try:
+        # Never leave a prior successful inventory available after a failed scan.
+        output = Path(args.output)
+        output.unlink(missing_ok=True)
         findings = []
         for image, path in args.report:
             if not re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", image):
                 raise ValueError("image reference must include an immutable sha256 digest")
             findings.extend(inventory(json.loads(Path(path).read_text(encoding="utf-8")), image))
         result = {"schema_version": 1, "high_or_critical_count": len(findings), "findings": sorted(findings, key=lambda r: (r["image"], r["target"], r["cve"], r["package"]))}
-        Path(args.output).write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        # Publish only a complete inventory; interrupted writes cannot masquerade as evidence.
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=output.parent, prefix=".trivy-inventory-", suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            try:
+                handle.write(json.dumps(result, indent=2, sort_keys=True) + "\n")
+            except BaseException:
+                temporary.unlink(missing_ok=True)
+                raise
+        try:
+            temporary.replace(output)
+        finally:
+            temporary.unlink(missing_ok=True)
         print(f"Recorded {len(findings)} HIGH/CRITICAL findings in {args.output}")
         return 0
     except (OSError, ValueError, json.JSONDecodeError) as exc:
