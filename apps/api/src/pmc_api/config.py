@@ -61,12 +61,14 @@ class Settings(BaseSettings):
                     or parts.query
                 ):
                     raise ValueError(
-                        f"production requires HTTPS {field_name} without URL credentials, query or fragment"
+                        f"production requires HTTPS {field_name} without URL decorations"
                     )
                 try:
-                    parts.port  # Reject malformed ports rather than accepting invalid public URLs.
+                    port = parts.port
                 except ValueError as exc:
                     raise ValueError(f"production requires valid HTTPS {field_name}") from exc
+                if port == 0:
+                    raise ValueError(f"production requires valid HTTPS {field_name}")
                 if field_name == "web_url" and parts.path not in {"", "/"}:
                     raise ValueError("production web_url must be a public origin, not a path")
         return self
