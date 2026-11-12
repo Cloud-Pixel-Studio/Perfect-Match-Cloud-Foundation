@@ -37,6 +37,46 @@ jobs:
           [[ "$KEYCLOAK_IMAGE" == quay.io/keycloak/keycloak:* ]] || { echo "::error::Unexpected Keycloak registry"; exit 1; }
           [[ "$SEAWEEDFS_IMAGE" == chrislusf/seaweedfs:* ]] || { echo "::error::Unexpected SeaweedFS registry"; exit 1; }
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - name: Resolve and scan official candidate images on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          docker pull quay.io/keycloak/keycloak:26.8.2
+          docker pull chrislusf/seaweedfs:4.53
+          docker image inspect quay.io/keycloak/keycloak:26.8.2 --format '{{json .RepoDigests}}' > artifacts/keycloak-resolved-digests.json
+          docker image inspect chrislusf/seaweedfs:4.53 --format '{{json .RepoDigests}}' > artifacts/seaweedfs-resolved-digests.json
+          jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/keycloak-resolved-digests.json >/dev/null
+          jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/seaweedfs-resolved-digests.json >/dev/null
+      - name: Trivy candidate scan on PR
+        if: github.event_name == 'pull_request'
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.74.0
+          scan-type: image
+          image-ref: quay.io/keycloak/keycloak:26.8.2
+          scanners: vuln
+          format: json
+          exit-code: '0'
+          output: artifacts/keycloak-pr-candidate.json
+      - name: Scan SeaweedFS candidate and record gate on PR
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          trivy image --format json --scanners vuln --output artifacts/seaweedfs-pr-candidate.json chrislusf/seaweedfs:4.53
+          for report in artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json; do
+            jq -e '.Results | type == "array"' "$report" >/dev/null
+          done
+          jq -n --argjson keycloak "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/keycloak-pr-candidate.json)" --argjson seaweedfs "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' artifacts/seaweedfs-pr-candidate.json)" '{keycloak: $keycloak, seaweedfs: $seaweedfs}' > artifacts/pr-candidate-gate.json
+          cat artifacts/pr-candidate-gate.json
+      - name: Upload PR candidate evidence
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vendor-pr-candidate-evidence-${{ github.run_id }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 30
       - name: Validate candidate workflow structure on PR
         if: github.event_name == 'pull_request'
         run: python3 -m unittest discover -s tests -p 'test_vendor_candidate_workflow.py'
