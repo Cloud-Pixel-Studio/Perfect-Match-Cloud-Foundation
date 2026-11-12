@@ -59,8 +59,8 @@ class CandidateWorkflowTests(unittest.TestCase):
     def test_pr_reports_reject_malformed_vulnerability_sections(self):
         scan = self._step("Scan resolved candidate digests and record gate on PR")
         self.assertIn('(.Results | type == "array")', scan)
-        self.assertIn('has("Vulnerabilities")', scan)
-        self.assertIn('.Vulnerabilities | type == "array" or .Vulnerabilities == null', scan)
+        self.assertIn('all(.Results[];', scan)
+        self.assertIn('(.Vulnerabilities? // []) | type == "array"', scan)
         self.assertIn('artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json', scan)
 
     def test_pr_candidate_scan_is_fail_closed_after_evidence_upload(self):
