@@ -4,6 +4,7 @@ This directory defines roles and controls for assisted engineering. It does not
 install an agent runtime or grant access by itself.
 
 - `agents/team.yaml` is the role and permission matrix.
+- `agents/design-studio.yaml` defines the controlled creative roles and their data boundaries.
 - `policies/operating-policy.md` defines non-negotiable safety boundaries.
 - `workflows/issue-to-pr.md` defines the controlled Issue-to-PR lifecycle.
 - `checkpoints/README.md` defines checkpoint evidence and recovery requirements.

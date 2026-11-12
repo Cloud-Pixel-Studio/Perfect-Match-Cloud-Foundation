@@ -279,6 +279,131 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   .qms-table-scroll .qms-access-table td::before { content: attr(data-label); color: var(--pm-text-muted); font-size: var(--pm-text-xs); font-weight: var(--pm-weight-semibold); }
   .qms-table-scroll .qms-access-table td > :is(span, time, div) { min-width: 0; }
 }
+
+/* AI Design Studio — deterministic compositions built from approved brand assets. */
+.studio-page { min-height: 100vh; padding: 0 clamp(20px, 5vw, 72px) 72px; background: var(--pm-bg); }
+.studio-page-header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--pm-space-4); min-height: 82px; border-bottom: 1px solid var(--pm-border); }
+.studio-page-header > a, .studio-status { display: inline-flex; align-items: center; gap: var(--pm-space-2); font-weight: var(--pm-weight-semibold); text-decoration: none; }
+.studio-page-brand { min-width: 0; color: var(--pm-text); }
+.studio-page-brand strong, .studio-page-brand small { display: block; }
+.studio-page-brand strong { font-size: 15px; }
+.studio-page-brand small { margin-top: 3px; color: var(--pm-text-muted); font-size: 11px; }
+.studio-page-tools { display: flex; align-items: center; justify-content: end; gap: var(--pm-space-4); }
+.studio-status { justify-self: end; color: var(--pm-success); }
+.studio-intro { width: min(920px, 100%); margin: 84px auto 56px; text-align: center; }
+.studio-intro .studio-kicker { color: var(--pm-primary-strong); font-size: var(--pm-text-xs); }
+.studio-intro h1 { margin: var(--pm-space-3) 0; font-size: clamp(2.8rem, 7vw, 6rem); letter-spacing: -.06em; }
+.studio-intro > p:not(.studio-kicker) { margin: 0 auto; color: var(--pm-text-muted); font-size: var(--pm-text-lg); line-height: 1.65; }
+.studio-review-note { display: inline-flex; align-items: center; justify-content: center; gap: var(--pm-space-2); margin-top: var(--pm-space-5); color: var(--pm-text-muted); font-size: var(--pm-text-xs); line-height: 1.5; }
+.studio-review-note svg { flex-shrink: 0; }
+.studio-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 4vw, 48px); width: min(1480px, 100%); margin: 0 auto; }
+.studio-gallery figure { min-width: 0; margin: 0; }
+.studio-preview-frame { overflow: hidden; background: #dfe7e7; border: 1px solid var(--pm-border); border-radius: var(--pm-radius-xl); box-shadow: var(--pm-shadow-md); }
+.studio-preview-frame > img { display: block; width: 100%; height: auto; }
+.studio-gallery figcaption { display: flex; align-items: start; justify-content: space-between; gap: var(--pm-space-4); margin-top: var(--pm-space-4); }
+.studio-asset-details { display: grid; min-width: 0; gap: var(--pm-space-1); }
+.studio-gallery figcaption small { color: var(--pm-text-muted); line-height: 1.45; }
+.studio-download { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; gap: var(--pm-space-2); min-height: 44px; padding: var(--pm-space-2) var(--pm-space-3); color: var(--pm-primary-strong); background: var(--pm-surface); border: 1px solid var(--pm-border); border-radius: var(--pm-radius-md); font-weight: var(--pm-weight-semibold); text-decoration: none; transition: background var(--pm-motion-fast), border-color var(--pm-motion-fast); }
+.studio-download:hover { background: var(--pm-primary-soft); border-color: var(--pm-primary); }
+.studio-download:active { background: var(--pm-selected); }
+.studio-download:focus-visible, .studio-page-header a:focus-visible, .product-library-link:focus-visible { outline: 2px solid var(--pm-focus); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .studio-download { transition: none; } }
+.product-library-link { display: inline-flex; align-items: center; gap: var(--pm-space-2); min-height: 44px; color: var(--pm-primary-strong); font-weight: var(--pm-weight-semibold); }
+.studio-export-shell { display: grid; place-items: start; min-height: 100vh; margin: 0; padding: 0; background: #000; }
+.studio-canvas { position: relative; container-type: inline-size; isolation: isolate; overflow: hidden; width: 100%; color: #172026; font-size: 1cqw; background: #f4f6f7; }
+.studio-size-1600x900 { aspect-ratio: 16 / 9; max-width: 1600px; }
+.studio-size-1600x1000 { aspect-ratio: 8 / 5; max-width: 1600px; }
+.studio-size-1200x1200 { aspect-ratio: 1; max-width: 1200px; }
+.studio-size-1200x628 { aspect-ratio: 300 / 157; max-width: 1200px; }
+.studio-size-1600x900.is-export { width: 1600px; height: 900px; max-width: none; }
+.studio-size-1600x1000.is-export { width: 1600px; height: 1000px; max-width: none; }
+.studio-size-1200x1200.is-export { width: 1200px; height: 1200px; max-width: none; }
+.studio-size-1200x628.is-export { width: 1200px; height: 628px; max-width: none; }
+.studio-canvas :is(h2, p) { margin: 0; }
+.studio-canvas h2 { font-size: 5.1cqw; line-height: .98; letter-spacing: -.055em; }
+.studio-canvas h2 em { color: #56d0c7; font-style: normal; }
+.studio-asset-brand { display: inline-flex; align-items: center; gap: 1.1cqw; color: #123a3a; }
+.studio-asset-brand .studio-asset-logo { width: 4.4cqw; height: 4.4cqw; }
+.studio-asset-brand > span > :is(strong, small) { display: block; }
+.studio-asset-brand strong { font-size: 1.05cqw; letter-spacing: .04em; }
+.studio-asset-brand small { margin-top: .28cqw; color: #5c6870; font-size: .72cqw; }
+.studio-asset-brand.inverse { color: #fff; }
+.studio-asset-brand.inverse small { color: #b9d1d0; }
+.studio-kicker { color: #0a817a; font-size: 1.05cqw; font-weight: 750; letter-spacing: .15em; }
+.studio-disclosure { position: absolute; right: 2.2cqw; bottom: 1.7cqw; z-index: 3; color: rgb(255 255 255 / 74%); font-size: .76cqw; }
+
+.studio-canvas-platform-hero { background-image: linear-gradient(90deg, rgb(4 30 31 / 98%) 0%, rgb(4 30 31 / 88%) 37%, rgb(4 30 31 / 12%) 72%), url('/brand/design-studio/source/governed-quality-landscape.png'); background-position: center; background-size: cover; }
+.studio-asset-copy { display: grid; align-content: start; gap: 2.4cqw; width: 49%; height: 100%; padding: 5.4cqw 0 4.6cqw 5.4cqw; }
+.studio-asset-copy.dark { color: #fff; }
+.studio-asset-copy.dark .studio-kicker { color: #68d3cb; margin-top: auto; }
+.studio-asset-copy > p:not(.studio-kicker) { max-width: 38cqw; color: #c6d7d7; font-size: 1.48cqw; line-height: 1.5; }
+.studio-asset-cta { width: fit-content; margin-top: .5cqw; padding: 1.05cqw 1.5cqw; color: #102b2a; background: #73d8d0; border-radius: .5cqw; font-size: 1.02cqw; font-weight: 750; }
+
+.studio-canvas-saas-product-overview { display: grid; grid-template-columns: 43% 57%; padding: 4.5cqw; background: linear-gradient(145deg, #f7faf9, #e4f3f1); }
+.studio-product-copy { display: flex; flex-direction: column; gap: 2cqw; padding-right: 3cqw; }
+.studio-product-copy .studio-kicker { margin-top: auto; }
+.studio-product-copy h2 { color: #123a3a; font-size: 4.3cqw; }
+.studio-product-copy h2 em { color: #087f79; }
+.studio-product-copy ul { display: grid; gap: 1cqw; margin: 0 0 auto; padding: 0; list-style: none; }
+.studio-product-copy li { display: flex; align-items: center; gap: .8cqw; color: #33484a; font-size: 1.15cqw; font-weight: 650; }
+.studio-product-copy li svg { width: 1.35cqw; color: #087f79; }
+.studio-product-copy > small { color: #657777; font-size: .7cqw; line-height: 1.4; }
+.studio-product-screen { position: relative; display: flex; min-width: 0; padding: 2.2cqw 0 0 2.2cqw; background: #123a3a; border-radius: 1.5cqw; box-shadow: 0 2cqw 4cqw rgb(10 36 37 / 20%); }
+.studio-product-screen > span { position: absolute; top: .7cqw; left: 2.2cqw; color: #95bebc; font-size: .65cqw; font-weight: 700; letter-spacing: .14em; }
+.studio-screenshot { width: 100%; min-height: 0; background-image: url('/brand/design-studio/source/workspace-real-synthetic.png'); background-position: top left; background-size: cover; border-radius: .7cqw 0 0 0; }
+
+.studio-canvas-dashboard-mockup { padding: 3.6cqw 4.4cqw 3.2cqw; color: #fff; background: radial-gradient(circle at 80% 20%, #0a817a 0%, #123a3a 28%, #091f20 72%); }
+.studio-mockup-heading { display: flex; align-items: center; justify-content: space-between; }
+.studio-mockup-heading > span { color: #8fc7c3; font-size: .75cqw; font-weight: 700; letter-spacing: .13em; }
+.studio-device { height: 44cqw; margin-top: 2.5cqw; overflow: hidden; background: #fff; border: .55cqw solid rgb(255 255 255 / 18%); border-radius: 1.3cqw; box-shadow: 0 2cqw 5cqw rgb(0 0 0 / 35%); }
+.studio-device-bar { display: flex; align-items: center; gap: .48cqw; height: 2.7cqw; padding: 0 1cqw; color: #526466; background: #edf1f1; }
+.studio-device-bar i { width: .62cqw; height: .62cqw; background: #b8c6c6; border-radius: 50%; }
+.studio-device-bar i:first-child { background: #ff816e; }
+.studio-device-bar small { margin-left: .7cqw; font-size: .63cqw; }
+.studio-device .studio-screenshot { height: calc(100% - 2.7cqw); background-size: 100% auto; border-radius: 0; }
+.studio-mockup-caption { display: flex; align-items: end; justify-content: space-between; gap: 3cqw; margin-top: 2.3cqw; }
+.studio-mockup-caption strong { max-width: 62cqw; font-size: 1.7cqw; }
+.studio-mockup-caption small { max-width: 26cqw; color: #9eb8b7; font-size: .7cqw; text-align: right; }
+
+.studio-canvas-quality-linkedin { background-image: linear-gradient(90deg, rgb(244 246 247 / 98%) 0%, rgb(244 246 247 / 88%) 40%, rgb(244 246 247 / 0%) 70%), url('/brand/design-studio/source/continuous-improvement-square.png'); background-position: center; background-size: cover; }
+.studio-linkedin-copy { display: flex; flex-direction: column; gap: 2.2cqw; width: 57%; height: 100%; padding: 6.2cqw 0 5.2cqw 5.2cqw; }
+.studio-linkedin-copy .studio-kicker { margin-top: auto; }
+.studio-linkedin-copy h2 { color: #123a3a; font-size: 5.6cqw; line-height: 1.02; }
+.studio-linkedin-copy > p:not(.studio-kicker) { max-width: 42cqw; color: #536466; font-size: 1.8cqw; line-height: 1.5; }
+.studio-linkedin-copy > span { margin-top: auto; color: #087f79; font-size: 1.15cqw; font-weight: 700; }
+.studio-canvas-quality-linkedin .studio-disclosure { color: #637475; }
+
+.studio-canvas-audit-readiness { padding: 3.3cqw 4.4cqw; color: #fff; background-image: linear-gradient(90deg, rgb(6 32 33 / 96%), rgb(6 32 33 / 74%) 52%, rgb(6 32 33 / 30%)), url('/brand/design-studio/source/governed-quality-landscape.png'); background-position: center 58%; background-size: cover; }
+.studio-audit-copy { display: grid; gap: 1.7cqw; width: 62%; margin-top: 3.2cqw; }
+.studio-audit-copy .studio-kicker { color: #66d1c8; }
+.studio-audit-copy h2 { font-size: 4.35cqw; }
+.studio-audit-copy > div { display: flex; gap: 1cqw; }
+.studio-audit-copy > div span { display: inline-flex; align-items: center; gap: .65cqw; padding: .75cqw 1cqw; color: #d8f3f0; background: rgb(255 255 255 / 9%); border: 1px solid rgb(255 255 255 / 15%); border-radius: .5cqw; font-size: .85cqw; font-weight: 650; }
+.studio-audit-copy svg { width: 1.15cqw; }
+.studio-audit-copy small { color: #a9c1c0; font-size: .72cqw; }
+
+.studio-canvas-qms-capabilities { padding: 4.4cqw; color: #123a3a; background: radial-gradient(circle at 90% 5%, #d8f3f0, transparent 34%), #f4f6f7; }
+.studio-infographic-heading { display: grid; grid-template-columns: 1fr 2fr; align-items: end; gap: 2cqw; margin: 4.6cqw 0 3cqw; }
+.studio-infographic-heading h2 { font-size: 4.25cqw; }
+.studio-capability-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.3cqw; }
+.studio-capability-grid > span { display: grid; min-height: 16cqw; align-content: end; gap: .8cqw; padding: 1.7cqw; background: rgb(255 255 255 / 88%); border: 1px solid #d4dadd; border-radius: 1.1cqw; box-shadow: 0 .8cqw 2.2cqw rgb(23 32 38 / 7%); }
+.studio-capability-grid svg { width: 2.2cqw; height: 2.2cqw; margin-bottom: auto; padding: .4cqw; color: #087f79; background: #d8f3f0; border-radius: .5cqw; }
+.studio-capability-grid strong { font-size: 1.35cqw; }
+.studio-capability-grid small { color: #647276; font-size: .9cqw; }
+.studio-canvas-qms-capabilities .studio-disclosure { color: #637475; }
+
+@media (max-width: 900px) {
+  .studio-page-header { grid-template-columns: 1fr auto; }
+  .studio-page-header > .studio-page-brand { display: none; }
+  .studio-gallery { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .studio-page { padding-inline: 14px; }
+  .studio-status { font-size: var(--pm-text-xs); }
+  .studio-page-tools { gap: var(--pm-space-2); }
+  .studio-gallery figcaption { flex-direction: column; }
+  .studio-download { width: 100%; }
+}
 .tree-group { margin-top: var(--pm-space-4); color: var(--pm-text-muted); font-size: var(--pm-text-xs); text-transform: uppercase; }
 .tree-group ul { margin-top: var(--pm-space-2); }
 .tree-row { display: flex; width: 100%; align-items: center; gap: var(--pm-space-2); padding: var(--pm-space-2); color: var(--pm-text); text-align: left; background: transparent; border: 0; border-radius: var(--pm-radius-md); cursor: pointer; }
@@ -691,7 +816,7 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .showcase-layout { display: grid; grid-template-columns: 116px minmax(0, 1fr); min-height: 410px; overflow: hidden; background: #f2f5f5; border-radius: 13px; }
 .showcase-layout aside { display: grid; align-content: start; gap: 12px; padding: 20px 14px; background: #fff; border-right: 1px solid #d8e0e2; }
 .showcase-brand { display: flex; align-items: center; gap: 8px; margin-bottom: 22px; }
-.showcase-brand span { width: 50px; height: 8px; background: #253238; border-radius: 8px; }
+.showcase-brand > span:not(.brand-mark) { width: 50px; height: 8px; background: #253238; border-radius: 8px; }
 .showcase-nav { display: block; width: 100%; height: 29px; background: #edf1f2; border-radius: 6px; }
 .showcase-nav.active { position: relative; background: #d9eeec; }
 .showcase-nav.active::before { content: ""; position: absolute; inset: 7px auto 7px 8px; width: 3px; background: #087f79; border-radius: 4px; }
@@ -732,6 +857,8 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .product-brand-art figcaption strong { flex: 0 0 auto; color: #49d3c9; font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
 .product-brand-art figcaption span { color: #eaf7f6; font-size: .82rem; }
 .brand-mark { position: relative; display: inline-block; flex: 0 0 auto; }
+.brand-mark.brand-mark-26 { block-size: 26px; inline-size: 26px; }
+.brand-mark.brand-mark-40 { block-size: 40px; inline-size: 40px; }
 .brand-mark > img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .brand-mark-dark { opacity: 0; }
 [data-theme="dark"] .brand-mark-light { opacity: 0; }

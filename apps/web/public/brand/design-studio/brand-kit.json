@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "brand": "Perfect Match QMS",
+  "territory": "Aligned Evidence",
+  "typography": {
+    "primary": "Inter Variable",
+    "fallback": "ui-sans-serif, system-ui, sans-serif"
+  },
+  "colors": {
+    "ink": "#123A3A",
+    "inkDeep": "#0A2425",
+    "teal": "#087F79",
+    "tealBright": "#14A39A",
+    "mint": "#D8F3F0",
+    "coral": "#FF6B57",
+    "surface": "#FFFFFF",
+    "background": "#F4F6F7",
+    "text": "#172026",
+    "textMuted": "#5C6870"
+  },
+  "logos": {
+    "light": "/brand/selected/pmqms-mark.svg",
+    "dark": "/brand/selected/pmqms-mark-dark.svg",
+    "monochrome": "/brand/selected/pmqms-mark-mono.svg",
+    "horizontal": "/brand/selected/pmqms-horizontal.svg"
+  },
+  "rules": [
+    "Clarity before density.",
+    "Evidence before decoration.",
+    "Use coral only as a small point of emphasis.",
+    "Never invent customers, metrics, certifications or product functions.",
+    "Use only approved synthetic screenshots in external generation workflows.",
+    "Require human approval before publication."
+  ]
+}
+
