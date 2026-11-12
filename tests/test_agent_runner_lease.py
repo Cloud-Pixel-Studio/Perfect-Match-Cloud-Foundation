@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+from concurrent.futures import ThreadPoolExecutor
 import tempfile
 import unittest
 from pathlib import Path
@@ -39,6 +40,23 @@ class AgentRunnerLeaseTests(unittest.TestCase):
         for ttl in (0, -1, 86401):
             with self.subTest(ttl=ttl), self.assertRaises(ValueError):
                 lease.claim(self.root, "task", "worker", ttl)
+
+    def test_concurrent_claims_only_one_wins(self) -> None:
+        # Exercise actual competing claims against the same local path.
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            results = list(pool.map(
+                lambda index: lease.claim(self.root, "shared-task", f"worker-{index}", 60, now=100),
+                range(24),
+            ))
+        self.assertEqual(sum(results), 1)
+        self.assertEqual(len(list(self.root.glob("shared-task.json"))), 1)
+
+    def test_corrupt_lease_is_not_silently_reclaimed(self) -> None:
+        self.root.mkdir(parents=True)
+        (self.root / "task.json").write_text("not-json", encoding="utf-8")
+        self.assertFalse(lease.claim(self.root, "task", "worker-2", 60, now=100))
+        with self.assertRaises(ValueError):
+            lease.inspect(self.root, "task")
 
     def test_missing_lease(self) -> None:
         self.assertIsNone(lease.inspect(self.root, "missing"))
