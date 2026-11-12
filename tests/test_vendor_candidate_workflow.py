@@ -74,6 +74,9 @@ class CandidateWorkflowTests(unittest.TestCase):
         self.assertIn("artifacts/pr-candidate-gate.json", gate)
         self.assertIn(".high_or_critical.keycloak", gate)
         self.assertIn(".high_or_critical.seaweedfs", gate)
+        self.assertIn("(.high_or_critical.keycloak | type)", gate)
+        self.assertIn(".high_or_critical.keycloak == 0", gate)
+        self.assertIn(".high_or_critical.seaweedfs == 0", gate)
         self.assertLess(self.content.index("name: Upload PR candidate evidence"),
                         self.content.index("name: Fail closed on PR candidate high or critical findings"))
 
