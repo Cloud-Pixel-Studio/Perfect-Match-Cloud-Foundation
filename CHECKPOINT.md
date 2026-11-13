@@ -32,3 +32,5 @@
 Checkpoint final fuente/Git+5 PNG/11 logs+audit JSON: **CP-AUDIT-AGENDA-06C-20261113T052847Z**. Manifiesto publico con hashes/restauracion; backups reales fuera de Git. Entrega GitHub se anota tras verificacion. Sin merge/produccion.
 
 - Seguridad de entrega: falso positivo SHA256 de log en manifiesto inicial06, recomputado contra bytes. Excepcion exacta valor+ruta solo generic-api-key,4 controles positivos/negativos PASS y requeridos en CI/checkpoint.sh. No secreto real; commit local previo no publicado. Nueva copia06C conserva la correccion;06 permanece intacta.
+
+Entrega: [PR borrador35](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35), sobre PR34/4d2e80f. Commit funcional35674c9ff02727b48ffa9af91edea57a657daec7, arbol79003f8b7477c2dea0959fb8a0ecb04ff0d80e36, identico local/remoto. Este seguimiento solo documenta continuidad. CI nuevo exacto, revision independiente y aprobacion humana siguen pendientes antes de merge. Sin produccion.

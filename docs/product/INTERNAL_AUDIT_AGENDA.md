@@ -153,3 +153,8 @@ The first458-source checkpoint remains immutable as recovery history. This
 subsequent checkpoint includes the scanner correction and regression control.
 Public evidence omits individual report hashes in the new manifest; private
 recovery metadata retains them, with ciphertext hash and verification public.
+
+Delivery: [draft PR35](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35), stacked on PR34. Functional commit
+`35674c9ff02727b48ffa9af91edea57a657daec7`, tree
+`79003f8b7477c2dea0959fb8a0ecb04ff0d80e36` matched local exactly. This
+follow-up records continuity only; exact new-head CI/review remain required.

@@ -6,7 +6,8 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-agenda**, sobre PR34/4d2e80f.
+Hito activo: **codex/internal-audit-agenda**, [PR borrador35](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35), sobre PR34/4d2e80f.
+Funcional35674c9ff02727b48ffa9af91edea57a657daec7, arbol79003f8b7477c2dea0959fb8a0ecb04ff0d80e36 identico.
 Leer INTERNAL_AUDIT_AGENDA.md y CHECKPOINT.md.0045 añade agenda UTC por minuto,
 auditor/auditee/alcance activos, protección de vínculos y solapes dentro de la
 misma auditoría. Asignar no concede acceso/ejecución/competencia/independencia.
