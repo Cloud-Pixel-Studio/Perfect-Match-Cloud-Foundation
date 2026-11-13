@@ -6,7 +6,8 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Trabajo activo: codex/internal-audit-competence sobre PR38/fbfd69a.
+Trabajo activo: codex/internal-audit-competence, [PR borrador39](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/39), sobre PR38/fbfd69a.
+Funcional95a9de70ccee0ae5018270e359ee388a6a43325e/árbol781ec472696e2f2277b5a9ce07c2b5bb20b5c1a4 idénticos local/remoto.
 0048 agrega evaluacion humana de competencia por auditor/plan con soporte
 documental liberado/limpio, vigenciaUTC y retiro/historia append-only.
 121 auditorias +199procesos/CAPA +50API/60webunit +140Linux/10Darwin PASS.
