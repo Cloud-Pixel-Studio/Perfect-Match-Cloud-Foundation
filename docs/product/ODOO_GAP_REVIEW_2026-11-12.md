@@ -16,10 +16,10 @@ Fuentes verificadas:
 ## Actualización posterior al corte
 
 El corte original de fuente se conserva abajo. Después se implementaron UI de
-planificación (PR31), alcance(PR32), criterios(PR33) y equipo planificado0044
-(rama codex/internal-audit-team). NCR/riesgo→CAPA también se resolvió en PR30.
+planificación (PR31), alcance(PR32), criterios(PR33) equipo planificado0044 y agenda0045
+(rama codex/internal-audit-agenda). NCR/riesgo→CAPA también se resolvió en PR30.
 No repetir estas opciones como ausentes: consultar CHECKPOINT.md y los documentos
-de cada entrega para pruebas/límites. Siguen pendientes agenda/independencia,
+de cada entrega para pruebas/límites. Siguen pendientes independencia/readiness,
 ejecución/evidencia/hallazgos/NCR y las9 verticales sin equivalente. Mejorar un
 bloque parcial no cambia el conteo11parciales/9sinvertical ni acredita paridad total.
 

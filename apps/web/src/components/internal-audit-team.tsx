@@ -13,7 +13,7 @@ const unavailable = (cause: unknown) => cause instanceof AccessError && [401,403
 function failure(cause: unknown) {
   if (cause instanceof AccessError) {
     if ([401,403,404].includes(cause.status)) return "The audit or your access is unavailable. Refresh your responsibilities.";
-    if (cause.status === 409) return "The audit, person or team assignment changed. Refresh audit team before another submission. The lead auditor cannot be an audited participant.";
+    if (cause.status === 409) return "The audit, person or team assignment changed. Refresh audit team before another submission. The lead auditor cannot be an audited participant. Reassign or withdraw linked agenda activities before retiring a participant or changing their role.";
     if (cause.status === 422) return "Review the person, team role and responsibilities.";
   }
   return "Team assignment could not be confirmed. Refresh audit team and review the record before submitting again.";

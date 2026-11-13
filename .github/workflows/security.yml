@@ -53,6 +53,8 @@ jobs:
         run: |
           gitleaks dir --config .gitleaks.toml --redact --no-banner .
           gitleaks git --config .gitleaks.toml --redact --no-banner .
+      - name: Verify checkpoint checksum exception remains narrow
+        run: python3 security/tests/test_checkpoint_secret_allowlist.py
       - name: Dependency audits
         run: |
           cd apps/api && uvx --from pip-audit==2.10.1 pip-audit -r requirements-runtime.txt

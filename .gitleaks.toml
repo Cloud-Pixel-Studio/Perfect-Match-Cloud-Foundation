@@ -13,3 +13,11 @@ paths = [
   '''(^|/)vendor-wheels/''',
   '''(^|/)prebuilt\.tar$''',
 ]
+
+[[allowlists]]
+description = "Verified SHA256 of agenda API test log, not a credential; exact path and checksum only"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)\.ai/checkpoints/CP-AUDIT-AGENDA-06-20261113T052019Z\.json$''']
+regexTarget = "secret"
+regexes = ['''^812dbea698402f5a6adb9e203424c78db296da8ed4f770ad3f80a9d2319fab0f$''']

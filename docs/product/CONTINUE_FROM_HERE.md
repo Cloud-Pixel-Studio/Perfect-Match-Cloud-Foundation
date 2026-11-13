@@ -1,21 +1,24 @@
 # Retomar Perfect Match QMS desde otro chat
 
-Actualizado: 12 de noviembre de 2026 (America/New_York).
+Actualizado: 13 de noviembre de 2026 (America/New_York).
 
 Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-team**, sobre PR33/4de65f0.
-Leer INTERNAL_AUDIT_TEAM.md y CHECKPOINT.md.0044 añade equipo planificado con
-snapshot de identidad, rol/notas y retiro motivado/historial. Asignar no concede
-acceso/ejecución/competencia/independencia. Local0044 y demo real idempotente;
-restore previo/posterior verificados.43+199DB,50API/60webunit,97Linux PASS;
-Darwin/entrega final en CHECKPOINT. Siguiente: agenda/independencia.
+Hito activo: **codex/internal-audit-agenda**, [PR borrador35](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35), sobre PR34/4d2e80f.
+Funcional35674c9ff02727b48ffa9af91edea57a657daec7, arbol79003f8b7477c2dea0959fb8a0ecb04ff0d80e36 identico.
+Leer INTERNAL_AUDIT_AGENDA.md y CHECKPOINT.md.0045 añade agenda UTC por minuto,
+auditor/auditee/alcance activos, protección de vínculos y solapes dentro de la
+misma auditoría. Asignar no concede acceso/ejecución/competencia/independencia.
+Local0045 y demo real idempotente; restore previo0044/post0045 verificados.58+199DB,50API/60webunit,
+108Linux+11Darwin PASS, sin retries/goldenupdates. Historial retirado conserva
+fechas originales tras reprogramar. Checkpoint final/entrega en CHECKPOINT.
 
-PR33: calidad43361806578/CodeQL43361806566 PASS; security43361806911 FAILsolo
-gate final. No heredar esos resultados a0044. No aplicar0041 original, mezclarWIP,
-fusionar o desplegar. Pricing/billing/entitlements siguen pendientes.
+PR34: calidad43365509636/CodeQL43365509645 PASS; security43365509662 FAILsolo
+gate final. No heredar esos resultados a0045. No aplicar0041 original, mezclarWIP,
+fusionar o desplegar. Siguiente: independencia/readiness, ejecución/evidencia/
+hallazgos/NCR. Pricing/billing/entitlements siguen pendientes.
 
 Hito anterior: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), finala7b2a9f. Calidad/CodeQL/runtime/50PlaywrightPASS;
 releaseFAILsoloKeycloak7High/SeaweedFS2High. No trasladar esta evidencia a otra rama.

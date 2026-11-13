@@ -352,3 +352,32 @@ changes and requires an explicit recovery decision; never auto-downgrade history
   downgrade/image rollback with operational history. Original0041 preserved.
 
 - CP-AUDIT-TEAM-06-20261113T042304Z: final source/Git and real synthetic screenshots/quality logs; public manifest records restored hashes.
+
+
+## Agenda0045 ·13November2026 UTC
+
+- CP-AUDIT-AGENDA-00-20261113T044030Z:450 fuente/Git cifrados fuera del repo;
+  restauración aislada/todos los SHA256 y bundle verify PASS, antes de editar.
+- CP-AUDIT-AGENDA-DB-00-20261113T044043Z:pre0045 desde0044,53 tablas/47forcedRLS,
+  todas las filas/esquema/ACLs/roles/secuencias restauradas y comparadas PASS.
+- CP-AUDIT-AGENDA-DB-06-20261113T051030Z:post0045,54 tablas/48forcedRLS, mismos
+  controles PASS, incluye actividad demo sintética. Helpers privados preservados.
+- No se presume misma imagen: fallback endurecido con ejecutables PostgreSQL
+  idénticos por SHA256. Normalización limitada de deparser/grantor bootstrap
+  documentada en INTERNAL_AUDIT_AGENDA.md. Dumps/claves0600 separados fuera de Git.
+- Local0044→0045 solo tras restore previo PASS. Imágenes anteriores API/web
+  before-audit-agenda-20261112 conservadas; sin rollback destructivo/producción.
+  WIP0041 original continúa separado, intacto y fuera de la cadena Alembic.
+
+- CP-AUDIT-AGENDA-06-20261113T052019Z:fuente/Git mas5 PNG/11 logs+audit JSON cifrados;
+  restauracion/SHA256 y bundle verify en manifiesto publico. Bundle de entrega
+  final se verifica por descifrado/mirror/fsck/commit y arbol exactos.
+
+- CP-AUDIT-AGENDA-06B-20261113T052727Z:supersede al06 de458 fuentes tras falso positivo de checksum;
+  conserva06 sin sobrescribir e incorpora excepcion exacta comprobada con4
+  controles de deteccion. Datos/DB/imagenes no cambiaron por esta correccion.
+
+- CP-AUDIT-AGENDA-06B-20261113T052727Z:460 fuentes/Git restaurables, snapshot WIP previo a
+  corregir Ruff S101/S603/S607 del control nuevo. No es calidad final aceptada.
+- CP-AUDIT-AGENDA-06C-20261113T052847Z:fuente final tras Ruff y4 controles de deteccion PASS;
+  fuente/Git/evidencia cifrados y restaurados, sin cambiar DB ni frontend probado.
