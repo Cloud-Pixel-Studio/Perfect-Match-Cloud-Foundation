@@ -18,11 +18,12 @@ type Row = { id: string; unit_id: string; code: string; name: string; state: str
 type ScopeRow = { id: string; audit_id: string; unit_id: string; sequence: number; title: string; description: string; process_id: string | null; status: string; row_version: number; withdrawal_reason: string };
 type CriterionRow = Omit<ScopeRow,"description"|"process_id"> & { requirement:string; source_type:string; reference:string; scope_id:string|null };
 type TeamRow = {id:string;audit_id:string;unit_id:string;user_id:string;display_name_snapshot:string;team_role:string;responsibilities:string;status:string;row_version:number;withdrawal_reason:string};
+type AgendaRow = Omit<ScopeRow,"description"|"process_id"> & {objective:string;location:string;method:string;starts_at:string;ends_at:string;scope_id:string|null;auditor_team_member_id:string;auditee_team_member_id:string|null;auditor_name:string;auditee_name:string|null};
 type Mutation = { method: string; path: string; body: Record<string, unknown> };
 type FixtureState = {
   capabilities: string[]; programs: Row[]; audits: Row[]; writeStatus: number | null;
   conflict: boolean; hold: boolean; reads: Array<{ path: string; query: Record<string, string> }>;
-  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean; team:TeamRow[];teamMismatch:boolean;
+  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean; team:TeamRow[];teamMismatch:boolean;agenda:AgendaRow[];agendaMismatch:boolean;agendaResultWrongSource:boolean;
 };
 const fixtures = new WeakMap<Page, FixtureState>();
 test.afterEach(async ({ page }) => {
@@ -55,7 +56,7 @@ async function fixture(page: Page, assigned = capabilities) {
   const state: FixtureState = {
     capabilities: [...assigned], programs: [program(), program(programB, unitB, "AP-B", "Supplier assurance programme")],
     audits: [audit(), audit(auditB, unitB, "IA-B", "Supplier process audit")], writeStatus: null,
-    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false, team:[],teamMismatch:false,
+    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false, team:[],teamMismatch:false,agenda:[],agendaMismatch:false,agendaResultWrongSource:false,
   };
   fixtures.set(page, state);
   let markPending = () => {}; let release = () => {}; let markSettled = () => {};
@@ -87,6 +88,28 @@ async function fixture(page: Page, assigned = capabilities) {
       if (current) state.team[state.team.indexOf(current)] = result; else state.team.push(result);
       parent.row_version += 1;
       return route.fulfill({ status, json: { member: result, audit_version: parent.row_version } });
+    }
+    const agendaEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/agenda(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
+    if (method !== "GET" && agendaEndpoint) {
+      if (!((method === "POST" && (!agendaEndpoint[2] || agendaEndpoint[3])) || (method === "PATCH" && agendaEndpoint[2] && !agendaEndpoint[3]))) {
+        state.unexpectedWrites.push(`${method} ${path}`); return route.abort("blockedbyclient");
+      }
+      const body = request.postDataJSON() as Record<string, unknown>;
+      state.writes.push({ method, path, body });
+      const parent = state.audits.find(row => row.id === agendaEndpoint[1]);
+      const current = state.agenda.find(row => row.id === agendaEndpoint[2]);
+      const status = state.writeStatus ?? (agendaEndpoint[2] ? 200 : 201);
+      if (status === 403) state.capabilities = [];
+      if (status === 409 && state.conflict && parent) parent.row_version += 1;
+      if (status < 200 || status >= 300 || status === 202) return route.fulfill({ status, json: { detail: "Synthetic criterion feedback" } });
+      if (!parent) return route.fulfill({ status: 404, json: { detail: "Missing parent" } });
+      const changes = { ...body }; delete changes.expected_version; delete changes.expected_audit_version;
+      const result: AgendaRow = current ? { ...current, ...(agendaEndpoint[3] ? { status: "withdrawn", withdrawal_reason: String(body.reason) } : changes), row_version: current.row_version + 1 } : {
+        id:createdId,audit_id:parent.id,unit_id:parent.unit_id,sequence:Number(body.sequence),title:String(body.title),objective:String(body.objective),location:String(body.location),method:String(body.method),starts_at:String(body.starts_at),ends_at:String(body.ends_at),scope_id:body.scope_id as string|null,auditor_team_member_id:String(body.auditor_team_member_id),auditee_team_member_id:body.auditee_team_member_id as string|null,auditor_name:state.team.find(row=>row.id===body.auditor_team_member_id)?.display_name_snapshot??"Planned auditor",auditee_name:state.team.find(row=>row.id===body.auditee_team_member_id)?.display_name_snapshot??null,status:"active",row_version:1,withdrawal_reason:"",
+      };
+      if (current) state.agenda[state.agenda.indexOf(current)] = result; else state.agenda.push(result);
+      parent.row_version += 1;
+      return route.fulfill({ status, json: { item: state.agendaResultWrongSource?{...result,auditor_team_member_id:agendaAuditee}:result, audit_version: parent.row_version } });
     }
     const criterionEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/criteria(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
     if (method !== "GET" && criterionEndpoint) {
@@ -178,8 +201,10 @@ async function fixture(page: Page, assigned = capabilities) {
         display_name: index === 0 ? "Ana Quality" : `Planning person ${index + 1}`,
         role: "member", status: "active",
       })).filter((member) => member.display_name.toLowerCase().includes((url.searchParams.get("search")??url.searchParams.get("q")??"").toLowerCase())).slice(offset, offset + limit);
+    } else if (agendaEndpoint) {
+      body=state.agenda.filter(row=>row.audit_id===agendaEndpoint[1]&&row.status===url.searchParams.get("status")).slice(offset,offset+limit).map(row=>state.agendaMismatch?{...row,unit_id:unitB}:row);
     } else if (teamEndpoint) {
-      body=state.team.filter(row=>row.audit_id===teamEndpoint[1]&&row.status===url.searchParams.get("status")).slice(offset,offset+limit).map(row=>state.teamMismatch?{...row,unit_id:unitB}:row);
+      body=state.team.filter(row=>row.audit_id===teamEndpoint[1]&&row.status===url.searchParams.get("status")&&(!url.searchParams.has("team_role")||row.team_role===url.searchParams.get("team_role"))).slice(offset,offset+limit).map(row=>state.teamMismatch?{...row,unit_id:unitB}:row);
     } else if (criterionEndpoint) {
       body = state.criteria.filter(row => row.audit_id === criterionEndpoint[1] && row.status === url.searchParams.get("status")).slice(offset, offset + limit).map(row => state.criterionMismatch ? { ...row, unit_id: unitB } : row);
     } else if (scopeEndpoint) {
@@ -471,6 +496,7 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   const option=unit.locator("option").filter({hasText:"DEV-ACCESS-UI"});
   await unit.selectOption(String(await option.getAttribute("value")));
   await expect(panel).toContainText("DEMO-AP-001");
+  const agendaRead=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/agenda")&&response.status()===200);
   const teamRead=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/team-members")&&response.status()===200);
   await tab(panel,"Scheduled audits");
   await expect(panel).toContainText("DEMO-AUD-001");
@@ -480,6 +506,9 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   expect(teamRows).toHaveLength(1);expect(teamRows[0].status).toBe("active");
   const roster=panel.locator("section.ncr-read-section").filter({has:page.getByRole("heading",{name:"Audit team",exact:true})});
   await expect(roster).toContainText(teamRows[0].display_name_snapshot);
+  const agendaRows=await (await agendaRead).json() as AgendaRow[];
+  expect(agendaRows).toHaveLength(1);expect(agendaRows[0].auditor_team_member_id).toBe(teamRows[0].id);
+  await expect(panel).toContainText("Revisión de recepción — demostración");
   await expect(panel).toContainText("pending");
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
@@ -919,6 +948,156 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
       const screenshot = testInfo.outputPath(`team-${width}-${dark ? "dark" : "light"}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
       await testInfo.attach(`team-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
+    }
+  });
+});
+
+
+const agendaAuditor="d0000000-0000-4000-8000-000000000101";
+const agendaAuditee="d0000000-0000-4000-8000-000000000102";
+function agendaRow(index=1):AgendaRow{return {...scopeRow(index),title:`Receiving activity ${index}`,objective:"Sample receiving",location:"Receiving bay",method:"sampling",starts_at:new Date(Date.UTC(2027,2,1,index-1)).toISOString(),ends_at:new Date(Date.UTC(2027,2,1,index)).toISOString(),scope_id:null,auditor_team_member_id:agendaAuditor,auditee_team_member_id:null,auditor_name:"Planned auditor",auditee_name:null};}
+async function agendaFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.scopes=[scopeRow()];result.state.team=[{...teamRow(1),id:agendaAuditor,team_role:"auditor",display_name_snapshot:"Planned auditor"},{...teamRow(2),id:agendaAuditee,team_role:"auditee",display_name_snapshot:"Audited participant"}];await tab(result.panel,"Scheduled audits");return result;}
+async function agendaDraft(panel:Locator){await panel.getByRole("button",{name:"Add agenda activity",exact:true}).click();const form=panel.getByRole("form",{name:"Add agenda activity",exact:true});await form.getByLabel("Agenda order",{exact:true}).fill("10");await form.getByLabel("Activity title",{exact:true}).fill("Receiving inspection");await form.getByLabel("Activity objective",{exact:true}).fill("Sample documented receiving checks.");await form.getByLabel("Location",{exact:true}).fill("Receiving bay");await form.getByLabel("Starts (UTC)",{exact:true}).fill("2027-03-01T09:00");await form.getByLabel("Ends (UTC)",{exact:true}).fill("2027-03-01T10:00");await form.getByLabel("Method",{exact:true}).selectOption("sampling");for(const [label,id] of [["Assigned auditor",agendaAuditor],["Audited participant (optional)",agendaAuditee],["Agenda scope (optional)",scopeRow().id]]){const select=form.getByLabel(label,{exact:true});await expect(select).toBeEnabled();await select.selectOption(id)}return form;}
+
+test.describe("audit agenda (mocked writes, real browser)", () => {
+  test.use({timezoneId:"America/New_York"});
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+
+  test("agenda creation, editing and withdrawal preserve versions and history", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page);
+    const form = await agendaDraft(panel);
+    await form.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    expect(state.writes[0]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/agenda`, body: { expected_audit_version: 3, sequence:10,title:"Receiving inspection",objective:"Sample documented receiving checks.",method:"sampling",location:"Receiving bay",starts_at:"2027-03-01T09:00:00.000Z",ends_at:"2027-03-01T10:00:00.000Z",scope_id:scopeRow().id,auditor_team_member_id:agendaAuditor,auditee_team_member_id:agendaAuditee } });
+    await panel.getByRole("button", { name: "Edit activity 10", exact: true }).click();
+    const edit = panel.getByRole("form", { name: "Edit agenda activity", exact: true });
+    await edit.getByLabel("Activity title", { exact: true }).fill("Updated inspection activity");
+    await edit.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(edit).toHaveCount(0);
+    expect(state.writes[1]).toMatchObject({ method: "PATCH", body: { expected_audit_version: 4, expected_version: 1, title:"Updated inspection activity" } });
+    await panel.getByRole("button", { name: "Withdraw activity 10", exact: true }).click();
+    const withdraw = panel.getByRole("form", { name: "Withdraw agenda activity", exact: true });
+    await withdraw.getByLabel("Activity withdrawal reason", { exact: true }).fill("Superseded after planning review.");
+    await withdraw.getByRole("button", { name: "Confirm agenda withdrawal", exact: true }).click();
+    await expect(withdraw).toHaveCount(0);
+    expect(state.writes[2]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/agenda/${createdId}/withdraw`, body: { expected_audit_version: 5, expected_version: 2, reason: "Superseded after planning review." } });
+    await panel.getByLabel("Agenda history", { exact: true }).selectOption("withdrawn");
+    await expect(panel).toContainText("Withdrawn: Superseded after planning review.");
+    await expect(panel.getByRole("button", { name: "Edit activity 10", exact: true })).toHaveCount(0);
+    expect(state.audits[0].row_version).toBe(6);
+  });
+
+  test("agenda conflict locks replay until explicit parent reconciliation", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page);
+    state.writeStatus = 409; state.conflict = true;
+    const form = await agendaDraft(panel);
+    await form.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save agenda activity", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Activity title", { exact: true })).toHaveValue("Receiving inspection");
+    expect(state.writes).toHaveLength(1);
+    state.writeStatus = null;
+    await panel.getByRole("button", { name: "Refresh audit agenda", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    const retry = await agendaDraft(panel);
+    await retry.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(retry).toHaveCount(0);
+    expect(state.writes).toHaveLength(2); expect(state.writes[1].body.expected_audit_version).toBe(4);
+  });
+
+  test("mismatched successful agenda response stays unconfirmed until refresh",async({page})=>{
+    const {state,panel}=await agendaFixture(page);state.agendaResultWrongSource=true;const form=await agendaDraft(panel);
+    await form.getByRole("button",{name:"Save agenda activity",exact:true}).click();await expect(form.getByRole("button",{name:"Save agenda activity",exact:true})).toBeDisabled();expect(state.writes).toHaveLength(1);
+    await panel.getByRole("button",{name:"Refresh audit agenda",exact:true}).click();await expect(form).toHaveCount(0);await expect(panel).toContainText("Receiving inspection");expect(state.writes).toHaveLength(1);
+  });
+
+  test("agenda refresh also reconciles a cancelled parent state", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page);
+    state.audits[0].state = "cancelled"; state.audits[0].row_version += 1;
+    await panel.getByRole("button", { name: "Refresh audit agenda", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Add agenda activity", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Edit planning details", exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("temporary agenda failure preserves the draft and sends only one command", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page); state.writeStatus = 503;
+    const form = await agendaDraft(panel);
+    await form.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(form.getByLabel("Activity title", { exact: true })).toHaveValue("Receiving inspection");
+    await expect(form.getByRole("button", { name: "Save agenda activity", exact: true })).toBeEnabled();
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("unconfirmed agenda success blocks duplicate creation", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page); state.writeStatus = 202;
+    const form = await agendaDraft(panel);
+    await form.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save agenda activity", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Activity title", { exact: true })).toHaveValue("Receiving inspection");
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("agenda denial closes the entire cached audit context", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page); state.writeStatus = 403;
+    const form = await agendaDraft(panel);
+    await form.getByRole("button", { name: "Save agenda activity", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    await expect(panel.getByRole("heading", { name: "Receiving process audit", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Add agenda activity", exact: true })).toHaveCount(0);
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("read-only users can inspect paginated history without agenda controls", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page, ["audits.read"]);
+    state.agenda = Array.from({ length: 21 }, (_, index) => agendaRow(index + 1));
+    await panel.getByRole("button",{name:"Refresh audit agenda",exact:true}).click();
+    await expect(panel.getByRole("button", { name: "Add agenda activity", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: /^Edit activity|^Withdraw activity/ })).toHaveCount(0);
+    await expect(panel).toContainText("00:00 UTC");
+    await panel.getByRole("button", { name: "More activities", exact: true }).click();
+    await expect(panel).toContainText("Receiving activity 21");
+    expect(state.reads.some(row => row.path.endsWith("/agenda") && row.query.offset === "20" && row.query.limit === "21" && row.query.status === "active")).toBe(true);
+    // Retired intervals remain historical when the parent dates are later replanned.
+    state.agenda = [{ ...agendaRow(), title: "Historical receiving activity", status: "withdrawn", row_version: 2, withdrawal_reason: "Replanned dates", starts_at: "2027-02-01T09:00:00Z", ends_at: "2027-02-01T10:00:00Z" }];
+    await panel.getByLabel("Agenda history", { exact: true }).selectOption("withdrawn");
+    await expect(panel).toContainText("Historical receiving activity");
+    await expect(panel).toContainText("Replanned dates");
+    await expect(panel.getByRole("alert")).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("agenda item from another unit is rejected rather than displayed", async ({ page }) => {
+    const { state, panel } = await agendaFixture(page); state.agenda = [agendaRow()]; state.agendaMismatch = true;
+    await panel.getByRole("button",{name:"Refresh audit agenda",exact:true}).click();
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(panel.getByText("Receiving activity 1", { exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("role-filtered participant choices preserve selection across pages",async({page})=>{
+    const {state,panel}=await agendaFixture(page);state.team=[...Array.from({length:21},(_,i)=>({...teamRow(i+1),id:i===0?agendaAuditor:teamRow(i+1).id,team_role:"auditor",display_name_snapshot:`Planned auditor ${i+1}`})),{...teamRow(30),id:agendaAuditee,team_role:"auditee",display_name_snapshot:"Audited participant"}];
+    const form=await agendaDraft(panel);const choice=form.getByLabel("Assigned auditor",{exact:true});await form.getByRole("button",{name:"More auditor choices",exact:true}).click();await expect(choice.locator(`option[value="${state.team[20].id}"]`)).toHaveCount(1);await expect(choice).toHaveValue(agendaAuditor);await expect(choice.locator(`option[value="${agendaAuditor}"]`)).toContainText("Planned auditor 1");
+    await form.getByRole("button",{name:"Save agenda activity",exact:true}).click();await expect(form).toHaveCount(0);expect(state.writes[0].body.auditor_team_member_id).toBe(agendaAuditor);
+    expect(state.reads.some(row=>row.path===`/internal-audits/audits/${auditA}/team-members`&&row.query.team_role==="auditor"&&row.query.offset==="20")).toBe(true);
+    expect(state.reads.some(row=>row.path===`/internal-audits/audits/${auditA}/team-members`&&row.query.team_role==="auditee")).toBe(true);
+  });
+
+  test("agenda forms reflow and pass axe in both themes", async ({ page }, testInfo) => {
+    const { panel } = await agendaFixture(page);
+    const form = await agendaDraft(panel);
+    await expect(form.getByLabel("Assigned auditor", { exact: true })).toBeEnabled();
+    for (const width of [375, 1440]) for (const dark of [false, true]) {
+      await page.setViewportSize({ width, height: 1000 });
+      if (await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked() !== dark) await page.locator("label.theme-switch").click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const results = await new AxeBuilder({ page }).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(results.violations).toEqual([]);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      const screenshot = testInfo.outputPath(`agenda-${width}-${dark ? "dark" : "light"}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      await testInfo.attach(`agenda-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
     }
   });
 });

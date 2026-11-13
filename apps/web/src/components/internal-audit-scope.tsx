@@ -13,7 +13,7 @@ const unavailable = (cause: unknown) => cause instanceof AccessError && [401,403
 function failure(cause: unknown) {
   if (cause instanceof AccessError) {
     if ([401,403,404].includes(cause.status)) return "The audit or your access is unavailable. Refresh your responsibilities.";
-    if (cause.status === 409) return "The audit, scope order, linked process or criteria changed. Refresh scope before another submission. Relink or withdraw active criteria before withdrawing their scope.";
+    if (cause.status === 409) return "The audit, scope order, linked process or criteria changed. Refresh scope before another submission. Relink or withdraw active criteria and agenda activities before withdrawing their scope.";
     if (cause.status === 422) return "Review the title, sequence, description and process.";
   }
   return "Scope could not be confirmed. Refresh scope and review the record before submitting again.";

@@ -2,15 +2,17 @@
 
 ## Current verified implementation
 
-As of12November2026,0040 planning UI,0042 scope,0043 criteria and0044 planning team are implemented.
+As of13November2026,0040 planning UI,0042 scope,0043 criteria,0044 team and0045 agenda are implemented.
 Scope includes process references, versioned editing/withdrawal, forced RLS and
 technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
 Criteria support authored source references, whole-audit or active scope links,
 versioned editing and reasoned withdrawal. See `../product/INTERNAL_AUDIT_CRITERIA.md`.
 Planning team supports auditor/auditee roles, immutable identity snapshots and
 versioned retirement; assignment does not grant execution access.
+Agenda has versioned UTC intervals, active participant/scope links and within-audit
+overlap guards; see `../product/INTERNAL_AUDIT_AGENDA.md` for tested boundaries.
 The readiness/independence/execution/finding invariants below describe the
-target architecture; they are not implemented by this scope slice.0041 remains
+target architecture; they are not implemented by these planning slices.0041 remains
 a reserved unvalidated recovery draft and must not be applied.
 
 ## Boundary

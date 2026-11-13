@@ -183,6 +183,7 @@ def list_team_members(
     db: DB,
     authenticated: Authenticated,
     status: Annotated[str | None, Query(pattern="^(active|withdrawn)$")] = None,
+    team_role: Annotated[Literal["auditor", "auditee"] | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 50,
     offset: Annotated[int, Query(ge=0, le=1_000_000)] = 0,
 ) -> list[QMSAuditTeamMember]:
@@ -194,6 +195,8 @@ def list_team_members(
     )
     if status:
         query = query.where(QMSAuditTeamMember.status == status)
+    if team_role:
+        query = query.where(QMSAuditTeamMember.team_role == team_role)
     return list(
         db.scalars(
             query.order_by(QMSAuditTeamMember.team_role, QMSAuditTeamMember.id)
