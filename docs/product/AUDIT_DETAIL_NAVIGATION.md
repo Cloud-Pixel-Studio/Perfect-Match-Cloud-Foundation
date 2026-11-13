@@ -102,3 +102,5 @@ Base PR37/012ba4b CI: quality43452520965 and CodeQL43452520777 PASS. Security
 runtime, visual, scanners, SBOM and ZAP steps PASS. No new-head CI success is
 implied, and the release remains blocked. Current JS audit has one existing
 Moderate and zero High/Critical; it does not establish container security.
+
+Entrega [PR borrador38](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/38), sobre PR37/012ba4b. Funcionalac0e85f90bcb2b3c90feee84a16da7d448c41840/arbol18d763291b2b39c536ccfab05b49940a637e0825 identicos local/remoto. CP-AUDIT-DETAIL-06-20261113T154320Z restaura480 fuentes+Git y27 evidencias (15PNG/9logs/3JSON). Seguimiento solo documental; CI exacto final y aprobacion humana pendientes. Sin merge/produccion.

@@ -6,7 +6,8 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Trabajo activo: codex/internal-audit-detail-navigation sobre PR37/012ba4b.
+Trabajo activo: codex/internal-audit-detail-navigation, [PR borrador38](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/38), sobre PR37/012ba4b.
+Funcionalac0e85f90bcb2b3c90feee84a16da7d448c41840/arbol18d763291b2b39c536ccfab05b49940a637e0825 identicos local/remoto.
 Secciones Scope & criteria / People & schedule / Readiness con borradores
 montados y teclado/ARIA; backend/DB0047/auth/grants intactos. Leer
 AUDIT_DETAIL_NAVIGATION.md y CHECKPOINT.md. 130Linux+6Darwin+1comprobacion DOM,60webunit/lint/tipos/build PASS.
