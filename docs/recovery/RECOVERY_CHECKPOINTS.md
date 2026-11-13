@@ -416,3 +416,14 @@ changes and requires an explicit recovery decision; never auto-downgrade history
   previo y91 integraciones; roundtrip poblado solo DB descartable. Sin produccion.
 
 - CP-AUDIT-AUTHORITY-06-20261113T152132Z:fuente/Git+5 PNG/logs/audit JSON cifrados, restauracion por SHA256 y bundle verify; manifiesto publico tras verificacion. Bundle final se verifica contra entrega exacta despues de sincronizar.
+
+## Audit detail navigation —13November2026
+
+- CP-AUDIT-DETAIL-00-20261113T153013Z:477 fuentes/Git cifrados antes de editar,
+  restauracion/SHA256/bundle verify PASS. Base PR37/012ba4b local/remoto0/0.
+- Solo frontend y presentacion; sin migraciones ni cambios de datos QMS. Sesiones de prueba normales; API y
+  DB0047 intactas, no nuevo restore DB afirmado. Restore0047 del hito authority
+  sigue disponible. Imagen before-audit-detail-20261113 retenida antes de sustituir
+  exclusivamente web local. Backups/claves0600 fuera de Git; sin produccion.
+
+- CP-AUDIT-DETAIL-06-20261113T154320Z:fuente/Git+15PNG/9logs/3JSON cifrados, restore/SHA256/bundle verify antes de commit; manifiesto publico tras verificacion. Bundle final se valida contra head/arbol entregados.

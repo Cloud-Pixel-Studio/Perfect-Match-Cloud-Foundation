@@ -6,6 +6,15 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
+Trabajo activo: codex/internal-audit-detail-navigation sobre PR37/012ba4b.
+Secciones Scope & criteria / People & schedule / Readiness con borradores
+montados y teclado/ARIA; backend/DB0047/auth/grants intactos. Leer
+AUDIT_DETAIL_NAVIGATION.md y CHECKPOINT.md. 130Linux+6Darwin+1comprobacion DOM,60webunit/lint/tipos/build PASS.
+CP final CP-AUDIT-DETAIL-06-20261113T154320Z. Entrega PR/commit en CHECKPOINT.md;
+CI final/humano pendientes, no fusionar/desplegar. Competencia y ejecucion pendientes.
+
+## Hito anterior
+
 Trabajo activo: codex/internal-audit-execution-authority, [PR borrador37](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/37), sobre PR36/d6f8dca.
 Funcional89a79c49fc7f8bd99236a6083e8ba96467b559ce/arbol50802ec72c54fe9adad56dc9bdc5ddef5720a1bb identicos local/remoto.
 0047 agrega conteos actuales read+execute solo a revisores, sin exponer grants.

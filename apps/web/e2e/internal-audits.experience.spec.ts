@@ -271,6 +271,13 @@ async function tab(panel: Locator, name: "Programs" | "Scheduled audits") {
   await panel.getByRole("tab", { name, exact: true }).click();
   await expect(panel.getByRole("tab", { name, exact: true })).toHaveAttribute("aria-selected", "true");
 }
+async function detailSection(panel: Locator, name: "Scope & criteria" | "People & schedule" | "Readiness") {
+  const navigation = panel.getByRole("tablist", { name: "Audit detail sections", exact: true });
+  const target = navigation.getByRole("tab", { name, exact: true });
+  await target.click();
+  await expect(target).toHaveAttribute("aria-selected", "true");
+  await expect(panel.getByRole("tabpanel", { name, exact: true })).toBeVisible();
+}
 async function programDraft(panel: Locator) {
   await panel.getByRole("button", { name: "New program", exact: true }).click();
   const form = panel.getByRole("form", { name: "Create audit program", exact: true });
@@ -533,12 +540,14 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   await expect(panel).toContainText("Aceptación documentada de materiales — demostración");
   const teamRows=await (await teamRead).json() as TeamRow[];
   expect(teamRows).toHaveLength(1);expect(teamRows[0].status).toBe("active");
+  await detailSection(panel,"People & schedule");
   const roster=panel.locator("section.ncr-read-section").filter({has:page.getByRole("heading",{name:"Audit team",exact:true})});
   await expect(roster).toContainText(teamRows[0].display_name_snapshot);
   const agendaRows=await (await agendaRead).json() as AgendaRow[];
   expect(agendaRows).toHaveLength(1);expect(agendaRows[0].auditor_team_member_id).toBe(teamRows[0].id);
   await expect(panel).toContainText("Revisión de recepción — demostración");
-  await expect(panel).toContainText("Not reviewed");
+  await detailSection(panel,"Readiness");
+  await expect(panel.getByText("Not reviewed",{exact:true})).toBeVisible();
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
   await page.screenshot({path:screenshot,fullPage:true});
@@ -855,7 +864,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
 
   test("team creation, editing and withdrawal preserve versions and history", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     const form = await teamDraft(panel);
     await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
     await expect(form).toHaveCount(0);
@@ -879,7 +888,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("team conflict locks replay until explicit parent reconciliation", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     state.writeStatus = 409; state.conflict = true;
     const form = await teamDraft(panel);
     await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
@@ -896,7 +905,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("team refresh also reconciles a cancelled parent state", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     state.audits[0].state = "cancelled"; state.audits[0].row_version += 1;
     await panel.getByRole("button", { name: "Refresh audit team", exact: true }).click();
     await expect(panel.getByRole("button", { name: "Add team member", exact: true })).toHaveCount(0);
@@ -905,7 +914,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("temporary team failure preserves the draft and sends only one command", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 503;
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule"); state.writeStatus = 503;
     const form = await teamDraft(panel);
     await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
     await expect(panel.getByRole("alert")).toBeVisible();
@@ -915,7 +924,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("unconfirmed team success blocks duplicate creation", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 202;
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule"); state.writeStatus = 202;
     const form = await teamDraft(panel);
     await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
     await expect(form.getByRole("button", { name: "Save team assignment", exact: true })).toBeDisabled();
@@ -924,7 +933,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("team denial closes the entire cached audit context", async ({ page }) => {
-    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 403;
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule"); state.writeStatus = 403;
     const form = await teamDraft(panel);
     await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
     await expect(form).toHaveCount(0);
@@ -936,7 +945,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   test("read-only users can inspect paginated history without team controls", async ({ page }) => {
     const { state, panel } = await fixture(page, ["audits.read"]);
     state.team = Array.from({ length: 21 }, (_, index) => teamRow(index + 1));
-    await tab(panel, "Scheduled audits");
+    await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     await expect(panel.getByRole("button", { name: "Add team member", exact: true })).toHaveCount(0);
     await expect(panel.getByRole("button", { name: /^Edit team member|^Remove team member/ })).toHaveCount(0);
     await panel.getByRole("button", { name: "More team members", exact: true }).click();
@@ -947,14 +956,14 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
 
   test("team member from another unit is rejected rather than displayed", async ({ page }) => {
     const { state, panel } = await fixture(page); state.team = [teamRow()]; state.teamMismatch = true;
-    await tab(panel, "Scheduled audits");
+    await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     await expect(panel.getByRole("alert")).toBeVisible();
     await expect(panel.getByText("Team person 1", { exact: true })).toHaveCount(0);
     expect(state.writes).toEqual([]);
   });
 
   test("selected team person survives directory search and is immutable on edit",async({page})=>{
-    const {state,panel}=await fixture(page);await tab(panel,"Scheduled audits");const form=await teamDraft(panel);const person=form.getByLabel("Team person",{exact:true});
+    const {state,panel}=await fixture(page);await tab(panel,"Scheduled audits"); await detailSection(panel, "People & schedule");const form=await teamDraft(panel);const person=form.getByLabel("Team person",{exact:true});
     await form.getByLabel("Find team person",{exact:true}).fill("Planning person 55");await form.getByRole("button",{name:"Search team people",exact:true}).click();
     await expect(person.locator("option").filter({hasText:"Planning person 55"})).toHaveCount(1);await expect(person).toHaveValue(memberA);await expect(person.locator(`option[value="${memberA}"]`)).toContainText("Ana Quality");
     await form.getByRole("button",{name:"Save team assignment",exact:true}).click();await expect(form).toHaveCount(0);
@@ -963,7 +972,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
   });
 
   test("team forms reflow and pass axe in both themes", async ({ page }, testInfo) => {
-    const { panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits");
+    const { panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits"); await detailSection(panel, "People & schedule");
     const form = await teamDraft(panel);
     await expect(form.getByLabel("Team person", { exact: true })).toBeEnabled();
     for (const width of [375, 1440]) for (const dark of [false, true]) {
@@ -985,7 +994,7 @@ test.describe("audit planning team (mocked writes, real browser)", () => {
 const agendaAuditor="d0000000-0000-4000-8000-000000000101";
 const agendaAuditee="d0000000-0000-4000-8000-000000000102";
 function agendaRow(index=1):AgendaRow{return {...scopeRow(index),title:`Receiving activity ${index}`,objective:"Sample receiving",location:"Receiving bay",method:"sampling",starts_at:new Date(Date.UTC(2027,2,1,index-1)).toISOString(),ends_at:new Date(Date.UTC(2027,2,1,index)).toISOString(),scope_id:null,auditor_team_member_id:agendaAuditor,auditee_team_member_id:null,auditor_name:"Planned auditor",auditee_name:null};}
-async function agendaFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.scopes=[scopeRow()];result.state.team=[{...teamRow(1),id:agendaAuditor,team_role:"auditor",display_name_snapshot:"Planned auditor"},{...teamRow(2),id:agendaAuditee,team_role:"auditee",display_name_snapshot:"Audited participant"}];await tab(result.panel,"Scheduled audits");return result;}
+async function agendaFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.scopes=[scopeRow()];result.state.team=[{...teamRow(1),id:agendaAuditor,team_role:"auditor",display_name_snapshot:"Planned auditor"},{...teamRow(2),id:agendaAuditee,team_role:"auditee",display_name_snapshot:"Audited participant"}];await tab(result.panel,"Scheduled audits");await detailSection(result.panel,"People & schedule");return result;}
 async function agendaDraft(panel:Locator){await panel.getByRole("button",{name:"Add agenda activity",exact:true}).click();const form=panel.getByRole("form",{name:"Add agenda activity",exact:true});await form.getByLabel("Agenda order",{exact:true}).fill("10");await form.getByLabel("Activity title",{exact:true}).fill("Receiving inspection");await form.getByLabel("Activity objective",{exact:true}).fill("Sample documented receiving checks.");await form.getByLabel("Location",{exact:true}).fill("Receiving bay");await form.getByLabel("Starts (UTC)",{exact:true}).fill("2027-03-01T09:00");await form.getByLabel("Ends (UTC)",{exact:true}).fill("2027-03-01T10:00");await form.getByLabel("Method",{exact:true}).selectOption("sampling");for(const [label,id] of [["Assigned auditor",agendaAuditor],["Audited participant (optional)",agendaAuditee],["Agenda scope (optional)",scopeRow().id]]){const select=form.getByLabel(label,{exact:true});await expect(select).toBeEnabled();await select.selectOption(id)}return form;}
 
 test.describe("audit agenda (mocked writes, real browser)", () => {
@@ -1131,7 +1140,7 @@ test.describe("audit agenda (mocked writes, real browser)", () => {
   });
 });
 
-async function independenceFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.audits[0].state="planned";result.state.audits[0].created_by_user_id=memberA;result.state.independenceAllowed=true;result.state.programs[0].state="approved";result.state.scopes=[scopeRow()];result.state.criteria=[criterionRow()];const auditor={...teamRow(1),user_id:memberA,team_role:"auditor"};result.state.team=[auditor];result.state.agenda=[{...agendaRow(),auditor_team_member_id:auditor.id}];await tab(result.panel,"Scheduled audits");await expect(result.panel.getByRole("heading",{name:"Independence and preparation",exact:true})).toBeVisible();await expect(result.panel.getByText("Not reviewed",{exact:true})).toBeVisible();return result;}
+async function independenceFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.audits[0].state="planned";result.state.audits[0].created_by_user_id=memberA;result.state.independenceAllowed=true;result.state.programs[0].state="approved";result.state.scopes=[scopeRow()];result.state.criteria=[criterionRow()];const auditor={...teamRow(1),user_id:memberA,team_role:"auditor"};result.state.team=[auditor];result.state.agenda=[{...agendaRow(),auditor_team_member_id:auditor.id}];await tab(result.panel,"Scheduled audits");await detailSection(result.panel,"Readiness");await expect(result.panel.getByRole("heading",{name:"Independence and preparation",exact:true})).toBeVisible();await expect(result.panel.getByText("Not reviewed",{exact:true})).toBeVisible();return result;}
 async function assessmentDraft(panel:Locator){await panel.getByRole("button",{name:"Record independence assessment",exact:true}).click();const form=panel.getByRole("form",{name:"Record independence assessment",exact:true});await form.getByLabel("Assessment rationale",{exact:true}).fill("Process ownership and other relationships assessed; no unresolved conflicts.");await form.getByRole("checkbox").check();return form;}
 test.describe("audit independence (mocked writes, real browser)",()=>{
  test.beforeEach(()=>test.skip(!password,"Synthetic development credential required"));
@@ -1195,5 +1204,151 @@ test.describe("audit execution authority (mocked access snapshots)",()=>{
 test("live audit execution authority is an aggregate diagnostic",async({page},testInfo)=>{
  test.skip(!reviewerPassword,"Synthetic reviewer credential required");await authenticateWithKeycloak(page,{username:"pmc-multi-user",password:String(reviewerPassword),organization:"Tenant A"});
  const writes:string[]=[];page.on("request",request=>{if(request.url().includes("/internal-audits/")&&request.method()!=="GET")writes.push(request.method())});
- await page.goto("/#internal-audits-heading",{waitUntil:"networkidle"});const panel=page.locator('section[aria-labelledby="internal-audits-heading"]');const unit=panel.getByRole("combobox",{name:"Organization scope"});await unit.selectOption(String(await unit.locator("option").filter({hasText:"DEV-ACCESS-UI"}).getAttribute("value")));await expect(panel).toContainText("DEMO-AP-001");const read=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/independence")&&response.status()===200);await tab(panel,"Scheduled audits");await expect(panel).toContainText("DEMO-AUD-001");const authorityResponse=await read;expect(authorityResponse.headers()["cache-control"]).toContain("no-store");const data=await authorityResponse.json() as {execution_authority:{status:string;planned_auditors:number;authorized_auditors:number};ready_for_execution:boolean};expect(["passed","blocked"]).toContain(data.execution_authority.status);expect(data.execution_authority.planned_auditors).toBeGreaterThan(0);expect(data.execution_authority.authorized_auditors).toBeLessThanOrEqual(data.execution_authority.planned_auditors);expect(data.ready_for_execution).toBe(false);await openPreparation(panel);await expect(panel).toContainText(`${data.execution_authority.authorized_auditors} of ${data.execution_authority.planned_auditors} planned auditors`);await expect(panel.getByRole("button",{name:/Start audit|Mark as ready/})).toHaveCount(0);expect(writes).toEqual([]);await page.evaluate(()=>window.scrollTo({top:0,behavior:"instant"}));const screenshot=testInfo.outputPath("live-audit-execution-authority.png");await page.screenshot({path:screenshot,fullPage:true});await testInfo.attach("live-audit-execution-authority",{path:screenshot,contentType:"image/png"});
+ await page.goto("/#internal-audits-heading",{waitUntil:"networkidle"});const panel=page.locator('section[aria-labelledby="internal-audits-heading"]');const unit=panel.getByRole("combobox",{name:"Organization scope"});await unit.selectOption(String(await unit.locator("option").filter({hasText:"DEV-ACCESS-UI"}).getAttribute("value")));await expect(panel).toContainText("DEMO-AP-001");const read=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/independence")&&response.status()===200);await tab(panel,"Scheduled audits");await expect(panel).toContainText("DEMO-AUD-001");const authorityResponse=await read;expect(authorityResponse.headers()["cache-control"]).toContain("no-store");const data=await authorityResponse.json() as {execution_authority:{status:string;planned_auditors:number;authorized_auditors:number};ready_for_execution:boolean};expect(["passed","blocked"]).toContain(data.execution_authority.status);expect(data.execution_authority.planned_auditors).toBeGreaterThan(0);expect(data.execution_authority.authorized_auditors).toBeLessThanOrEqual(data.execution_authority.planned_auditors);expect(data.ready_for_execution).toBe(false);await detailSection(panel,"Readiness");await openPreparation(panel);await expect(panel).toContainText(`${data.execution_authority.authorized_auditors} of ${data.execution_authority.planned_auditors} planned auditors`);await expect(panel.getByRole("button",{name:/Start audit|Mark as ready/})).toHaveCount(0);expect(writes).toEqual([]);await page.evaluate(()=>window.scrollTo({top:0,behavior:"instant"}));const screenshot=testInfo.outputPath("live-audit-execution-authority.png");await page.screenshot({path:screenshot,fullPage:true});await testInfo.attach("live-audit-execution-authority",{path:screenshot,contentType:"image/png"});
+});
+
+test.describe("focused audit detail navigation", () => {
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+
+  test("keyboard navigation exposes one section and preserves parent planning tabs", async ({ page }) => {
+    const { state, panel } = await fixture(page);
+    await tab(panel, "Scheduled audits");
+    const navigation = panel.getByRole("tablist", { name: "Audit detail sections", exact: true });
+    const scope = navigation.getByRole("tab", { name: "Scope & criteria", exact: true });
+    const people = navigation.getByRole("tab", { name: "People & schedule", exact: true });
+    const readiness = navigation.getByRole("tab", { name: "Readiness", exact: true });
+    await expect(scope).toHaveAttribute("aria-selected", "true");
+    await scope.focus();
+    await scope.press("ArrowRight");
+    await expect(people).toBeFocused();
+    await expect(panel.getByRole("heading", { name: "Audit team", exact: true })).toBeVisible();
+    await expect(panel.getByRole("heading", { name: "Structured audit scope", exact: true })).toHaveCount(0);
+    await people.press("End");
+    await expect(readiness).toBeFocused();
+    await expect(panel.getByRole("heading", { name: "Independence and preparation", exact: true })).toBeVisible();
+    await readiness.press("ArrowRight");
+    await expect(scope).toBeFocused();
+    await scope.press("ArrowLeft");
+    await expect(readiness).toBeFocused();
+    await readiness.press("Home");
+    await expect(scope).toBeFocused();
+    await expect(panel.getByRole("tab", { name: "Scheduled audits", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(panel.getByRole("button", { name: /Start audit|Mark as ready/ })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("a scope draft survives other sections and saves once against the original plan", async ({ page }) => {
+    const { state, panel } = await fixture(page);
+    await tab(panel, "Scheduled audits");
+    const form = await scopeDraft(panel);
+    await form.getByLabel("Scope title", { exact: true }).fill("Preserved receiving scope");
+    await detailSection(panel, "People & schedule");
+    await expect(panel.getByRole("form", { name: "Add audit scope", exact: true })).toHaveCount(0);
+    await detailSection(panel, "Readiness");
+    await detailSection(panel, "Scope & criteria");
+    await expect(form.getByLabel("Scope title", { exact: true })).toHaveValue("Preserved receiving scope");
+    await expect(form.getByLabel("Scope order", { exact: true })).toHaveValue("10");
+    expect(state.writes).toEqual([]);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    expect(state.writes).toHaveLength(1);
+    expect(state.writes[0]).toMatchObject({ method: "POST", path: `/internal-audits/audits/${auditA}/scopes`, body: { expected_audit_version: 3, title: "Preserved receiving scope" } });
+  });
+
+  test("section navigation is locked until a pending QMS command settles", async ({ page }) => {
+    const { state, panel } = await fixture(page);
+    await tab(panel, "Scheduled audits");
+    let announce = () => {}; let release = () => {};
+    const pending = new Promise<void>(resolve => { announce = resolve; });
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    await page.route(`**/api/identity/internal-audits/audits/${auditA}/scopes`, async route => {
+      if (route.request().method() === "POST") { announce(); await gate; }
+      await route.fallback();
+    });
+    const form = await scopeDraft(panel);
+    await form.getByRole("button", { name: "Save audit scope", exact: true }).click();
+    try {
+      await pending;
+      const navigation = panel.getByRole("tablist", { name: "Audit detail sections", exact: true });
+      for (const name of ["Scope & criteria", "People & schedule", "Readiness"]) {
+        await expect(navigation.getByRole("tab", { name, exact: true })).toBeDisabled();
+      }
+    } finally { release(); }
+    await expect(form).toHaveCount(0);
+    await detailSection(panel, "People & schedule");
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("changing unit clears hidden drafts and resets the selected audit section", async ({ page }) => {
+    const { state, panel } = await fixture(page);
+    await tab(panel, "Scheduled audits");
+    const form = await scopeDraft(panel);
+    await form.getByLabel("Scope title", { exact: true }).fill("Private receiving draft");
+    await detailSection(panel, "Readiness");
+    await panel.getByRole("combobox", { name: "Organization scope", exact: true }).selectOption(unitB);
+    await expect(panel.getByRole("heading", { name: "Supplier assurance programme", exact: true })).toBeVisible();
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("heading", { name: "Supplier process audit", exact: true })).toBeVisible();
+    await expect(panel.getByRole("tab", { name: "Scope & criteria", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(form).toHaveCount(0);
+    await expect(panel.getByRole("form", { name: "Add audit scope", exact: true, includeHidden: true })).toHaveCount(0);
+    expect(await panel.locator("input").evaluateAll(inputs => inputs.some(input => (input as HTMLInputElement).value === "Private receiving draft"))).toBe(false);
+    await expect(panel.getByRole("heading", { name: "Receiving process audit", exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("all sections fit mobile tablet desktop with both themes and reduced motion", async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
+    const { state, panel } = await independenceFixture(page);
+    await openPreparation(panel);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const width of [375, 768, 1440]) for (const dark of [false, true]) {
+      await page.setViewportSize({ width, height: 1000 });
+      if (await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked() !== dark) await page.locator("label.theme-switch").click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+      for (const [index, name] of ["Scope & criteria", "People & schedule", "Readiness"].entries()) {
+        await detailSection(panel, name as "Scope & criteria" | "People & schedule" | "Readiness");
+        const selected = panel.getByRole("tabpanel", { name, exact: true });
+        await expect(selected).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+        const box = await selected.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.height).toBeLessThan(width < 640 ? 2600 : 1800);
+        const violations = await new AxeBuilder({ page }).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+        expect(violations.violations).toEqual([]);
+        expect(parseFloat(await selected.evaluate(node => getComputedStyle(node.parentElement!.querySelector('[role="tab"]')!).transitionDuration))).toBeLessThan(0.001);
+        if (width !== 768) {
+          await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+          const screenshot = testInfo.outputPath(`detail-${index}-${width}-${dark ? "dark" : "light"}.png`);
+          await page.screenshot({ path: screenshot, fullPage: true });
+          await testInfo.attach(`detail-${index}-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
+        }
+      }
+    }
+    expect(state.writes).toEqual([]);
+  });
+
+  test("live seeded audit can be reviewed across all sections without QMS writes", async ({ page }, testInfo) => {
+    await authenticateWithKeycloak(page, { username: "pmc-user-a", password: String(password) });
+    const writes: string[] = [];
+    page.on("request", request => { if (request.url().includes("/internal-audits/") && request.method() !== "GET") writes.push(request.method()); });
+    await page.goto("/#internal-audits-heading", { waitUntil: "networkidle" });
+    const panel = page.locator('section[aria-labelledby="internal-audits-heading"]');
+    const unit = panel.getByRole("combobox", { name: "Organization scope", exact: true });
+    await unit.selectOption(String(await unit.locator("option").filter({ hasText: "DEV-ACCESS-UI" }).getAttribute("value")));
+    await expect(panel).toContainText("DEMO-AP-001");
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("heading", { name: "Structured audit scope", exact: true })).toBeVisible();
+    await detailSection(panel, "People & schedule");
+    await expect(panel.getByRole("heading", { name: "Audit agenda", exact: true })).toBeVisible();
+    await detailSection(panel, "Readiness");
+    await openPreparation(panel);
+    await expect(panel.getByText("Execution authority · Unverified", { exact: true })).toBeVisible();
+    await expect(panel.getByRole("button", { name: /Start audit|Mark as ready/ })).toHaveCount(0);
+    expect(writes).toEqual([]);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    const screenshot = testInfo.outputPath("live-audit-detail.png");
+    await page.screenshot({ path: screenshot, fullPage: true });
+    await testInfo.attach("live-audit-detail", { path: screenshot, contentType: "image/png" });
+  });
 });
