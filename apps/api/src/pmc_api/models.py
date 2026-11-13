@@ -120,6 +120,33 @@ class QMSAuditScope(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class QMSAuditCompetenceReview(Base):
+    __tablename__ = "qms_audit_competence_reviews"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    audit_id: Mapped[UUID] = mapped_column(nullable=False)
+    team_member_id: Mapped[UUID] = mapped_column(nullable=False)
+    subject_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    subject_name_snapshot: Mapped[str] = mapped_column(String(160), nullable=False)
+    review_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_audit_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=False)
+    competence_attested: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    document_id: Mapped[UUID] = mapped_column(nullable=False)
+    document_revision_id: Mapped[UUID] = mapped_column(nullable=False)
+    document_code_snapshot: Mapped[str] = mapped_column(String(40), nullable=False)
+    document_title_snapshot: Mapped[str] = mapped_column(String(200), nullable=False)
+    document_revision_snapshot: Mapped[str] = mapped_column(String(40), nullable=False)
+    file_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    valid_until: Mapped[date] = mapped_column(Date, nullable=False)
+    reviewer_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    reviewer_name_snapshot: Mapped[str] = mapped_column(String(160), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class QMSAuditIndependenceReview(Base):
     __tablename__ = "qms_audit_independence_reviews"
 

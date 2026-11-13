@@ -308,25 +308,37 @@ def test_backfill_roundtrip_preserves_review_history_and_restores_force_rls(plan
     _grant(x.records.r.db, AUDITOR, "audits.execute")
     decision = record(x).review.id
     x.records.r.db.rollback()
-    for command in ["downgrade", "upgrade"]:
-        target = (
-            "0046_audit_independence"
-            if command == "downgrade"
-            else "0047_audit_execution_authority"
+    try:
+        for command in ["downgrade", "upgrade"]:
+            target = (
+                "0046_audit_independence"
+                if command == "downgrade"
+                else "0047_audit_execution_authority"
+            )
+            result = subprocess.run(  # noqa: S603 -- controlled interpreter and disposable URLs.
+                [sys.executable, "-m", "alembic", command, target], capture_output=True, check=False
+            )
+            assert result.returncode == 0, result.stderr.decode()
+        after = summary(x)
+        assert after.execution_authority.status == "passed" and after.review_current
+        assert after.latest_review and after.latest_review.id == decision
+        assert (
+            x.records.r.db.scalar(
+                text(
+                    "SELECT relforcerowsecurity FROM pg_class WHERE oid='qms_access_grants'::regclass"
+                )
+            )
+            is True
         )
-        result = subprocess.run(  # noqa: S603 -- controlled interpreter and disposable URLs.
-            [sys.executable, "-m", "alembic", command, target], capture_output=True, check=False
+    finally:
+        # The focused0047 assertions must not leave later suites below migration head.
+        x.records.r.db.rollback()
+        restored = subprocess.run(  # noqa: S603 -- controlled interpreter/disposable database.
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            capture_output=True,
+            check=False,
         )
-        assert result.returncode == 0, result.stderr.decode()
-    after = summary(x)
-    assert after.execution_authority.status == "passed" and after.review_current
-    assert after.latest_review and after.latest_review.id == decision
-    assert (
-        x.records.r.db.scalar(
-            text("SELECT relforcerowsecurity FROM pg_class WHERE oid='qms_access_grants'::regclass")
-        )
-        is True
-    )
+        assert restored.returncode == 0, restored.stderr.decode()
 
 
 def test_review_revoked_during_diagnostic_returns_denial_not_database_error(

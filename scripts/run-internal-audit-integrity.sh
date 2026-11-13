@@ -43,7 +43,7 @@ export PMC_LOGIN_TRANSACTION_KEY="$login_transaction_key"
   uv run --no-sync alembic upgrade head
   uv run --no-sync alembic downgrade 0039_capa_trace_links
   uv run --no-sync alembic upgrade head
-  uv run --no-sync pytest -m internal_audit_integrity tests/test_internal_audit_integrity.py tests/test_internal_audit_scope_integrity.py tests/test_internal_audit_criteria_integrity.py tests/test_internal_audit_team_integrity.py tests/test_internal_audit_agenda_integrity.py tests/test_internal_audit_independence_integrity.py tests/test_audit_execution_authority_integrity.py
+  uv run --no-sync pytest -m internal_audit_integrity tests/test_internal_audit_integrity.py tests/test_internal_audit_scope_integrity.py tests/test_internal_audit_criteria_integrity.py tests/test_internal_audit_team_integrity.py tests/test_internal_audit_agenda_integrity.py tests/test_internal_audit_independence_integrity.py tests/test_audit_execution_authority_integrity.py tests/test_internal_audit_competence_integrity.py
   if uv run --no-sync alembic downgrade 0039_capa_trace_links >"$downgrade_log" 2>&1; then
     echo "Internal-audit operational history downgrade unexpectedly succeeded" >&2
     exit 1

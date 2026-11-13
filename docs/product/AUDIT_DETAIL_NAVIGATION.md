@@ -1,5 +1,9 @@
 # Focused audit detail —13November2026
 
+>0048 follow-up adds audit-specific recorded competence assessments; see
+>AUDIT_COMPETENCE.md. This historical slice does not itself implement them.
+>Ready/start/evidence/findings remain unavailable.
+
 ## Implemented
 
 The former audit detail stacked scope, criteria, people, agenda, independence and
