@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     CheckConstraint,
     Date,
     DateTime,
@@ -117,6 +118,24 @@ class QMSAuditScope(Base):
     created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class QMSAuditIndependenceReview(Base):
+    __tablename__ = "qms_audit_independence_reviews"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    audit_id: Mapped[UUID] = mapped_column(nullable=False)
+    review_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_audit_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    decision: Mapped[str] = mapped_column(String(20), nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=False)
+    independence_attested: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    reviewer_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    reviewer_name_snapshot: Mapped[str] = mapped_column(String(160), nullable=False)
+    lead_auditor_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class QMSAuditAgendaItem(Base):

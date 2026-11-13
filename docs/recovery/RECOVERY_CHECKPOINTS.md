@@ -381,3 +381,23 @@ changes and requires an explicit recovery decision; never auto-downgrade history
   corregir Ruff S101/S603/S607 del control nuevo. No es calidad final aceptada.
 - CP-AUDIT-AGENDA-06C-20261113T052847Z:fuente final tras Ruff y4 controles de deteccion PASS;
   fuente/Git/evidencia cifrados y restaurados, sin cambiar DB ni frontend probado.
+
+
+## Independence assessments0046 -13November2026
+
+- CP-AUDIT-INDEPENDENCE-00-20261113T124751Z:461 fuentes/Git cifrados fuera del
+  arbol; restauracion de todos los SHA256 y bundle verify PASS antes de editar.
+- CP-AUDIT-INDEPENDENCE-DB-00-20261113T124853Z:pre0046 desde0045,54 tablas/48forcedRLS.
+- CP-AUDIT-INDEPENDENCE-DB-06-20261113T130947Z:post0046,55 tablas/49forcedRLS.
+  Ambos restores aislados sin red/puertos, tmpfs, contenido/esquema/ACL/roles/
+  secuencias verificados. Helpers privados preservados; claves0600 separadas.
+- Fallback endurecido con ejecutables PostgreSQL identicos por SHA256; solo
+  normalizacion limitada documentada en INTERNAL_AUDIT_INDEPENDENCE.md. No dumps
+  ni secretos en Git. Local0046 tras restore previo y75PASS; imagenes anteriores
+  before-audit-independence-20261113 conservadas. El demo no tiene firma ficticia.
+- El refinamiento final de hashes del ledger solo cambia codigo. No downgrade
+  poblado, cambio de produccion ni mezcla del WIP0041 original.
+
+- CP-AUDIT-INDEPENDENCE-06-20261113T133559Z:fuente/Git y5 PNG/11 logs+audit JSON cifrados y
+  restaurados por SHA256; ver manifiesto publico. Bundle de entrega se vuelve
+  a verificar por decrypt/mirror/fsck/exact commit-tree tras sincronizacion.
