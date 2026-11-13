@@ -138,9 +138,7 @@ def test_separate_reviewer_records_immutable_history_without_plan_write_or_execu
     assert summary.review_current and not summary.ready_for_execution
     checks = {item.code: item.status for item in summary.checks}
     assert checks["independence"] == "passed" and checks["competence"] == "unverified"
-    assert (
-        checks["execution_authority"] == "unverified" and checks["execution_workflow"] == "blocked"
-    )
+    assert checks["execution_authority"] == "blocked" and checks["execution_workflow"] == "blocked"
     assert get_audit(x.parent, x.records.r.db, _authenticated(MANAGER)).row_version == x.version
     assert (
         record(

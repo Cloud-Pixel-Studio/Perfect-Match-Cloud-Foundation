@@ -6,6 +6,14 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
+Trabajo activo: codex/internal-audit-execution-authority sobre PR36/d6f8dca.
+0047 agrega conteos actuales read+execute solo a revisores, sin exponer grants.
+Leer AUDIT_EXECUTION_AUTHORITY.md y CHECKPOINT.md; ready_for_execution sigue false.
+Competencia, ready/start, evidencia/hallazgos pendientes. 91+199+23+27 PostgreSQL,50API/60webunit,124Linux+6Darwin PASS;
+CP final CP-AUDIT-AUTHORITY-06-20261113T152132Z. Entrega PR/commit en CHECKPOINT.md. No mezclar0041 ni desplegar.
+
+## Hito anterior
+
 Hito activo: **codex/internal-audit-independence**, [PR borrador36](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/36), sobre PR35/43df607.
 Funcional0bd870324c5bc7b53c322381497f7c95edecbefc, arbol17acc74ad4f047e2b961420975b3164c3f33630a verificado identico.
 Leer INTERNAL_AUDIT_INDEPENDENCE.md y CHECKPOINT.md.0046 anade evaluaciones

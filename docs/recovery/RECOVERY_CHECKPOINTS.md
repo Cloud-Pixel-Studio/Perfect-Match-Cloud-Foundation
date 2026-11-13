@@ -401,3 +401,18 @@ changes and requires an explicit recovery decision; never auto-downgrade history
 - CP-AUDIT-INDEPENDENCE-06-20261113T133559Z:fuente/Git y5 PNG/11 logs+audit JSON cifrados y
   restaurados por SHA256; ver manifiesto publico. Bundle de entrega se vuelve
   a verificar por decrypt/mirror/fsck/exact commit-tree tras sincronizacion.
+
+## Execution-authority diagnostic0047 —13November2026
+
+- CP-AUDIT-AUTHORITY-00-20261113T144345Z:470 fuentes/Git cifrados/restaurados por SHA256 antes de editar.
+- CP-AUDIT-AUTHORITY-DB-00-20261113T144349Z:pre0046/55tablas/49forcedRLS.
+- CP-AUDIT-AUTHORITY-DB-06-20261113T151525Z:post0047/56tablas/49forcedRLS.
+  Restauraciones aisladas tmpfs/sin red/puertos PASS; datos/esquema/roles/ACL/secuencias
+  comparados. Nueva proyeccion privada RLS sin politicas y sin FORCE es intencional;
+  getter del propietario devuelve solo conteos con read+review por unidad.
+  Fallback binarios identicos, normalizacion limitada de casts/grantor documentada
+  en AUDIT_EXECUTION_AUTHORITY.md. Claves/backups0600 separados fuera de Git.
+- Imagenes before-audit-authority-20261113 retenidas. DB local0047 tras restore
+  previo y91 integraciones; roundtrip poblado solo DB descartable. Sin produccion.
+
+- CP-AUDIT-AUTHORITY-06-20261113T152132Z:fuente/Git+5 PNG/logs/audit JSON cifrados, restauracion por SHA256 y bundle verify; manifiesto publico tras verificacion. Bundle final se verifica contra entrega exacta despues de sincronizar.

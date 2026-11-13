@@ -1,5 +1,8 @@
 # Independence assessment and preparation diagnostics -13November2026
 
+> Historical0046 scope below.0047 now implements scoped execution-access counts;
+> see AUDIT_EXECUTION_AUTHORITY.md. Competence and execution workflow remain blocked.
+
 ## Implemented boundary
 
 Migration0046 follows0045; the reserved/unvalidated0041 remains outside the chain.
