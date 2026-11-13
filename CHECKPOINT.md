@@ -23,4 +23,6 @@
 - Producción: gate de release falla; cortes previos detectan High proveedoras. Faltan TLS/MFA, secretos/RPO-RTO, staging autorizado/DAST/pentest, revisión roles DB y trazabilidad ASVS/ISO/NIST. Scanners/axe no prueban conformidad completa.
 - Toolchain del checkout original `scripts/with-local-tools.sh`. Secretos solo `~/.config/pmcloud/dev.env`0600, nunca imprimir. SaaS http://127.0.0.1:3000/; API8000/Keycloak8080/Colima pmqms.3100 no usa OIDC configurado. Main no contiene todos los PRs apilados. Historial detallado: docs/recovery/RECOVERY_CHECKPOINTS.md y documentos por vertical.
 
-Checkpoint final de fuente/Git y capturas/logs: **CP-AUDIT-TEAM-06-20261113T042304Z**. Consultar el manifiesto público para verificación y hashes; backups reales/claves fuera de Git. Entrega GitHub pendiente de cerrar.
+Checkpoint final de fuente/Git y capturas/logs: **CP-AUDIT-TEAM-06-20261113T042304Z**. Consultar el manifiesto público para verificación y hashes; backups reales/claves fuera de Git. Entrega funcional en PR34; ver anotación final.
+
+Entrega: [PR borrador34](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/34), sobre PR33/4de65f0. Commit funcional `81cb998c015a5e97044fba4e4d286110a0a13de2`, árbol `05ba90d7dd4b9774a5bfe8a525f2944e0d67ee73` idéntico local/remoto. Este seguimiento solo documenta continuidad; CI exacto nuevo, revisión independiente y aprobación humana antes de merge siguen pendientes. Sin producción.
