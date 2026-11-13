@@ -16,11 +16,12 @@ const capabilities = ["audits.read", "audits.manage", "audits.review", "audits.e
 type Kind = "programs" | "audits";
 type Row = { id: string; unit_id: string; code: string; name: string; state: string; row_version: number; [key: string]: unknown };
 type ScopeRow = { id: string; audit_id: string; unit_id: string; sequence: number; title: string; description: string; process_id: string | null; status: string; row_version: number; withdrawal_reason: string };
+type CriterionRow = Omit<ScopeRow,"description"|"process_id"> & { requirement:string; source_type:string; reference:string; scope_id:string|null };
 type Mutation = { method: string; path: string; body: Record<string, unknown> };
 type FixtureState = {
   capabilities: string[]; programs: Row[]; audits: Row[]; writeStatus: number | null;
   conflict: boolean; hold: boolean; reads: Array<{ path: string; query: Record<string, string> }>;
-  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean;
+  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean;
 };
 const fixtures = new WeakMap<Page, FixtureState>();
 test.afterEach(async ({ page }) => {
@@ -53,7 +54,7 @@ async function fixture(page: Page, assigned = capabilities) {
   const state: FixtureState = {
     capabilities: [...assigned], programs: [program(), program(programB, unitB, "AP-B", "Supplier assurance programme")],
     audits: [audit(), audit(auditB, unitB, "IA-B", "Supplier process audit")], writeStatus: null,
-    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false,
+    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false,
   };
   fixtures.set(page, state);
   let markPending = () => {}; let release = () => {}; let markSettled = () => {};
@@ -64,6 +65,28 @@ async function fixture(page: Page, assigned = capabilities) {
     const request = route.request(); const url = new URL(request.url());
     const path = url.pathname.replace("/api/identity", ""); const method = request.method();
     const endpoint = path.match(/^\/internal-audits\/(programs|audits)(?:\/([0-9a-f-]+)(\/transition)?)?$/i);
+    const criterionEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/criteria(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
+    if (method !== "GET" && criterionEndpoint) {
+      if (!((method === "POST" && (!criterionEndpoint[2] || criterionEndpoint[3])) || (method === "PATCH" && criterionEndpoint[2] && !criterionEndpoint[3]))) {
+        state.unexpectedWrites.push(`${method} ${path}`); return route.abort("blockedbyclient");
+      }
+      const body = request.postDataJSON() as Record<string, unknown>;
+      state.writes.push({ method, path, body });
+      const parent = state.audits.find(row => row.id === criterionEndpoint[1]);
+      const current = state.criteria.find(row => row.id === criterionEndpoint[2]);
+      const status = state.writeStatus ?? (criterionEndpoint[2] ? 200 : 201);
+      if (status === 403) state.capabilities = [];
+      if (status === 409 && state.conflict && parent) parent.row_version += 1;
+      if (status < 200 || status >= 300 || status === 202) return route.fulfill({ status, json: { detail: "Synthetic criterion feedback" } });
+      if (!parent) return route.fulfill({ status: 404, json: { detail: "Missing parent" } });
+      const changes = { ...body }; delete changes.expected_version; delete changes.expected_audit_version;
+      const result: CriterionRow = current ? { ...current, ...(criterionEndpoint[3] ? { status: "withdrawn", withdrawal_reason: String(body.reason) } : changes), row_version: current.row_version + 1 } : {
+        id: createdId, audit_id: parent.id, unit_id: parent.unit_id, sequence: Number(body.sequence), title: String(body.title), requirement: String(body.requirement), source_type: String(body.source_type), reference: String(body.reference), scope_id: body.scope_id as string | null, status: "active", row_version: 1, withdrawal_reason: "",
+      };
+      if (current) state.criteria[state.criteria.indexOf(current)] = result; else state.criteria.push(result);
+      parent.row_version += 1;
+      return route.fulfill({ status, json: { criterion: result, audit_version: parent.row_version } });
+    }
     const scopeEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/scopes(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
     if (method !== "GET" && scopeEndpoint) {
       if (!((method === "POST" && (!scopeEndpoint[2] || scopeEndpoint[3])) || (method === "PATCH" && scopeEndpoint[2] && !scopeEndpoint[3]))) {
@@ -132,6 +155,8 @@ async function fixture(page: Page, assigned = capabilities) {
         display_name: index === 0 ? "Ana Quality" : `Planning person ${index + 1}`,
         role: "member", status: "active",
       })).filter((member) => member.display_name.toLowerCase().includes(q)).slice(offset, offset + limit);
+    } else if (criterionEndpoint) {
+      body = state.criteria.filter(row => row.audit_id === criterionEndpoint[1] && row.status === url.searchParams.get("status")).slice(offset, offset + limit).map(row => state.criterionMismatch ? { ...row, unit_id: unitB } : row);
     } else if (scopeEndpoint) {
       body = state.scopes.filter(row => row.audit_id === scopeEndpoint[1] && row.status === url.searchParams.get("status")).slice(offset, offset + limit).map(row => state.scopeMismatch ? { ...row, unit_id: unitB } : row);
     } else if (path === "/processes") {
@@ -424,6 +449,7 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   await tab(panel,"Scheduled audits");
   await expect(panel).toContainText("DEMO-AUD-001");
   await expect(panel).toContainText("Recepción y aceptación de materiales — demostración");
+  await expect(panel).toContainText("Aceptación documentada de materiales — demostración");
   await expect(panel).toContainText("pending");
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
@@ -576,6 +602,159 @@ test.describe("structured audit scope (mocked writes, real browser)", () => {
       const screenshot = testInfo.outputPath(`scope-${width}-${dark ? "dark" : "light"}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
       await testInfo.attach(`scope-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
+    }
+  });
+});
+
+
+function criterionRow(index = 1): CriterionRow {
+  return { id: `c0000000-0000-4000-8000-${String(index).padStart(12, "0")}`, audit_id: auditA, unit_id: unitA, sequence: index, title: `Receiving criterion ${index}`, requirement: "Inspect controlled receiving records.", source_type: "internal", reference: "PROC-RCV v1", scope_id: null, status: "active", row_version: 1, withdrawal_reason: "" };
+}
+async function criterionDraft(panel: Locator) {
+  await panel.getByRole("button", { name: "Add criterion", exact: true }).click();
+  const form = panel.getByRole("form", { name: "Add audit criterion", exact: true });
+  await form.getByLabel("Criterion order", { exact: true }).fill("10");
+  await form.getByLabel("Criterion title", { exact: true }).fill("Receiving and material inspection");
+  await form.getByLabel("Requirement", { exact: true }).fill("Sample incoming material acceptance records.");
+  await form.getByLabel("Source type", { exact: true }).selectOption("internal");
+  await form.getByLabel("Source reference", { exact: true }).fill("PROC-RCV v1");
+  return form;
+}
+
+test.describe("audit criteria (mocked writes, real browser)", () => {
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+
+  test("criterion creation, editing and withdrawal preserve versions and history", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const form = await criterionDraft(panel);
+    await form.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    expect(state.writes[0]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/criteria`, body: { expected_audit_version: 3, sequence: 10, title: "Receiving and material inspection", requirement: "Sample incoming material acceptance records.", source_type: "internal", reference: "PROC-RCV v1", scope_id: null } });
+    await panel.getByRole("button", { name: "Edit criterion 10", exact: true }).click();
+    const edit = panel.getByRole("form", { name: "Edit audit criterion", exact: true });
+    await edit.getByLabel("Criterion title", { exact: true }).fill("Revised receiving scope");
+    await edit.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(edit).toHaveCount(0);
+    expect(state.writes[1]).toMatchObject({ method: "PATCH", body: { expected_audit_version: 4, expected_version: 1, title: "Revised receiving scope" } });
+    await panel.getByRole("button", { name: "Withdraw criterion 10", exact: true }).click();
+    const withdraw = panel.getByRole("form", { name: "Withdraw audit criterion", exact: true });
+    await withdraw.getByLabel("Criterion withdrawal reason", { exact: true }).fill("Superseded after planning review.");
+    await withdraw.getByRole("button", { name: "Confirm criterion withdrawal", exact: true }).click();
+    await expect(withdraw).toHaveCount(0);
+    expect(state.writes[2]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/criteria/${createdId}/withdraw`, body: { expected_audit_version: 5, expected_version: 2, reason: "Superseded after planning review." } });
+    await panel.getByLabel("Criterion history", { exact: true }).selectOption("withdrawn");
+    await expect(panel).toContainText("Withdrawn: Superseded after planning review.");
+    await expect(panel.getByRole("button", { name: "Edit criterion 10", exact: true })).toHaveCount(0);
+    expect(state.audits[0].row_version).toBe(6);
+  });
+
+  test("criterion conflict locks replay until explicit parent reconciliation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.writeStatus = 409; state.conflict = true;
+    const form = await criterionDraft(panel);
+    await form.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save audit criterion", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Criterion title", { exact: true })).toHaveValue("Receiving and material inspection");
+    expect(state.writes).toHaveLength(1);
+    state.writeStatus = null;
+    await panel.getByRole("button", { name: "Refresh audit criteria", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    const retry = await criterionDraft(panel);
+    await retry.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(retry).toHaveCount(0);
+    expect(state.writes).toHaveLength(2); expect(state.writes[1].body.expected_audit_version).toBe(4);
+  });
+
+  test("criterion refresh also reconciles a cancelled parent state", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.audits[0].state = "cancelled"; state.audits[0].row_version += 1;
+    await panel.getByRole("button", { name: "Refresh audit criteria", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Add criterion", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Edit planning details", exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("temporary criterion failure preserves the draft and sends only one command", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 503;
+    const form = await criterionDraft(panel);
+    await form.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(form.getByLabel("Criterion title", { exact: true })).toHaveValue("Receiving and material inspection");
+    await expect(form.getByRole("button", { name: "Save audit criterion", exact: true })).toBeEnabled();
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("unconfirmed criterion success blocks duplicate creation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 202;
+    const form = await criterionDraft(panel);
+    await form.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save audit criterion", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Criterion title", { exact: true })).toHaveValue("Receiving and material inspection");
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("criterion denial closes the entire cached audit context", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 403;
+    const form = await criterionDraft(panel);
+    await form.getByRole("button", { name: "Save audit criterion", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    await expect(panel.getByRole("heading", { name: "Receiving process audit", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Add criterion", exact: true })).toHaveCount(0);
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("read-only users can inspect paginated history without criterion controls", async ({ page }) => {
+    const { state, panel } = await fixture(page, ["audits.read"]);
+    state.criteria = Array.from({ length: 21 }, (_, index) => criterionRow(index + 1));
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("button", { name: "Add criterion", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: /^Edit criterion|^Withdraw criterion/ })).toHaveCount(0);
+    await panel.getByRole("button", { name: "More criteria", exact: true }).click();
+    await expect(panel).toContainText("21 · Receiving criterion 21");
+    expect(state.reads.some(row => row.path.endsWith("/criteria") && row.query.offset === "20" && row.query.limit === "21" && row.query.status === "active")).toBe(true);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("criterion from another unit is rejected rather than displayed", async ({ page }) => {
+    const { state, panel } = await fixture(page); state.criteria = [criterionRow()]; state.criterionMismatch = true;
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(panel.getByText("1 · Receiving criterion 1", { exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("selected scope survives reference pagination and stays within its audit", async ({ page }) => {
+    const { state, panel } = await fixture(page);
+    state.scopes = Array.from({ length: 21 }, (_, index) => scopeRow(index+1));
+    await tab(panel,"Scheduled audits");
+    const form = await criterionDraft(panel);
+    const selected = state.scopes[0].id;
+    const scope = form.getByLabel("Applies to scope (optional)", {exact:true});
+    await expect(scope).toBeEnabled(); await scope.selectOption(selected);
+    await form.getByRole("button", {name:"More scope choices",exact:true}).click();
+    await expect(scope.locator(`option[value="${state.scopes[20].id}"]`)).toHaveCount(1);
+    await expect(scope).toHaveValue(selected);
+    await expect(scope.locator(`option[value="${selected}"]`)).toContainText("Receiving scope 1");
+    await form.getByRole("button", {name:"Save audit criterion",exact:true}).click();
+    await expect(form).toHaveCount(0);expect(state.writes[0].body.scope_id).toBe(selected);
+    expect(state.reads.some(row=>row.path===`/internal-audits/audits/${auditA}/scopes`&&row.query.status==="active"&&row.query.offset==="20"&&row.query.limit==="21")).toBe(true);
+  });
+
+  test("criterion forms reflow and pass axe in both themes", async ({ page }, testInfo) => {
+    const { panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits");
+    const form = await criterionDraft(panel);
+    await expect(form.getByLabel("Applies to scope (optional)", { exact: true })).toBeEnabled();
+    for (const width of [375, 1440]) for (const dark of [false, true]) {
+      await page.setViewportSize({ width, height: 1000 });
+      if (await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked() !== dark) await page.locator("label.theme-switch").click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const results = await new AxeBuilder({ page }).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(results.violations).toEqual([]);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      const screenshot = testInfo.outputPath(`criterion-${width}-${dark ? "dark" : "light"}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      await testInfo.attach(`criterion-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
     }
   });
 });

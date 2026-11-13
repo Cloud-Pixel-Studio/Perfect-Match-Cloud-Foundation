@@ -317,3 +317,20 @@ changes and requires an explicit recovery decision; never auto-downgrade history
 
 - CP-AUDIT-SCOPE-DB-06-20261112T233026Z: post-migration0042 snapshot restored in isolation,51tables/45forcedRLS, all row/schema/role checks PASS.
 - CP-AUDIT-SCOPE-06-20261112T233207Z: final source/Git and separate visual evidence; consult public manifest for verified hashes.
+
+
+## Audit criteria ·12November2026
+
+- CP-AUDIT-CRITERIA-00-20261112T233726Z:431source entries+Git encrypted,
+  isolated restoration/file hashes/bundle verification PASS.
+- CP-AUDIT-CRITERIA-02-20261112T234627Z:437WIP entries+Git verified before
+  integration; includes the small PR32 process-cleanup follow-up.
+- CP-AUDIT-CRITERIA-DB-00-20261112T233748Z: separate pre0043 database recovery
+  from0042,51tables/45forcedRLS; complete row/schema/ACL/role comparison PASS.
+- Source and database changes are separate checkpoints. Local0043 was applied
+  only after pre0043 recovery PASS; only synthetic demo criterion was added by API.
+  Keys and encrypted backup artifacts remain protected outside Git. No destructive
+  rollback is allowed with operational history; previous local images retained.
+
+- CP-AUDIT-CRITERIA-DB-06-20261113T034349Z: post0043 database restored52tables/46forcedRLS, complete content/schema/roles verification PASS.
+- CP-AUDIT-CRITERIA-06-20261113T034926Z: source/Git and actual synthetic visual evidence; public manifest records verified hashes, actual backups outside Git.

@@ -716,11 +716,79 @@ def main() -> None:
                     201,
                 )
 
+
+        phase = "demo internal-audit criteria"
+        if audit is not None:
+            current_audit = checked(
+                author.get(f"{API}/internal-audits/audits/{audit['id']}")
+            )
+            if current_audit["state"] in {"draft", "planned"}:
+                scope_items = []
+                criteria_items = []
+                for collection, destination in [
+                    ("scopes", scope_items),
+                    ("criteria", criteria_items),
+                ]:
+                    for offset in range(0, 1_000_001, 50):
+                        page = checked(
+                            author.get(
+                                f"{API}/internal-audits/audits/{audit['id']}/{collection}",
+                                params={"limit": 50, "offset": offset},
+                            )
+                        )
+                        destination.extend(page)
+                        if len(page) < 50:
+                            break
+                demo_scope = next(
+                    (
+                        item
+                        for item in scope_items
+                        if item["status"] == "active"
+                        and item["title"]
+                        == "Recepción y aceptación de materiales — demostración"
+                    ),
+                    None,
+                )
+                criterion_title = "Aceptación documentada de materiales — demostración"
+                if demo_scope and not any(
+                    item["title"] == criterion_title for item in criteria_items
+                ):
+                    occupied = {
+                        item["sequence"]
+                        for item in criteria_items
+                        if item["status"] == "active"
+                    }
+                    sequence = next(
+                        (value for value in range(10, 10001, 10) if value not in occupied),
+                        None,
+                    )
+                    if sequence is None:
+                        raise ValueError("No available demonstration criterion order")
+                    checked(
+                        post(
+                            author,
+                            f"{API}/internal-audits/audits/{audit['id']}/criteria",
+                            {
+                                "expected_audit_version": current_audit["row_version"],
+                                "sequence": sequence,
+                                "title": criterion_title,
+                                "source_type": "internal",
+                                "reference": "DEMO-PROC-001 · procedimiento interno de recepción",
+                                "requirement": (
+                                    "Comprobar que los registros sintéticos identifican el material, "
+                                    "el resultado de inspección y la persona responsable de su aceptación."
+                                ),
+                                "scope_id": demo_scope["id"],
+                            },
+                        ),
+                        201,
+                    )
+
         print(
             "Demo data ready: DEMO-PROC-001, DEMO-DOC-001, DEMO-CTL-001, "
             "DEMO-IMP-001, DEMO-RSK-001, DEMO-NCR-001 and DEMO-CAPA-001 "
             "with direct control traceability; internal-audit planning and structured scope "
-            "demo preserved"
+            "and criteria demo preserved"
         )
         for client in clients:
             if "pm_csrf" in client.cookies:

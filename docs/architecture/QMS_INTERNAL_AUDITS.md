@@ -2,9 +2,11 @@
 
 ## Current verified implementation
 
-As of12November2026,0040 planning UI and0042 structured scope are implemented.
+As of12November2026,0040 planning UI,0042 scope and0043 criteria are implemented.
 Scope includes process references, versioned editing/withdrawal, forced RLS and
 technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
+Criteria support authored source references, whole-audit or active scope links,
+versioned editing and reasoned withdrawal. See `../product/INTERNAL_AUDIT_CRITERIA.md`.
 The readiness/team/independence/execution/finding invariants below describe the
 target architecture; they are not implemented by this scope slice.0041 remains
 a reserved unvalidated recovery draft and must not be applied.
@@ -77,7 +79,7 @@ immutable. Destructive downgrades are rejected after operational history exists.
    capabilities, forced RLS, optimistic versions, controlled program lifecycle,
    audit scheduling/cancellation and append-only technical events.
 2. **Scope implemented:** ordered, versioned process-linked items and reasoned
-   withdrawal/history. Criteria, agenda/team and independence review remain pending.
+   withdrawal/history. Criteria0043 are implemented; agenda/team and independence review remain pending.
 3. Evidence and finding execution with traceable snapshots.
 4. Finding-to-NCR handoff and Action Center integration.
 5. Premium responsive workspace, demo records and regression coverage.
@@ -118,3 +120,11 @@ See `../product/INTERNAL_AUDIT_SCOPE.md`. No ready/in_progress/reporting command
 was added. The full parent is reconciled after conflicts so a concurrently
 cancelled audit does not retain scope-edit controls. Only local preview schema
 and synthetic demo records were updated, after isolated recovery verification.
+
+## Criteria0043
+
+Source type/reference and authored requirements are metadata, not verified
+licensed standard content. Active criteria can reference an active scope only
+in the same audit/company/unit. Scope withdrawal is blocked while active criteria
+remain linked. Parent locking serializes both operations; SQL and API enforce
+the invariant. No readiness/execution command was added.

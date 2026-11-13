@@ -94,7 +94,7 @@ def seed_process_identity() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE qms_audit_scopes, qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, qms_ncr_document_links, qms_nonconformities, qms_risks, qms_document_revisions, qms_documents, qms_control_instances, qms_controls, qms_processes, qms_process_dependency_projection, qms_access_grants, workflow_instance_events, workflow_instances, workflow_step_assignments, workflow_transitions, workflow_steps, workflow_versions, workflow_definitions CASCADE"
+                "TRUNCATE qms_audit_criteria, qms_audit_scopes, qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, qms_ncr_document_links, qms_nonconformities, qms_risks, qms_document_revisions, qms_documents, qms_control_instances, qms_controls, qms_processes, qms_process_dependency_projection, qms_access_grants, workflow_instance_events, workflow_instances, workflow_step_assignments, workflow_transitions, workflow_steps, workflow_versions, workflow_definitions CASCADE"
             )
         )
         connection.execute(
@@ -176,7 +176,7 @@ def reset_process_records() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE qms_audit_scopes, qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, qms_ncr_document_links, qms_nonconformities, qms_risk_control_links, qms_risk_document_links, qms_risks, qms_document_revisions, qms_control_instance_evidence, qms_documents, qms_control_instance_activities, qms_control_instances, qms_control_activities, qms_control_evidence_requirements, qms_controls, qms_process_sites, qms_processes, qms_process_dependency_projection, qms_process_site_dependency_projection, qms_access_grants"
+                "TRUNCATE qms_audit_criteria, qms_audit_scopes, qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, qms_ncr_document_links, qms_nonconformities, qms_risk_control_links, qms_risk_document_links, qms_risks, qms_document_revisions, qms_control_instance_evidence, qms_documents, qms_control_instance_activities, qms_control_instances, qms_control_activities, qms_control_evidence_requirements, qms_controls, qms_process_sites, qms_processes, qms_process_dependency_projection, qms_process_site_dependency_projection, qms_access_grants"
             )
         )
         connection.execute(

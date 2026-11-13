@@ -96,7 +96,7 @@ def seed_identity() -> None:
     with _engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE qms_internal_audits, qms_audit_programs, qms_access_grants, "
+                "TRUNCATE qms_processes, qms_internal_audits, qms_audit_programs, qms_access_grants, "
                 "audit_events CASCADE"
             )
         )
