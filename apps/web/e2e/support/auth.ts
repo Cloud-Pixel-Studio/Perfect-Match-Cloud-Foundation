@@ -4,6 +4,7 @@ type AuthenticationOptions = {
   username: string;
   password: string;
   destination?: string;
+  organization?: string;
 };
 
 const apiURL = process.env.PLAYWRIGHT_API_URL ?? "http://127.0.0.1:8000";
@@ -11,7 +12,7 @@ const webURL = new URL(process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000
 
 export async function authenticateWithKeycloak(
   page: Page,
-  { username, password, destination = "/" }: AuthenticationOptions,
+  { username, password, destination = "/", organization }: AuthenticationOptions,
 ) {
   await page.goto(`${apiURL}/auth/login`, { waitUntil: "domcontentloaded" });
   await page.locator("#username").fill(username);
@@ -37,6 +38,16 @@ export async function authenticateWithKeycloak(
       },
     )
     .toBe(200);
+
+  if (organization) {
+    const selector = page.getByRole("combobox", { name: "Current organization", exact: true });
+    await expect(selector).toBeVisible();
+    const option = selector.locator("option").filter({ hasText: organization });
+    await expect(option).toHaveCount(1);
+    const value = await option.getAttribute("value");
+    if (!value) throw new Error("Synthetic organization is unavailable");
+    if (await selector.inputValue() !== value) await selector.selectOption(value);
+  }
 
   await expect(page.getByRole("heading", { name: "Work with clarity." })).toBeVisible({
     timeout: 20_000,

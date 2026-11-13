@@ -12,6 +12,7 @@ host_gid=$(id -g)
 source "$env_file"
 export KEYCLOAK_USER_A_PASSWORD
 export KEYCLOAK_OWNER_PASSWORD
+export KEYCLOAK_MULTI_USER_PASSWORD
 
 playwright_command="./node_modules/.bin/playwright test"
 if [[ "$update" == "true" ]]; then
@@ -27,6 +28,7 @@ docker run --rm \
   --env CI="${CI:-true}" \
   --env KEYCLOAK_USER_A_PASSWORD \
   --env KEYCLOAK_OWNER_PASSWORD \
+  --env KEYCLOAK_MULTI_USER_PASSWORD \
   --env PLAYWRIGHT_API_URL="http://127.0.0.1:8000" \
   --env PLAYWRIGHT_BASE_URL="http://127.0.0.1:3000" \
   --mount "type=bind,source=${repo_root},target=/work" \

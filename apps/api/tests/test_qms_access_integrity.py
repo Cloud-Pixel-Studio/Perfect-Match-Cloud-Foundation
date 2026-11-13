@@ -102,7 +102,7 @@ def seed_identity() -> None:
 @pytest.fixture(autouse=True)
 def clean_grants(seed_identity: None) -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as db:
-        db.execute(text("TRUNCATE qms_access_grants"))
+        db.execute(text("TRUNCATE qms_audit_execution_grant_projection, qms_access_grants"))
 
 
 def actor(user: UUID = OWNER, role: str = "owner") -> OrganizationActor:

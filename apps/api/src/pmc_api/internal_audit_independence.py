@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StringConstraints, model_validator
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
@@ -62,6 +62,12 @@ class PreparationCheck(BaseModel):
     detail: str
 
 
+class ExecutionAuthority(BaseModel):
+    status: Literal["passed", "blocked", "unverified"]
+    planned_auditors: int | None = None
+    authorized_auditors: int | None = None
+
+
 class IndependenceSummary(BaseModel):
     audit_id: UUID
     unit_id: UUID
@@ -73,6 +79,7 @@ class IndependenceSummary(BaseModel):
     can_review: bool
     can_withdraw: bool
     review_blockers: list[str]
+    execution_authority: ExecutionAuthority
     ready_for_execution: Literal[False] = False
     checks: list[PreparationCheck]
 
@@ -157,13 +164,46 @@ def _plan_blockers(facts: dict[str, bool | int]) -> list[str]:
     return blockers
 
 
-@router.get("/{audit_id}/independence", response_model=IndependenceSummary)
+def _execution_authority(
+    db: Session, parent: QMSInternalAudit, can_review: bool
+) -> ExecutionAuthority:
+    if not can_review:
+        return ExecutionAuthority(status="unverified")
+    try:
+        row = db.execute(
+            text(
+                "SELECT planned_auditors,authorized_auditors "
+                "FROM qms_audit_execution_authority(:audit)"
+            ),
+            {"audit": parent.id},
+        ).one()
+    except DBAPIError as error:
+        _db_error(db, error)
+    return ExecutionAuthority(
+        status="passed"
+        if row.planned_auditors > 0 and row.planned_auditors == row.authorized_auditors
+        else "blocked",
+        planned_auditors=row.planned_auditors,
+        authorized_auditors=row.authorized_auditors,
+    )
+
+
+def _no_store(response: Response) -> None:
+    response.headers["Cache-Control"] = "private, no-store"
+
+
+@router.get(
+    "/{audit_id}/independence",
+    response_model=IndependenceSummary,
+    dependencies=[Depends(_no_store)],
+)
 def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> IndependenceSummary:
     actor = actor_context(db, authenticated)
     parent = _audit(db, actor, audit_id)
     version = parent.row_version
     review = _latest(db, parent)
     facts = _facts(db, parent, actor.user_id)
+    authority = _execution_authority(db, parent, bool(facts["review_authority"]))
     base_blockers = _eligibility(parent, actor.user_id, facts)
     current = bool(
         review
@@ -233,10 +273,14 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
         PreparationCheck(
             code="execution_authority",
             label="Execution authority",
-            status="unverified",
+            status=authority.status,
             detail=(
-                "Current execution access for each assigned auditor is not verified. "
-                "Assignment does not grant it."
+                f"{authority.authorized_auditors} of {authority.planned_auditors} planned auditors "
+                "currently have explicit read and execution responsibilities in this unit. "
+                "Assignment grants no access; later changes require revalidation."
+                if authority.status != "unverified"
+                else "A reviewer can verify the planned team's current execution access. "
+                "This view does not expose another person's detailed permissions."
             ),
         ),
         PreparationCheck(
@@ -273,6 +317,7 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
         can_withdraw=not base_blockers and bool(review and review.decision != "withdrawn"),
         review_blockers=base_blockers + _plan_blockers(facts),
         checks=checks,
+        execution_authority=authority,
     )
 
 
