@@ -1372,3 +1372,21 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   .modal-dialog-form footer { align-items: stretch; flex-direction: column-reverse; }
   .modal-dialog-form footer button { width: 100%; }
 }
+
+/* Audit detail: task-focused views, with mounted drafts and explicit focus. */
+.ia-detail-sections { min-width: 0; }
+.ia-detail-navigation { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pm-space-1); padding: var(--pm-space-1); margin: var(--pm-space-3) 0; border: 1px solid var(--pm-border); border-radius: var(--pm-radius-md); background: var(--pm-surface-muted); }
+.ia-detail-navigation [role="tab"] { display: flex; align-items: center; justify-content: center; gap: var(--pm-space-2); min-height: 44px; padding: var(--pm-space-2); border: 1px solid transparent; border-radius: var(--pm-radius-sm); background: transparent; color: var(--pm-text-muted); font: inherit; font-weight: var(--pm-weight-semibold); cursor: pointer; transition: background-color var(--pm-motion-fast), color var(--pm-motion-fast); }
+.ia-detail-navigation [role="tab"] svg { flex-shrink: 0; }
+.ia-detail-navigation [role="tab"]:hover:not(:disabled) { color: var(--pm-text); background: var(--pm-surface); }
+.ia-detail-navigation [role="tab"][aria-selected="true"] { color: var(--pm-primary-strong); border-color: var(--pm-border); background: var(--pm-surface); box-shadow: var(--pm-shadow-sm); }
+.ia-detail-navigation [role="tab"]:disabled { cursor: not-allowed; opacity: .6; }
+.ia-detail-navigation [role="tab"]:focus-visible, .ia-detail-section:focus-visible { outline: 2px solid var(--pm-focus); outline-offset: 2px; }
+.ia-detail-section { min-width: 0; border-radius: var(--pm-radius-sm); }
+.ia-detail-section[hidden] { display: none; }
+@media (max-width: 640px) {
+  .ia-detail-navigation [role="tab"] { flex-direction: column; gap: var(--pm-space-1); font-size: var(--pm-text-xs); line-height: 1.45; overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ia-detail-navigation [role="tab"] { transition: none; }
+}

@@ -22,6 +22,14 @@ The final readiness/execution/finding invariants below describe the
 target architecture; they are not implemented by these planning slices.0041 remains
 a reserved unvalidated recovery draft and must not be applied.
 
+## Audit detail presentation
+
+The frontend groups the existing audit editors into Scope & criteria, People &
+schedule, and Readiness. Shared identity/planning context and commands remain
+visible. All child editors stay mounted across view changes; audit/unit/access
+changes still remove the context. Navigation grants no capability and adds no
+workflow state. See `../product/AUDIT_DETAIL_NAVIGATION.md` for scoped UX proof.
+
 ## Boundary
 
 Internal audits are operational QMS records. They are not the append-only

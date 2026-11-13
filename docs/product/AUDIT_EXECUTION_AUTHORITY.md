@@ -1,5 +1,8 @@
 # Audit execution-access diagnostic —13November2026
 
+> UI follow-up: the long detail is now organized into three views; see
+> AUDIT_DETAIL_NAVIGATION.md. This does not extend execution or competence support.
+
 ## Delivered boundary
 
 Migration0047 follows0046. Reviewers can now see whether **every active planned
