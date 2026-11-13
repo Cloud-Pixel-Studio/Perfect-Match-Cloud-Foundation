@@ -784,11 +784,49 @@ def main() -> None:
                         201,
                     )
 
+
+        phase = "demo audit planning team"
+        if audit is not None:
+            current_audit = checked(
+                author.get(f"{API}/internal-audits/audits/{audit['id']}")
+            )
+            if current_audit["state"] in {"draft", "planned"}:
+                team_items = []
+                for offset in range(0, 1_000_001, 50):
+                    page = checked(
+                        author.get(
+                            f"{API}/internal-audits/audits/{audit['id']}/team-members",
+                            params={"limit": 50, "offset": offset},
+                        )
+                    )
+                    team_items.extend(page)
+                    if len(page) < 50:
+                        break
+                if not any(
+                    item["user_id"] == user_ids["pmc-multi-user"] for item in team_items
+                ):
+                    checked(
+                        post(
+                            author,
+                            f"{API}/internal-audits/audits/{audit['id']}/team-members",
+                            {
+                                "expected_audit_version": current_audit["row_version"],
+                                "user_id": user_ids["pmc-multi-user"],
+                                "team_role": "auditor",
+                                "responsibilities": (
+                                    "Asignación sintética: planificar muestreo de recepción. "
+                                    "No concede permisos ni confirma independencia o competencias."
+                                ),
+                            },
+                        ),
+                        201,
+                    )
+
         print(
             "Demo data ready: DEMO-PROC-001, DEMO-DOC-001, DEMO-CTL-001, "
             "DEMO-IMP-001, DEMO-RSK-001, DEMO-NCR-001 and DEMO-CAPA-001 "
             "with direct control traceability; internal-audit planning and structured scope "
-            "and criteria demo preserved"
+            "criteria and planning team demo preserved"
         )
         for client in clients:
             if "pm_csrf" in client.cookies:

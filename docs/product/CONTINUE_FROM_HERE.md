@@ -6,15 +6,16 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-criteria**, sobre PR32/8c60a50.
-Leer INTERNAL_AUDIT_CRITERIA.md y CHECKPOINT.md.0043 añade criterios versionados
-con referencia y alcance opcional; no equipo/independencia/ejecución. Local0043
-con demo real idempotente y restauración previa/posterior verificadas.31+199DB,
-50APIunit/60webunit PASS; navegador final y entrega enCHECKPOINT.
+Hito activo: **codex/internal-audit-team**, sobre PR33/4de65f0.
+Leer INTERNAL_AUDIT_TEAM.md y CHECKPOINT.md.0044 añade equipo planificado con
+snapshot de identidad, rol/notas y retiro motivado/historial. Asignar no concede
+acceso/ejecución/competencia/independencia. Local0044 y demo real idempotente;
+restore previo/posterior verificados.43+199DB,50API/60webunit,97Linux PASS;
+Darwin/entrega final en CHECKPOINT. Siguiente: agenda/independencia.
 
-PR32 corrigió el cleanup de procesos en8c60a50:199/199 ycalidad/CodeQLPASS.
-No heredar esosPASS al nuevohead0043. No aplicar borrador0041, mezclarWIP original,
-fusionar o desplegar. Precios/billing/entitlements siguen sin implementación.
+PR33: calidad43361806578/CodeQL43361806566 PASS; security43361806911 FAILsolo
+gate final. No heredar esos resultados a0044. No aplicar0041 original, mezclarWIP,
+fusionar o desplegar. Pricing/billing/entitlements siguen pendientes.
 
 Hito anterior: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), finala7b2a9f. Calidad/CodeQL/runtime/50PlaywrightPASS;
 releaseFAILsoloKeycloak7High/SeaweedFS2High. No trasladar esta evidencia a otra rama.
@@ -104,3 +105,5 @@ Delivery: [draft PR31](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud
 Entrega: [PR borrador32](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/32), sobre PR31. Commit funcional `072e309484b78144cf811bc228ab292361382bbc`, árbol `c0a934d0af58e38e8c7dba96f94004b145a80ca4` idéntico local/remoto. Este seguimiento solo documenta continuidad. CI del nuevo head pendiente, revisión independiente y aprobación humana antes de merge; sin producción.
 
 Entrega: [PR borrador33](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/33), sobre PR32/8c60a50. Commit funcional `da5f3aa9e44e2e630d178b1d3c07ed49e6d4e627`, árbol `8dbf955688d97604fea96b0d62bbee2b2121934d` idéntico local/remoto. Este seguimiento solo registra continuidad; CI exacto nuevo, revisión independiente y aprobación humana pendientes. Sin merge ni producción.
+
+Entrega: [PR borrador34](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/34), sobre PR33/4de65f0. Commit funcional `81cb998c015a5e97044fba4e4d286110a0a13de2`, árbol `05ba90d7dd4b9774a5bfe8a525f2944e0d67ee73` idéntico local/remoto. Este seguimiento solo documenta continuidad; CI exacto nuevo, revisión independiente y aprobación humana antes de merge siguen pendientes. Sin producción.

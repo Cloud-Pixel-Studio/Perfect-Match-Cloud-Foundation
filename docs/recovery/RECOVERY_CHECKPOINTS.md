@@ -334,3 +334,21 @@ changes and requires an explicit recovery decision; never auto-downgrade history
 
 - CP-AUDIT-CRITERIA-DB-06-20261113T034349Z: post0043 database restored52tables/46forcedRLS, complete content/schema/roles verification PASS.
 - CP-AUDIT-CRITERIA-06-20261113T034926Z: source/Git and actual synthetic visual evidence; public manifest records verified hashes, actual backups outside Git.
+
+
+## Planning team0044 ·13November2026 UTC
+
+- CP-AUDIT-TEAM-00-20261113T040405Z:441 source files+Git encrypted outside repo;
+  isolated source restoration/all hashes and bundle verification PASS.
+- CP-AUDIT-TEAM-DB-00-20261113T040417Z: pre0044 snapshot0043 restored52 tables/
+  46 forcedRLS, complete data/schema/ACL/roles/sequences comparison PASS.
+- CP-AUDIT-TEAM-DB-06-20261113T041446Z: post0044 snapshot restored53 tables/
+  47 forcedRLS, all comparisons PASS, includes one synthetic planned assignment.
+- No source-image assumption: fallback executables matched PostgreSQL source
+  SHA256; strict deparser/built-in grantor normalization documented in product
+  team handoff. Actual dumps/keys/helper outside Git, keys0600 separate.
+- Local0043→0044 applied after pre-restore PASS. No production migration;
+  previous API/web images tagged before-audit-team-20261112. No automatic
+  downgrade/image rollback with operational history. Original0041 preserved.
+
+- CP-AUDIT-TEAM-06-20261113T042304Z: final source/Git and real synthetic screenshots/quality logs; public manifest records restored hashes.

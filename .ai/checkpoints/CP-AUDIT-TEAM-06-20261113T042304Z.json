@@ -1,0 +1,15 @@
+{
+  "id": "CP-AUDIT-TEAM-06-20261113T042304Z",
+  "branch": "codex/internal-audit-team",
+  "baseCommit": "4de65f0ddb6337761f8caaf7d35440e27b44d541",
+  "sourceEntries": 449,
+  "artifacts": {
+    "source.tar.gz.enc": "603e74ab93dedbd67abfbd806fe413bad47253eeb42c76e601c5d88ef3c1c6af",
+    "repository.bundle.enc": "f2ed3b61d523bca8d149ff864ed9df19c082e9c6fa2fa7d54c06430174bd0649",
+    "quality-visual-evidence.tar.gz.enc": "4db2195b7208695682e98dcd82264cf1c23b5762f4846afe84602f1e88e0240b"
+  },
+  "verification": "PASS: isolated source restoration with every file SHA256 matched; git bundle verify; fourteen evidence entries restored with identical hashes",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local preview0043\u21920044 plus one synthetic planned team assignment; separate pre/post DB restoration PASS, see database manifests",
+  "quality_evidence": "Five real synthetic PNGs and nine final logs encrypted/decrypted, every hash verified"
+}

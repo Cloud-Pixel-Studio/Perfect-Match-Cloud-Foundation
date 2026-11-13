@@ -13,6 +13,16 @@ Fuentes verificadas:
 - El README del repositorio privado histórico coincide con el de la referencia;
   para esta revisión se usó la referencia secundaria oficial indicada por el usuario.
 
+## Actualización posterior al corte
+
+El corte original de fuente se conserva abajo. Después se implementaron UI de
+planificación (PR31), alcance(PR32), criterios(PR33) y equipo planificado0044
+(rama codex/internal-audit-team). NCR/riesgo→CAPA también se resolvió en PR30.
+No repetir estas opciones como ausentes: consultar CHECKPOINT.md y los documentos
+de cada entrega para pruebas/límites. Siguen pendientes agenda/independencia,
+ejecución/evidencia/hallazgos/NCR y las9 verticales sin equivalente. Mejorar un
+bloque parcial no cambia el conteo11parciales/9sinvertical ni acredita paridad total.
+
 ## Estado por los20 bloques funcionales de referencia
 
 **11 tienen contraparte parcial;9 carecen de una vertical funcional equivalente.**
