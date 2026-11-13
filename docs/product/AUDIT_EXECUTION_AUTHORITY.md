@@ -1,5 +1,9 @@
 # Audit execution-access diagnostic —13November2026
 
+>0048 follow-up adds audit-specific recorded competence assessments; see
+>AUDIT_COMPETENCE.md. This historical slice does not itself implement them.
+>Ready/start/evidence/findings remain unavailable.
+
 > UI follow-up: the long detail is now organized into three views; see
 > AUDIT_DETAIL_NAVIGATION.md. This does not extend execution or competence support.
 

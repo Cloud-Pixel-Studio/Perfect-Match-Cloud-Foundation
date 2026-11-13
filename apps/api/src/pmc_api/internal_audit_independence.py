@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from pmc_api import audit_service
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.database import get_db
+from pmc_api.internal_audit_competence import _counts as competence_counts
 from pmc_api.internal_audits import _audit, _audit_values, _db_error
 from pmc_api.models import QMSAuditIndependenceReview, QMSInternalAudit
 from pmc_api.qms_access import actor_context, require_capability
@@ -204,6 +205,12 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
     review = _latest(db, parent)
     facts = _facts(db, parent, actor.user_id)
     authority = _execution_authority(db, parent, bool(facts["review_authority"]))
+    document_access = bool(
+        db.scalar(
+            text("SELECT qms_has_capability('documents.read',:unit)"), {"unit": parent.unit_id}
+        )
+    )
+    competence = competence_counts(db, parent) if document_access else None
     base_blockers = _eligibility(parent, actor.user_id, facts)
     current = bool(
         review
@@ -286,10 +293,15 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
         PreparationCheck(
             code="competence",
             label="Auditor competence",
-            status="unverified",
+            status=("passed" if competence[0] > 0 and competence[0] == competence[1] else "blocked")
+            if competence is not None
+            else "unverified",
             detail=(
-                "Qualification and competence records are not implemented; a reviewer "
-                "attestation does not replace them."
+                f"{competence[1]} of {competence[0]} active auditors have current recorded "
+                "competence assessments for this plan, supported by released documents. "
+                "This is a human assessment, not automatic certification or execution authority."
+                if competence is not None
+                else "Document read responsibility is required to verify competence support."
             ),
         ),
         PreparationCheck(

@@ -2,7 +2,8 @@
 
 ## Current verified implementation
 
-As of13November2026,0040 planning UI,0042 scope,0043 criteria,0044 team,0045 agenda 0046 independence assessments and0047 execution-access diagnostics are implemented.
+As of13November2026:0040 planning,0042 scope,0043 criteria,0044 team,0045 UTC agenda,
+0046 independence,0047 execution access and0048 audit-specific competence are implemented.
 Scope includes process references, versioned editing/withdrawal, forced RLS and
 technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
 Criteria support authored source references, whole-audit or active scope links,
@@ -13,7 +14,10 @@ Agenda has versioned UTC intervals, active participant/scope links and within-au
 overlap guards; see `../product/INTERNAL_AUDIT_AGENDA.md` for tested boundaries.
 Independence0046 uses append-only assessments bound to the plan version, with a
 separate review version and conservative diagnostics. Readiness is always blocked
-until competence and execution workflow are verified.0047 adds reviewer-only current
+until final ready/start/execution workflow is implemented.0048 records version-bound
+human competence assessments with released/clean documentary support and UTC expiry;
+see `../product/AUDIT_COMPETENCE.md`. It is not a corporate training registry or
+automatic qualification.0047 adds reviewer-only current
 execution-access counts through a private projection/scoped definer getter; see
 `../product/AUDIT_EXECUTION_AUTHORITY.md`. This grants no execution and cannot
 replace atomic command checks. See

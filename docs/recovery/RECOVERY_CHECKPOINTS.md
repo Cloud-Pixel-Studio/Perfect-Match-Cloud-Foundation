@@ -427,3 +427,21 @@ changes and requires an explicit recovery decision; never auto-downgrade history
   exclusivamente web local. Backups/claves0600 fuera de Git; sin produccion.
 
 - CP-AUDIT-DETAIL-06-20261113T154320Z:fuente/Git+15PNG/9logs/3JSON cifrados, restore/SHA256/bundle verify antes de commit; manifiesto publico tras verificacion. Bundle final se valida contra head/arbol entregados.
+
+## Audit competence0048 —13November2026
+
+- CP-AUDIT-COMPETENCE-00-20261113T182432Z:481 fuentes/Git cifrados antes de editar,
+  restauracion/SHA256/bundle verify PASS. Base PR38/fbfd69a limpia0/0 remoto.
+- CP-AUDIT-COMPETENCE-DB-00-20261113T182548Z:pre0047/56tablas/49forcedRLS.
+- CP-AUDIT-COMPETENCE-DB-06-20261113T184515Z:post0048/57tablas/50forcedRLS.
+  Ambosrestoreaislados tmpfs/sin red/puertos PASS: filas/esquema/customACL/roles/
+  secuencias comparadas. Fallback imagen distinta/binarios PG igualesSHA256;
+  normalizacion limitada de casts/grantor documentada en AUDIT_COMPETENCE.md.
+  Claves0600/dumps fuera de Git; helpers privados preservados.
+- API/web before-audit-competence-20261113 retenidos. Local0048 solo tras restore
+  previo y121integracionesPASS; ningun downgrade localpoblado, ni produccion.
+  Historiaguarda downgrade incluso si solo queda evento.0041 original separado.
+
+- CP-AUDIT-COMPETENCE-06-20261113T185820Z:fuente/Git+5PNG/15logs/2JSON cifrados/restaurados SHA256/bundleverify antescommit; manifiestopublicotrasverificacion. Bundlefinal sevalidacontrahead/arbolentregados.
+
+- CP-AUDIT-COMPETENCE-06B-20261113T190132Z: supersedeCP-AUDIT-COMPETENCE-06-20261113T185820Z solo tras mejorar legibilidad de CHECKPOINT. Código/DB/pruebas sin cambios; fuente/Git/evidencia se vuelven a cifrar y restaurar. Se conserva el anterior.

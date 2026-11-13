@@ -1,0 +1,25 @@
+{
+  "id": "CP-AUDIT-COMPETENCE-06B-20261113T190132Z",
+  "branch": "codex/internal-audit-competence",
+  "baseCommit": "fbfd69a4d694cd0e44550e2fe5174daca57b7f30",
+  "sourceEntries": 490,
+  "artifacts": {
+    "source.tar.gz.enc": "ca5d554616d0b44d2faecad199031c57463eb180c2cebb7d96eb5b0a178d32c3",
+    "repository.bundle.enc": "5225d9e78987b3dbc2066edce4072946baf5d355a647759361b8432588852b59"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0047 to0048 after pre-restore/121PASS; one new forcedRLS append-only table. Separate pre/post DB restores PASS; real demo has zero competence reviews; no production migration.",
+  "databaseCheckpoints": [
+    "CP-AUDIT-COMPETENCE-DB-00-20261113T182548Z",
+    "CP-AUDIT-COMPETENCE-DB-06-20261113T184515Z"
+  ],
+  "visualEvidence": {
+    "png": 5,
+    "qualityLogs": 15,
+    "jsonReports": 2,
+    "encrypted_sha256": "bc89c1db679549c32d8bbdf0d74f7a2caefbc5f30e5383d018356c4119a75e4a",
+    "verification": "PASS: encrypted archive decrypted; all22 entries matched SHA256",
+    "scope": "Final accepted runs plus failed first harness/selector runs and intermediate119 run before concurrency correction, explicitly distinguished"
+  }
+}

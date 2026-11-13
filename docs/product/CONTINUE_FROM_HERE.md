@@ -6,6 +6,16 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
+Trabajo activo: codex/internal-audit-competence sobre PR38/fbfd69a.
+0048 agrega evaluacion humana de competencia por auditor/plan con soporte
+documental liberado/limpio, vigenciaUTC y retiro/historia append-only.
+121 auditorias +199procesos/CAPA +50API/60webunit +140Linux/10Darwin PASS.
+CP final CP-AUDIT-COMPETENCE-06B-20261113T190132Z; entrega PR/commit en CHECKPOINT.md.
+Leer AUDIT_COMPETENCE.md/CHECKPOINT.md; ready_for_execution siguefalse,
+no es registro corporativo de capacitacion/certificacion. No aplicar0041.
+
+## Hito anterior
+
 Trabajo activo: codex/internal-audit-detail-navigation, [PR borrador38](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/38), sobre PR37/012ba4b.
 Funcionalac0e85f90bcb2b3c90feee84a16da7d448c41840/arbol18d763291b2b39c536ccfab05b49940a637e0825 identicos local/remoto.
 Secciones Scope & criteria / People & schedule / Readiness con borradores
