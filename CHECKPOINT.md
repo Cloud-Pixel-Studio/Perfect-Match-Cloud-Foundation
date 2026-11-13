@@ -31,3 +31,5 @@
 - Toolchain original scripts/with-local-tools.sh. Secretos ~/.config/pmcloud/dev.env0600, nunca imprimir. SaaS http://127.0.0.1:3000/; API8000/Keycloak8080/Colima pmqms.3100 no usa OIDC configurado. Main no contiene todos los PR apilados. Historial en docs/recovery/RECOVERY_CHECKPOINTS.md.
 
 Checkpoint final fuente/Git+5 PNG/11 logs+audit JSON: **CP-AUDIT-INDEPENDENCE-06-20261113T133559Z**. Manifiesto publico, backups reales fuera de Git; entrega PR/commit tras sincronizacion.
+
+Entrega [PR borrador36](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/36), sobre PR35/43df607. Funcional0bd870324c5bc7b53c322381497f7c95edecbefc, arbol17acc74ad4f047e2b961420975b3164c3f33630a, identico local/remoto. Seguimiento solo de continuidad; CI exacto nuevo, revision independiente/politica de segregacion y aprobacion humana antes de merge pendientes. Sin produccion.

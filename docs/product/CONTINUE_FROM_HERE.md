@@ -6,7 +6,8 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-independence**, sobre PR35/43df607.
+Hito activo: **codex/internal-audit-independence**, [PR borrador36](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/36), sobre PR35/43df607.
+Funcional0bd870324c5bc7b53c322381497f7c95edecbefc, arbol17acc74ad4f047e2b961420975b3164c3f33630a verificado identico.
 Leer INTERNAL_AUDIT_INDEPENDENCE.md y CHECKPOINT.md.0046 anade evaluaciones
 append-only y diagnostico de preparacion. La version de revision es separada del
 plan; cualquier cambio de plan deja obsoleta la decision. No usar flags legacy.

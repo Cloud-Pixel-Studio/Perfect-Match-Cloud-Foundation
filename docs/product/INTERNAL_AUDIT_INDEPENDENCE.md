@@ -149,3 +149,9 @@ The original0041 WIP is preserved in its checkout and recovery branch6b10edff.
 Final source/Git/evidence checkpoint: **CP-AUDIT-INDEPENDENCE-06-20261113T133559Z**. Five synthetic PNG and11 logs
 plus dependency JSON encrypted externally and restored by hash. See public manifest.
 Local captures: `artifacts/visuals/audit-independence-linux/`.
+
+Delivery: [draft PR36](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/36), stacked on PR35. Functional commit
+`0bd870324c5bc7b53c322381497f7c95edecbefc`, tree
+`17acc74ad4f047e2b961420975b3164c3f33630a` matched local exactly. This follow-up
+records continuity only; exact-head CI, independent review and human approval
+remain required before merge. No production changes.
