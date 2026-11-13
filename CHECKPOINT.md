@@ -24,4 +24,6 @@
 - Toolchain del checkout original: `scripts/with-local-tools.sh`. Secretos solo en `~/.config/pmcloud/dev.env`0600; nunca imprimir. SaaS http://127.0.0.1:3000/; API8000/Keycloak8080/Colima pmqms.3100 no usa el OIDC configurado. Main no incorpora todos los PRs apilados. No force-push, reset/clean, merge ni producción.
 - Historial y evidencia: `docs/recovery/RECOVERY_CHECKPOINTS.md`, documentos de cada vertical y Git. Mantener separado implementado, probado y propuesto.
 
-Checkpoint final de fuente/Git y evidencia visual: **CP-AUDIT-CRITERIA-06-20261113T034926Z**. Consultar su manifiesto público para hashes y verificación; los respaldos reales siguen fuera de Git. Entrega al PR pendiente de cierre.
+Checkpoint final de fuente/Git y evidencia visual: **CP-AUDIT-CRITERIA-06-20261113T034926Z**. Consultar su manifiesto público para hashes y verificación; los respaldos reales siguen fuera de Git. Entrega funcional en PR33; ver anotación final.
+
+Entrega: [PR borrador33](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/33), sobre PR32/8c60a50. Commit funcional `da5f3aa9e44e2e630d178b1d3c07ed49e6d4e627`, árbol `8dbf955688d97604fea96b0d62bbee2b2121934d` idéntico local/remoto. Este seguimiento solo registra continuidad; CI exacto nuevo, revisión independiente y aprobación humana pendientes. Sin merge ni producción.

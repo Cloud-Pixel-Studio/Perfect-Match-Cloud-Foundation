@@ -117,3 +117,5 @@ merge/deployment or certification is claimed.
 Post-0043 recovery **CP-AUDIT-CRITERIA-DB-06-20261113T034349Z** restored52tables/46forcedRLS,
 including the demo criterion; row/schema/role checks PASS. Final source/Git/
 visual checkpoint **CP-AUDIT-CRITERIA-06-20261113T034926Z**; public manifest records verification.
+
+Entrega: [PR borrador33](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/33), sobre PR32/8c60a50. Commit funcional `da5f3aa9e44e2e630d178b1d3c07ed49e6d4e627`, árbol `8dbf955688d97604fea96b0d62bbee2b2121934d` idéntico local/remoto. Este seguimiento solo registra continuidad; CI exacto nuevo, revisión independiente y aprobación humana pendientes. Sin merge ni producción.
