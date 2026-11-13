@@ -19,8 +19,10 @@ type ScopeRow = { id: string; audit_id: string; unit_id: string; sequence: numbe
 type CriterionRow = Omit<ScopeRow,"description"|"process_id"> & { requirement:string; source_type:string; reference:string; scope_id:string|null };
 type TeamRow = {id:string;audit_id:string;unit_id:string;user_id:string;display_name_snapshot:string;team_role:string;responsibilities:string;status:string;row_version:number;withdrawal_reason:string};
 type AgendaRow = Omit<ScopeRow,"description"|"process_id"> & {objective:string;location:string;method:string;starts_at:string;ends_at:string;scope_id:string|null;auditor_team_member_id:string;auditee_team_member_id:string|null;auditor_name:string;auditee_name:string|null};
+type ReviewRow={id:string;audit_id:string;unit_id:string;review_version:number;source_audit_version:number;decision:string;notes:string;independence_attested:boolean;reviewer_user_id:string;reviewer_name_snapshot:string;lead_auditor_user_id:string|null;created_at:string};
 type Mutation = { method: string; path: string; body: Record<string, unknown> };
 type FixtureState = {
+  reviews:ReviewRow[];independenceAllowed:boolean;independenceMismatch:boolean;independenceWrongSource:boolean;
   capabilities: string[]; programs: Row[]; audits: Row[]; writeStatus: number | null;
   conflict: boolean; hold: boolean; reads: Array<{ path: string; query: Record<string, string> }>;
   writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean; team:TeamRow[];teamMismatch:boolean;agenda:AgendaRow[];agendaMismatch:boolean;agendaResultWrongSource:boolean;
@@ -51,9 +53,18 @@ function audit(id = auditA, unit = unitA, code = "IA-A", name = "Receiving proce
     lead_auditor_user_id: memberA, actual_start: null, actual_end: null,
     independence_status: "pending", independence_notes: "", independence_reviewed_by_user_id: null, independence_reviewed_at: null };
 }
+function independenceSummary(state:FixtureState,parent:Row){
+ const latest=state.reviews.filter(row=>row.audit_id===parent.id).sort((a,b)=>b.review_version-a.review_version)[0]??null;
+ const current=!!latest&&latest.source_audit_version===parent.row_version&&latest.decision!=="withdrawn"&&parent.state==="planned";
+ const allowed=state.independenceAllowed&&state.capabilities.includes("audits.review")&&parent.state==="planned";
+ const codes=["scheduled","scope","criteria","agenda","lead","program","independence","execution_authority","competence","execution_workflow"];
+ const labels=["Scheduled audit","Structured scope","Audit criteria","Audit agenda","Lead and planned participants","Linked audit program","Independence assessment","Execution authority","Auditor competence","Execution workflow"];
+ return {audit_id:parent.id,unit_id:state.independenceMismatch?unitB:parent.unit_id,audit_version:parent.row_version,actor_user_id:actorId,review_version:latest?.review_version??0,latest_review:latest,review_current:current,can_review:allowed,can_withdraw:allowed&&!!latest&&latest.decision!=="withdrawn",review_blockers:allowed?[]:["A separate authorized reviewer and a scheduled structured plan are required."],ready_for_execution:false,checks:codes.map((code,index)=>({code,label:labels[index],status:code==="independence"?current?"passed":"blocked":code==="execution_authority"||code==="competence"?"unverified":code==="execution_workflow"?"blocked":"passed",detail:code==="competence"?"Qualification and competence records are not implemented.":"Diagnostic only; this does not authorize execution."}))};
+}
 async function fixture(page: Page, assigned = capabilities) {
   await authenticateWithKeycloak(page, { username: "pmc-user-a", password: String(password) });
   const state: FixtureState = {
+    reviews:[],independenceAllowed:false,independenceMismatch:false,independenceWrongSource:false,
     capabilities: [...assigned], programs: [program(), program(programB, unitB, "AP-B", "Supplier assurance programme")],
     audits: [audit(), audit(auditB, unitB, "IA-B", "Supplier process audit")], writeStatus: null,
     conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false, team:[],teamMismatch:false,agenda:[],agendaMismatch:false,agendaResultWrongSource:false,
@@ -67,6 +78,17 @@ async function fixture(page: Page, assigned = capabilities) {
     const request = route.request(); const url = new URL(request.url());
     const path = url.pathname.replace("/api/identity", ""); const method = request.method();
     const endpoint = path.match(/^\/internal-audits\/(programs|audits)(?:\/([0-9a-f-]+)(\/transition)?)?$/i);
+    const independenceEndpoint=path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/independence(?:\/(reviews))?$/i);
+    if(method!=="GET"&&independenceEndpoint){
+      if(method!=="POST"||!independenceEndpoint[2]){state.unexpectedWrites.push(`${method} ${path}`);return route.abort("blockedbyclient")}
+      const body=request.postDataJSON() as Record<string,unknown>;state.writes.push({method,path,body});const parent=state.audits.find(row=>row.id===independenceEndpoint[1]);const status=state.writeStatus??201;
+      if(status===403)state.capabilities=[];if(status===409&&state.conflict&&parent)parent.row_version+=1;
+      if(status<200||status>=300||status===202)return route.fulfill({status,json:{detail:"Synthetic independence command feedback"}});
+      if(!parent)return route.fulfill({status:404,json:{detail:"Missing parent"}});
+      const version=1+Math.max(0,...state.reviews.filter(row=>row.audit_id===parent.id).map(row=>row.review_version));
+      const review:ReviewRow={id:`d1000000-0000-4000-8000-${String(version).padStart(12,"0")}`,audit_id:parent.id,unit_id:parent.unit_id,review_version:version,source_audit_version:parent.row_version,decision:String(body.decision),notes:String(body.notes),independence_attested:body.independence_attested===true,reviewer_user_id:actorId,reviewer_name_snapshot:"Independent reviewer",lead_auditor_user_id:memberA,created_at:"2026-11-13T12:00:00Z"};state.reviews.push(review);
+      return route.fulfill({status,json:{review:state.independenceWrongSource?{...review,source_audit_version:parent.row_version+1}:review,audit_version:parent.row_version}});
+    }
     const teamEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/team-members(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
     if (method !== "GET" && teamEndpoint) {
       if (!((method === "POST" && (!teamEndpoint[2] || teamEndpoint[3])) || (method === "PATCH" && teamEndpoint[2] && !teamEndpoint[3]))) {
@@ -201,6 +223,8 @@ async function fixture(page: Page, assigned = capabilities) {
         display_name: index === 0 ? "Ana Quality" : `Planning person ${index + 1}`,
         role: "member", status: "active",
       })).filter((member) => member.display_name.toLowerCase().includes((url.searchParams.get("search")??url.searchParams.get("q")??"").toLowerCase())).slice(offset, offset + limit);
+    } else if (independenceEndpoint) {
+      const parent=state.audits.find(row=>row.id===independenceEndpoint[1]);if(!parent)return route.fulfill({status:404,json:{detail:"Missing parent"}});body=independenceEndpoint[2]?state.reviews.filter(row=>row.audit_id===parent.id).sort((a,b)=>b.review_version-a.review_version).slice(offset,offset+limit):independenceSummary(state,parent);
     } else if (agendaEndpoint) {
       body=state.agenda.filter(row=>row.audit_id===agendaEndpoint[1]&&row.status===url.searchParams.get("status")).slice(offset,offset+limit).map(row=>state.agendaMismatch?{...row,unit_id:unitB}:row);
     } else if (teamEndpoint) {
@@ -509,7 +533,7 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   const agendaRows=await (await agendaRead).json() as AgendaRow[];
   expect(agendaRows).toHaveLength(1);expect(agendaRows[0].auditor_team_member_id).toBe(teamRows[0].id);
   await expect(panel).toContainText("Revisión de recepción — demostración");
-  await expect(panel).toContainText("pending");
+  await expect(panel).toContainText("Not reviewed");
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
   await page.screenshot({path:screenshot,fullPage:true});
@@ -1100,4 +1124,45 @@ test.describe("audit agenda (mocked writes, real browser)", () => {
       await testInfo.attach(`agenda-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
     }
   });
+});
+
+async function independenceFixture(page:Page,assigned=capabilities){const result=await fixture(page,assigned);result.state.audits[0].state="planned";result.state.audits[0].created_by_user_id=memberA;result.state.independenceAllowed=true;result.state.programs[0].state="approved";result.state.scopes=[scopeRow()];result.state.criteria=[criterionRow()];const auditor={...teamRow(1),user_id:memberA,team_role:"auditor"};result.state.team=[auditor];result.state.agenda=[{...agendaRow(),auditor_team_member_id:auditor.id}];await tab(result.panel,"Scheduled audits");await expect(result.panel.getByRole("heading",{name:"Independence and preparation",exact:true})).toBeVisible();await expect(result.panel.getByText("Not reviewed",{exact:true})).toBeVisible();return result;}
+async function assessmentDraft(panel:Locator){await panel.getByRole("button",{name:"Record independence assessment",exact:true}).click();const form=panel.getByRole("form",{name:"Record independence assessment",exact:true});await form.getByLabel("Assessment rationale",{exact:true}).fill("Process ownership and other relationships assessed; no unresolved conflicts.");await form.getByRole("checkbox").check();return form;}
+test.describe("audit independence (mocked writes, real browser)",()=>{
+ test.beforeEach(()=>test.skip(!password,"Synthetic development credential required"));
+ test("assessment, override and withdrawal append history without advancing planning version",async({page})=>{
+  const {state,panel}=await independenceFixture(page);let form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(form).toHaveCount(0);await expect(panel.getByText("Confirmed assessment",{exact:true})).toBeVisible();
+  expect(state.writes[0].body).toMatchObject({expected_audit_version:3,expected_review_version:0,decision:"confirmed",independence_attested:true});expect(state.audits[0].row_version).toBe(3);
+  form=await assessmentDraft(panel);await form.getByLabel("Assessment decision",{exact:true}).selectOption("override");await form.getByLabel("Assessment rationale",{exact:true}).fill("Conflict exception documented with independent supervision.");await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(panel.getByText("Documented override",{exact:true})).toBeVisible();expect(state.writes[1].body.expected_review_version).toBe(1);
+  await panel.getByRole("button",{name:"Withdraw independence assessment",exact:true}).click();const withdrawal=panel.getByRole("form",{name:"Withdraw independence assessment",exact:true});await withdrawal.getByLabel("Assessment rationale",{exact:true}).fill("Reconsider relationships before execution.");await withdrawal.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(withdrawal).toHaveCount(0);await expect(panel.getByText("Withdrawn",{exact:true})).toBeVisible();expect(state.writes[2].body).toMatchObject({expected_review_version:2,decision:"withdrawn",independence_attested:false});
+  await panel.getByText("Independence review history",{exact:true}).click();await expect(panel).toContainText("Review 3");await expect(panel).toContainText("Review 1");await panel.getByText("Preparation checks",{exact:true}).click();await expect(panel).toContainText("Auditor competence");await expect(panel.getByRole("button",{name:/Mark as ready|Start audit/})).toHaveCount(0);
+ });
+ test("plan changes make a previous assessment outdated without altering history",async({page})=>{
+  const {state,panel}=await independenceFixture(page);const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(panel.getByText("Confirmed assessment",{exact:true})).toBeVisible();state.audits[0].row_version+=1;await panel.getByRole("button",{name:"Refresh independence",exact:true}).click();await expect(panel.getByText("Outdated assessment",{exact:true})).toBeVisible();expect(state.reviews[0].source_audit_version).toBe(3);expect(state.writes).toHaveLength(1);
+ });
+ test("conflicts preserve draft and require explicit reconciliation before another decision",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.writeStatus=409;state.conflict=true;const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(form.getByRole("button",{name:"Save independence decision",exact:true})).toBeDisabled();await expect(form.getByLabel("Assessment rationale",{exact:true})).not.toBeEmpty();expect(state.writes).toHaveLength(1);state.writeStatus=null;await panel.getByRole("button",{name:"Refresh independence",exact:true}).click();await expect(form).toHaveCount(0);await expect(panel.getByRole("button",{name:"Record independence assessment",exact:true})).toBeEnabled();
+ });
+ test("temporary failure retains rationale and never automatically retries",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.writeStatus=503;const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(panel.getByRole("alert")).toBeVisible();await expect(form.getByLabel("Assessment rationale",{exact:true})).not.toBeEmpty();expect(state.writes).toHaveLength(1);
+ });
+ test("unconfirmed success cannot be submitted again blindly",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.writeStatus=202;const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(form.getByRole("button",{name:"Save independence decision",exact:true})).toBeDisabled();expect(state.writes).toHaveLength(1);
+ });
+ test("mismatched source version in success remains unconfirmed",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.independenceWrongSource=true;const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(form.getByRole("button",{name:"Save independence decision",exact:true})).toBeDisabled();state.independenceWrongSource=false;await panel.getByRole("button",{name:"Refresh independence",exact:true}).click();await expect(panel.getByText("Confirmed assessment",{exact:true})).toBeVisible();expect(state.writes).toHaveLength(1);
+ });
+ test("permission denial clears the entire cached audit context",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.writeStatus=403;const form=await assessmentDraft(panel);await form.getByRole("button",{name:"Save independence decision",exact:true}).click();await expect(form).toHaveCount(0);await expect(panel.getByRole("heading",{name:"Receiving process audit",exact:true})).toHaveCount(0);expect(state.writes).toHaveLength(1);
+ });
+ test("read-only users can inspect paginated reviews and preparation without commands",async({page})=>{
+  const {state,panel}=await independenceFixture(page,["audits.read"]);state.reviews=Array.from({length:21},(_,index)=>({id:`d2000000-0000-4000-8000-${String(index+1).padStart(12,"0")}`,audit_id:auditA,unit_id:unitA,review_version:index+1,source_audit_version:3,decision:"confirmed",notes:`Historical assessment ${index+1}`,independence_attested:true,reviewer_user_id:actorId,reviewer_name_snapshot:"Independent reviewer",lead_auditor_user_id:memberA,created_at:"2026-11-13T12:00:00Z"}));await panel.getByRole("button",{name:"Refresh independence",exact:true}).click();await expect(panel.getByText("Confirmed assessment",{exact:true})).toBeVisible();await expect(panel.getByRole("button",{name:"Record independence assessment",exact:true})).toHaveCount(0);await panel.getByText("Independence review history",{exact:true}).click();await panel.getByRole("button",{name:"More reviews",exact:true}).click();await expect(panel.getByText("Review 1 · confirmed",{exact:true})).toBeVisible();expect(state.reads.some(row=>row.path.endsWith("/independence/reviews")&&row.query.offset==="20"&&row.query.limit==="21")).toBe(true);expect(state.writes).toEqual([]);
+ });
+ test("summary from another unit is rejected",async({page})=>{
+  const {state,panel}=await independenceFixture(page);state.independenceMismatch=true;await panel.getByRole("button",{name:"Refresh independence",exact:true}).click();await expect(panel.getByRole("alert")).toBeVisible();await expect(panel.getByRole("button",{name:"Record independence assessment",exact:true})).toHaveCount(0);expect(state.writes).toEqual([]);
+ });
+ test("assessment requires a conscious attestation and supports both responsive themes",async({page},testInfo)=>{
+  const {panel}=await independenceFixture(page);const form=await assessmentDraft(panel);await form.getByRole("checkbox").uncheck();expect(await form.evaluate(node=>(node as HTMLFormElement).checkValidity())).toBe(false);await form.getByRole("checkbox").focus();await page.keyboard.press("Space");await expect(form.getByRole("checkbox")).toBeChecked();
+  for(const width of [375,1440])for(const dark of [false,true]){await page.setViewportSize({width,height:1000});if(await page.getByRole("checkbox",{name:"Use dark theme",exact:true}).isChecked()!==dark)await page.locator("label.theme-switch").click();await expect(page.locator("html")).toHaveAttribute("data-theme",dark?"dark":"light");expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);const result=await new AxeBuilder({page}).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a","wcag2aa","wcag21a","wcag21aa"]).analyze();expect(result.violations).toEqual([]);await page.evaluate(()=>window.scrollTo({top:0,behavior:"instant"}));const screenshot=testInfo.outputPath(`independence-${width}-${dark?"dark":"light"}.png`);await page.screenshot({path:screenshot,fullPage:true});await testInfo.attach(`independence-${width}-${dark?"dark":"light"}`,{path:screenshot,contentType:"image/png"});}
+ });
 });

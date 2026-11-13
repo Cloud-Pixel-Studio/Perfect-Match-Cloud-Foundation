@@ -6,19 +6,20 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-agenda**, [PR borrador35](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35), sobre PR34/4d2e80f.
-Funcional35674c9ff02727b48ffa9af91edea57a657daec7, arbol79003f8b7477c2dea0959fb8a0ecb04ff0d80e36 identico.
-Leer INTERNAL_AUDIT_AGENDA.md y CHECKPOINT.md.0045 añade agenda UTC por minuto,
-auditor/auditee/alcance activos, protección de vínculos y solapes dentro de la
-misma auditoría. Asignar no concede acceso/ejecución/competencia/independencia.
-Local0045 y demo real idempotente; restore previo0044/post0045 verificados.58+199DB,50API/60webunit,
-108Linux+11Darwin PASS, sin retries/goldenupdates. Historial retirado conserva
-fechas originales tras reprogramar. Checkpoint final/entrega en CHECKPOINT.
+Hito activo: **codex/internal-audit-independence**, sobre PR35/43df607.
+Leer INTERNAL_AUDIT_INDEPENDENCE.md y CHECKPOINT.md.0046 anade evaluaciones
+append-only y diagnostico de preparacion. La version de revision es separada del
+plan; cualquier cambio de plan deja obsoleta la decision. No usar flags legacy.
+Revisor distinto de creador/lider/equipo; override no elude esa segregacion.
+Readiness siempre false: autoridad actual de ejecucion/competencia y workflow
+siguen pendientes. Demo real sin firmas o permisos inventados.
 
-PR34: calidad43365509636/CodeQL43365509645 PASS; security43365509662 FAILsolo
-gate final. No heredar esos resultados a0045. No aplicar0041 original, mezclarWIP,
-fusionar o desplegar. Siguiente: independencia/readiness, ejecución/evidencia/
-hallazgos/NCR. Pricing/billing/entitlements siguen pendientes.
+75+199 DB,50 API/60 webunit,118Linux+10Darwin PASS; sin retries/goldenupdates.
+Historial permanece abierto al paginar; fuente/Git,5 PNG/11 logs+audit JSON y
+restauraciones0045/0046 verificados. Entrega PR/commit en CHECKPOINT. PR35 calidad/CodeQL PASS, security FAILsolo gate final. No heredar
+PASS a0046, aplicar0041 original, mezclar WIP, fusionar o desplegar.
+Siguiente: autoridad/competencia verificables, ejecucion/evidencia/hallazgos/NCR;
+licensing/billing/produccion siguen pendientes.
 
 Hito anterior: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), finala7b2a9f. Calidad/CodeQL/runtime/50PlaywrightPASS;
 releaseFAILsoloKeycloak7High/SeaweedFS2High. No trasladar esta evidencia a otra rama.

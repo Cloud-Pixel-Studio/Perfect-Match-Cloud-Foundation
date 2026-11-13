@@ -2,7 +2,7 @@
 
 ## Current verified implementation
 
-As of13November2026,0040 planning UI,0042 scope,0043 criteria,0044 team and0045 agenda are implemented.
+As of13November2026,0040 planning UI,0042 scope,0043 criteria,0044 team,0045 agenda and0046 independence assessments are implemented.
 Scope includes process references, versioned editing/withdrawal, forced RLS and
 technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
 Criteria support authored source references, whole-audit or active scope links,
@@ -11,7 +11,11 @@ Planning team supports auditor/auditee roles, immutable identity snapshots and
 versioned retirement; assignment does not grant execution access.
 Agenda has versioned UTC intervals, active participant/scope links and within-audit
 overlap guards; see `../product/INTERNAL_AUDIT_AGENDA.md` for tested boundaries.
-The readiness/independence/execution/finding invariants below describe the
+Independence0046 uses append-only assessments bound to the plan version, with a
+separate review version and conservative diagnostics. Readiness is always blocked
+until competence, execution authority and workflow are verified. See
+`../product/INTERNAL_AUDIT_INDEPENDENCE.md`; legacy parent flags are not authoritative.
+The final readiness/execution/finding invariants below describe the
 target architecture; they are not implemented by these planning slices.0041 remains
 a reserved unvalidated recovery draft and must not be applied.
 
@@ -83,7 +87,7 @@ immutable. Destructive downgrades are rejected after operational history exists.
    capabilities, forced RLS, optimistic versions, controlled program lifecycle,
    audit scheduling/cancellation and append-only technical events.
 2. **Scope implemented:** ordered, versioned process-linked items and reasoned
-   withdrawal/history. Criteria0043 are implemented; Team0044 planning is implemented; agenda and independence review remain pending.
+   withdrawal/history. Criteria0043 are implemented; Team0044 planning is implemented; agenda0045 and independence0046 assessments are implemented. Execution remains blocked.
 3. Evidence and finding execution with traceable snapshots.
 4. Finding-to-NCR handoff and Action Center integration.
 5. Premium responsive workspace, demo records and regression coverage.
@@ -102,7 +106,7 @@ optimistic versions, event counts and fail-closed downgrade after history.
 
 At the original0040 milestone, scope/criteria/team/UI were later slices. The
 current implementation at the top supersedes that historical boundary;
-independence and execution remain pending.
+independence assessment is now implemented; final readiness and execution remain pending.
 
 
 ## Planning workspace · 12 November2026
