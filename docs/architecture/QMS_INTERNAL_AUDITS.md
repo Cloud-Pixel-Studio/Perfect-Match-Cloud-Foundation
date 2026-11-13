@@ -2,12 +2,14 @@
 
 ## Current verified implementation
 
-As of12November2026,0040 planning UI,0042 scope and0043 criteria are implemented.
+As of12November2026,0040 planning UI,0042 scope,0043 criteria and0044 planning team are implemented.
 Scope includes process references, versioned editing/withdrawal, forced RLS and
 technical events. See `../product/INTERNAL_AUDIT_SCOPE.md` for contracts and proof.
 Criteria support authored source references, whole-audit or active scope links,
 versioned editing and reasoned withdrawal. See `../product/INTERNAL_AUDIT_CRITERIA.md`.
-The readiness/team/independence/execution/finding invariants below describe the
+Planning team supports auditor/auditee roles, immutable identity snapshots and
+versioned retirement; assignment does not grant execution access.
+The readiness/independence/execution/finding invariants below describe the
 target architecture; they are not implemented by this scope slice.0041 remains
 a reserved unvalidated recovery draft and must not be applied.
 
@@ -79,7 +81,7 @@ immutable. Destructive downgrades are rejected after operational history exists.
    capabilities, forced RLS, optimistic versions, controlled program lifecycle,
    audit scheduling/cancellation and append-only technical events.
 2. **Scope implemented:** ordered, versioned process-linked items and reasoned
-   withdrawal/history. Criteria0043 are implemented; agenda/team and independence review remain pending.
+   withdrawal/history. Criteria0043 are implemented; Team0044 planning is implemented; agenda and independence review remain pending.
 3. Evidence and finding execution with traceable snapshots.
 4. Finding-to-NCR handoff and Action Center integration.
 5. Premium responsive workspace, demo records and regression coverage.
@@ -96,10 +98,9 @@ auditor tenant role cannot receive manage/review capabilities. It also verifies
 state-command guards, terminal immutability, duplicate/scope constraints,
 optimistic versions, event counts and fail-closed downgrade after history.
 
-The original0040 milestone was backend planning infrastructure only. Criteria, team,
-independence decisions, evidence, findings, NCR handoff, Action Center exposure,
-demo data and the premium UI remain later slices and must not be presented as
-implemented.
+At the original0040 milestone, scope/criteria/team/UI were later slices. The
+current implementation at the top supersedes that historical boundary;
+independence and execution remain pending.
 
 
 ## Planning workspace · 12 November2026
@@ -128,3 +129,11 @@ licensed standard content. Active criteria can reference an active scope only
 in the same audit/company/unit. Scope withdrawal is blocked while active criteria
 remain linked. Parent locking serializes both operations; SQL and API enforce
 the invariant. No readiness/execution command was added.
+
+## Planning team0044
+
+See `../product/INTERNAL_AUDIT_TEAM.md`. Lead remains the parent field. Active
+auditees cannot become lead and lead cannot become auditee. Planning assignment
+does not grant access/qualifications/independence; no target-grant query or new
+definer function bypasses grant RLS. Future readiness checks must revalidate
+current authority and reconcile lead/team.

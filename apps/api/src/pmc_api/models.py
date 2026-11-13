@@ -119,6 +119,27 @@ class QMSAuditScope(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
+class QMSAuditTeamMember(Base):
+    __tablename__ = "qms_audit_team_members"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    audit_id: Mapped[UUID] = mapped_column(nullable=False)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    display_name_snapshot: Mapped[str] = mapped_column(String(160), nullable=False)
+    team_role: Mapped[str] = mapped_column(String(20), nullable=False)
+    responsibilities: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    withdrawal_reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    withdrawn_by_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class QMSAuditCriterion(Base):
     __tablename__ = "qms_audit_criteria"
 

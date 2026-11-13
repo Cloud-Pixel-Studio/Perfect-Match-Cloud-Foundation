@@ -6,15 +6,16 @@ Repositorio oficial: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-F
 
 ## Punto de continuación
 
-Hito activo: **codex/internal-audit-criteria**, sobre PR32/8c60a50.
-Leer INTERNAL_AUDIT_CRITERIA.md y CHECKPOINT.md.0043 añade criterios versionados
-con referencia y alcance opcional; no equipo/independencia/ejecución. Local0043
-con demo real idempotente y restauración previa/posterior verificadas.31+199DB,
-50APIunit/60webunit PASS; navegador final y entrega enCHECKPOINT.
+Hito activo: **codex/internal-audit-team**, sobre PR33/4de65f0.
+Leer INTERNAL_AUDIT_TEAM.md y CHECKPOINT.md.0044 añade equipo planificado con
+snapshot de identidad, rol/notas y retiro motivado/historial. Asignar no concede
+acceso/ejecución/competencia/independencia. Local0044 y demo real idempotente;
+restore previo/posterior verificados.43+199DB,50API/60webunit,97Linux PASS;
+Darwin/entrega final en CHECKPOINT. Siguiente: agenda/independencia.
 
-PR32 corrigió el cleanup de procesos en8c60a50:199/199 ycalidad/CodeQLPASS.
-No heredar esosPASS al nuevohead0043. No aplicar borrador0041, mezclarWIP original,
-fusionar o desplegar. Precios/billing/entitlements siguen sin implementación.
+PR33: calidad43361806578/CodeQL43361806566 PASS; security43361806911 FAILsolo
+gate final. No heredar esos resultados a0044. No aplicar0041 original, mezclarWIP,
+fusionar o desplegar. Pricing/billing/entitlements siguen pendientes.
 
 Hito anterior: **`codex/capa-origin-workflow`**, [PR30](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30), finala7b2a9f. Calidad/CodeQL/runtime/50PlaywrightPASS;
 releaseFAILsoloKeycloak7High/SeaweedFS2High. No trasladar esta evidencia a otra rama.

@@ -17,11 +17,12 @@ type Kind = "programs" | "audits";
 type Row = { id: string; unit_id: string; code: string; name: string; state: string; row_version: number; [key: string]: unknown };
 type ScopeRow = { id: string; audit_id: string; unit_id: string; sequence: number; title: string; description: string; process_id: string | null; status: string; row_version: number; withdrawal_reason: string };
 type CriterionRow = Omit<ScopeRow,"description"|"process_id"> & { requirement:string; source_type:string; reference:string; scope_id:string|null };
+type TeamRow = {id:string;audit_id:string;unit_id:string;user_id:string;display_name_snapshot:string;team_role:string;responsibilities:string;status:string;row_version:number;withdrawal_reason:string};
 type Mutation = { method: string; path: string; body: Record<string, unknown> };
 type FixtureState = {
   capabilities: string[]; programs: Row[]; audits: Row[]; writeStatus: number | null;
   conflict: boolean; hold: boolean; reads: Array<{ path: string; query: Record<string, string> }>;
-  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean;
+  writes: Mutation[]; unexpectedWrites: string[]; scopes: ScopeRow[]; scopeMismatch: boolean; criteria: CriterionRow[]; criterionMismatch: boolean; team:TeamRow[];teamMismatch:boolean;
 };
 const fixtures = new WeakMap<Page, FixtureState>();
 test.afterEach(async ({ page }) => {
@@ -54,7 +55,7 @@ async function fixture(page: Page, assigned = capabilities) {
   const state: FixtureState = {
     capabilities: [...assigned], programs: [program(), program(programB, unitB, "AP-B", "Supplier assurance programme")],
     audits: [audit(), audit(auditB, unitB, "IA-B", "Supplier process audit")], writeStatus: null,
-    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false,
+    conflict: false, hold: false, reads: [], writes: [], unexpectedWrites: [], scopes: [], scopeMismatch: false, criteria: [], criterionMismatch: false, team:[],teamMismatch:false,
   };
   fixtures.set(page, state);
   let markPending = () => {}; let release = () => {}; let markSettled = () => {};
@@ -65,6 +66,28 @@ async function fixture(page: Page, assigned = capabilities) {
     const request = route.request(); const url = new URL(request.url());
     const path = url.pathname.replace("/api/identity", ""); const method = request.method();
     const endpoint = path.match(/^\/internal-audits\/(programs|audits)(?:\/([0-9a-f-]+)(\/transition)?)?$/i);
+    const teamEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/team-members(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
+    if (method !== "GET" && teamEndpoint) {
+      if (!((method === "POST" && (!teamEndpoint[2] || teamEndpoint[3])) || (method === "PATCH" && teamEndpoint[2] && !teamEndpoint[3]))) {
+        state.unexpectedWrites.push(`${method} ${path}`); return route.abort("blockedbyclient");
+      }
+      const body = request.postDataJSON() as Record<string, unknown>;
+      state.writes.push({ method, path, body });
+      const parent = state.audits.find(row => row.id === teamEndpoint[1]);
+      const current = state.team.find(row => row.id === teamEndpoint[2]);
+      const status = state.writeStatus ?? (teamEndpoint[2] ? 200 : 201);
+      if (status === 403) state.capabilities = [];
+      if (status === 409 && state.conflict && parent) parent.row_version += 1;
+      if (status < 200 || status >= 300 || status === 202) return route.fulfill({ status, json: { detail: "Synthetic criterion feedback" } });
+      if (!parent) return route.fulfill({ status: 404, json: { detail: "Missing parent" } });
+      const changes = { ...body }; delete changes.expected_version; delete changes.expected_audit_version;
+      const result: TeamRow = current ? { ...current, ...(teamEndpoint[3] ? { status: "withdrawn", withdrawal_reason: String(body.reason) } : changes), row_version: current.row_version + 1 } : {
+        id:createdId,audit_id:parent.id,unit_id:parent.unit_id,user_id:String(body.user_id),display_name_snapshot:body.user_id===memberA?"Ana Quality":"Planning person",team_role:String(body.team_role),responsibilities:String(body.responsibilities),status:"active",row_version:1,withdrawal_reason:"",
+      };
+      if (current) state.team[state.team.indexOf(current)] = result; else state.team.push(result);
+      parent.row_version += 1;
+      return route.fulfill({ status, json: { member: result, audit_version: parent.row_version } });
+    }
     const criterionEndpoint = path.match(/^\/internal-audits\/audits\/([0-9a-f-]+)\/criteria(?:\/([0-9a-f-]+)(\/withdraw)?)?$/i);
     if (method !== "GET" && criterionEndpoint) {
       if (!((method === "POST" && (!criterionEndpoint[2] || criterionEndpoint[3])) || (method === "PATCH" && criterionEndpoint[2] && !criterionEndpoint[3]))) {
@@ -154,7 +177,9 @@ async function fixture(page: Page, assigned = capabilities) {
         id: index === 0 ? memberA : `80000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
         display_name: index === 0 ? "Ana Quality" : `Planning person ${index + 1}`,
         role: "member", status: "active",
-      })).filter((member) => member.display_name.toLowerCase().includes(q)).slice(offset, offset + limit);
+      })).filter((member) => member.display_name.toLowerCase().includes((url.searchParams.get("search")??url.searchParams.get("q")??"").toLowerCase())).slice(offset, offset + limit);
+    } else if (teamEndpoint) {
+      body=state.team.filter(row=>row.audit_id===teamEndpoint[1]&&row.status===url.searchParams.get("status")).slice(offset,offset+limit).map(row=>state.teamMismatch?{...row,unit_id:unitB}:row);
     } else if (criterionEndpoint) {
       body = state.criteria.filter(row => row.audit_id === criterionEndpoint[1] && row.status === url.searchParams.get("status")).slice(offset, offset + limit).map(row => state.criterionMismatch ? { ...row, unit_id: unitB } : row);
     } else if (scopeEndpoint) {
@@ -446,10 +471,15 @@ test("live seeded audit planning is persisted and readable", async ({ page }, te
   const option=unit.locator("option").filter({hasText:"DEV-ACCESS-UI"});
   await unit.selectOption(String(await option.getAttribute("value")));
   await expect(panel).toContainText("DEMO-AP-001");
+  const teamRead=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/team-members")&&response.status()===200);
   await tab(panel,"Scheduled audits");
   await expect(panel).toContainText("DEMO-AUD-001");
   await expect(panel).toContainText("Recepción y aceptación de materiales — demostración");
   await expect(panel).toContainText("Aceptación documentada de materiales — demostración");
+  const teamRows=await (await teamRead).json() as TeamRow[];
+  expect(teamRows).toHaveLength(1);expect(teamRows[0].status).toBe("active");
+  const roster=panel.locator("section.ncr-read-section").filter({has:page.getByRole("heading",{name:"Audit team",exact:true})});
+  await expect(roster).toContainText(teamRows[0].display_name_snapshot);
   await expect(panel).toContainText("pending");
   const screenshot=testInfo.outputPath("live-audit-planning.png");
   await page.evaluate(() => window.scrollTo({top:0,behavior:"instant"}));
@@ -755,6 +785,140 @@ test.describe("audit criteria (mocked writes, real browser)", () => {
       const screenshot = testInfo.outputPath(`criterion-${width}-${dark ? "dark" : "light"}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
       await testInfo.attach(`criterion-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
+    }
+  });
+});
+
+
+function teamRow(index=1):TeamRow{return {id:`d0000000-0000-4000-8000-${String(index).padStart(12,"0")}`,audit_id:auditA,unit_id:unitA,user_id:`e0000000-0000-4000-8000-${String(index).padStart(12,"0")}`,display_name_snapshot:`Team person ${index}`,team_role:"auditor",responsibilities:"Review acceptance records.",status:"active",row_version:1,withdrawal_reason:""};}
+async function teamDraft(panel:Locator){await panel.getByRole("button",{name:"Add team member",exact:true}).click();const form=panel.getByRole("form",{name:"Add audit team member",exact:true});const person=form.getByLabel("Team person",{exact:true});await expect(person).toBeEnabled();await person.selectOption(memberA);await form.getByLabel("Team role",{exact:true}).selectOption("auditor");await form.getByLabel("Responsibilities",{exact:true}).fill("Review acceptance records.");return form;}
+
+test.describe("audit planning team (mocked writes, real browser)", () => {
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+
+  test("team creation, editing and withdrawal preserve versions and history", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    const form = await teamDraft(panel);
+    await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    expect(state.writes[0]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/team-members`, body: { expected_audit_version: 3, user_id:memberA,team_role:"auditor",responsibilities:"Review acceptance records." } });
+    await panel.getByRole("button", { name: "Edit team member Ana Quality", exact: true }).click();
+    const edit = panel.getByRole("form", { name: "Edit audit team member", exact: true });
+    await edit.getByLabel("Responsibilities", { exact: true }).fill("Revised acceptance responsibilities");
+    await edit.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(edit).toHaveCount(0);
+    expect(state.writes[1]).toMatchObject({ method: "PATCH", body: { expected_audit_version: 4, expected_version: 1, responsibilities:"Revised acceptance responsibilities" } });
+    await panel.getByRole("button", { name: "Remove team member Ana Quality", exact: true }).click();
+    const withdraw = panel.getByRole("form", { name: "Remove audit team member", exact: true });
+    await withdraw.getByLabel("Removal reason", { exact: true }).fill("Superseded after planning review.");
+    await withdraw.getByRole("button", { name: "Confirm team removal", exact: true }).click();
+    await expect(withdraw).toHaveCount(0);
+    expect(state.writes[2]).toEqual({ method: "POST", path: `/internal-audits/audits/${auditA}/team-members/${createdId}/withdraw`, body: { expected_audit_version: 5, expected_version: 2, reason: "Superseded after planning review." } });
+    await panel.getByLabel("Team history", { exact: true }).selectOption("withdrawn");
+    await expect(panel).toContainText("Withdrawn: Superseded after planning review.");
+    await expect(panel.getByRole("button", { name: "Edit team member Ana Quality", exact: true })).toHaveCount(0);
+    expect(state.audits[0].row_version).toBe(6);
+  });
+
+  test("team conflict locks replay until explicit parent reconciliation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.writeStatus = 409; state.conflict = true;
+    const form = await teamDraft(panel);
+    await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save team assignment", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Responsibilities", { exact: true })).toHaveValue("Review acceptance records.");
+    expect(state.writes).toHaveLength(1);
+    state.writeStatus = null;
+    await panel.getByRole("button", { name: "Refresh audit team", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    const retry = await teamDraft(panel);
+    await retry.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(retry).toHaveCount(0);
+    expect(state.writes).toHaveLength(2); expect(state.writes[1].body.expected_audit_version).toBe(4);
+  });
+
+  test("team refresh also reconciles a cancelled parent state", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits");
+    state.audits[0].state = "cancelled"; state.audits[0].row_version += 1;
+    await panel.getByRole("button", { name: "Refresh audit team", exact: true }).click();
+    await expect(panel.getByRole("button", { name: "Add team member", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Edit planning details", exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("temporary team failure preserves the draft and sends only one command", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 503;
+    const form = await teamDraft(panel);
+    await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(form.getByLabel("Responsibilities", { exact: true })).toHaveValue("Review acceptance records.");
+    await expect(form.getByRole("button", { name: "Save team assignment", exact: true })).toBeEnabled();
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("unconfirmed team success blocks duplicate creation", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 202;
+    const form = await teamDraft(panel);
+    await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(form.getByRole("button", { name: "Save team assignment", exact: true })).toBeDisabled();
+    await expect(form.getByLabel("Responsibilities", { exact: true })).toHaveValue("Review acceptance records.");
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("team denial closes the entire cached audit context", async ({ page }) => {
+    const { state, panel } = await fixture(page); await tab(panel, "Scheduled audits"); state.writeStatus = 403;
+    const form = await teamDraft(panel);
+    await form.getByRole("button", { name: "Save team assignment", exact: true }).click();
+    await expect(form).toHaveCount(0);
+    await expect(panel.getByRole("heading", { name: "Receiving process audit", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: "Add team member", exact: true })).toHaveCount(0);
+    expect(state.writes).toHaveLength(1);
+  });
+
+  test("read-only users can inspect paginated history without team controls", async ({ page }) => {
+    const { state, panel } = await fixture(page, ["audits.read"]);
+    state.team = Array.from({ length: 21 }, (_, index) => teamRow(index + 1));
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("button", { name: "Add team member", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("button", { name: /^Edit team member|^Remove team member/ })).toHaveCount(0);
+    await panel.getByRole("button", { name: "More team members", exact: true }).click();
+    await expect(panel).toContainText("Team person 21");
+    expect(state.reads.some(row => row.path.endsWith("/team-members") && row.query.offset === "20" && row.query.limit === "21" && row.query.status === "active")).toBe(true);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("team member from another unit is rejected rather than displayed", async ({ page }) => {
+    const { state, panel } = await fixture(page); state.team = [teamRow()]; state.teamMismatch = true;
+    await tab(panel, "Scheduled audits");
+    await expect(panel.getByRole("alert")).toBeVisible();
+    await expect(panel.getByText("Team person 1", { exact: true })).toHaveCount(0);
+    expect(state.writes).toEqual([]);
+  });
+
+  test("selected team person survives directory search and is immutable on edit",async({page})=>{
+    const {state,panel}=await fixture(page);await tab(panel,"Scheduled audits");const form=await teamDraft(panel);const person=form.getByLabel("Team person",{exact:true});
+    await form.getByLabel("Find team person",{exact:true}).fill("Planning person 55");await form.getByRole("button",{name:"Search team people",exact:true}).click();
+    await expect(person.locator("option").filter({hasText:"Planning person 55"})).toHaveCount(1);await expect(person).toHaveValue(memberA);await expect(person.locator(`option[value="${memberA}"]`)).toContainText("Ana Quality");
+    await form.getByRole("button",{name:"Save team assignment",exact:true}).click();await expect(form).toHaveCount(0);
+    await panel.getByRole("button",{name:"Edit team member Ana Quality",exact:true}).click();const edit=panel.getByRole("form",{name:"Edit audit team member",exact:true});await expect(edit.getByLabel("Team person",{exact:true})).toHaveCount(0);
+    expect(state.reads.some(row=>row.path==="/organization/members"&&row.query.search==="Planning person 55"&&!("unit_id" in row.query))).toBe(true);
+  });
+
+  test("team forms reflow and pass axe in both themes", async ({ page }, testInfo) => {
+    const { panel } = await fixture(page, [...capabilities, "processes.read"]); await tab(panel, "Scheduled audits");
+    const form = await teamDraft(panel);
+    await expect(form.getByLabel("Team person", { exact: true })).toBeEnabled();
+    for (const width of [375, 1440]) for (const dark of [false, true]) {
+      await page.setViewportSize({ width, height: 1000 });
+      if (await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked() !== dark) await page.locator("label.theme-switch").click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const results = await new AxeBuilder({ page }).include('section[aria-labelledby="internal-audits-heading"]').withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(results.violations).toEqual([]);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+      const screenshot = testInfo.outputPath(`team-${width}-${dark ? "dark" : "light"}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      await testInfo.attach(`team-${width}-${dark ? "dark" : "light"}`, { path: screenshot, contentType: "image/png" });
     }
   });
 });
