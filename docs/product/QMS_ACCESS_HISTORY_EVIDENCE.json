@@ -1,0 +1,33 @@
+{
+  "baseline": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "databaseTests": 42,
+  "apiUnit": 50,
+  "webUnit": 64,
+  "browser": {
+    "cases": 16,
+    "backend": "in memory only",
+    "retries": 0,
+    "sizes": [
+      375,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "axe": "four scoped permission panel states; no full WCAG certification"
+  },
+  "screenshots": {
+    "permission-history-desktop-dark.png": "dc1c20394d2b2faa7e5d988601c7682d4425a44701f89d3a03f59e4bb16db389",
+    "permission-history-mobile-light.png": "0e2b1fdf69841e4aac82e0e045eb74ba3ecd1d4182ba75c64f3ea13ccd5bf6ac",
+    "permission-history-desktop-light.png": "f954ca6288de85521fe30468cbd35bd31491fe5a15957c88bcce733529fcff2f",
+    "permission-history-mobile-dark.png": "15877e0d29bc911cc2f2bed43384ddcb7c2937c7e5d8cc2906d5899068c81ac9"
+  },
+  "limitations": [
+    "No runtime deployment",
+    "Owner member/unit catalogues still limited to first100",
+    "No load benchmark",
+    "No new dependency vulnerability audit",
+    "No certification"
+  ]
+}
