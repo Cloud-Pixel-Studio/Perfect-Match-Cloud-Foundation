@@ -1,0 +1,2563 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "base_commit": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "scope": "Estático; rama codex/audit-architecture-access. Sin DB real, navegador, despliegue ni Odoo ejecutado. Counts de superficie, no porcentaje de paridad ni seguridad.",
+  "summary": {
+    "route_count": 180,
+    "get_routes": 71,
+    "mutating_routes": 109,
+    "anonymous_routes": [
+      "/auth/login",
+      "/auth/callback",
+      "/health"
+    ],
+    "mutations_missing_decorator_csrf": [],
+    "orm_table_count": 50,
+    "private_projection_count": 6,
+    "definer_function_count": 15
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/action-center",
+      "handler": "action_center",
+      "source": "apps/api/src/pmc_api/action_center.py:403",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/audit/events",
+      "handler": "events",
+      "source": "apps/api/src/pmc_api/audit.py:58",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "require_tenant_access"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/auth/callback",
+      "handler": "callback",
+      "source": "apps/api/src/pmc_api/auth.py:155",
+      "authenticated_parameter": false,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/login",
+      "handler": "login",
+      "source": "apps/api/src/pmc_api/auth.py:115",
+      "authenticated_parameter": false,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "handler": "logout",
+      "source": "apps/api/src/pmc_api/auth.py:338",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "handler": "me",
+      "source": "apps/api/src/pmc_api/auth.py:273",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/auth/tenant",
+      "handler": "select_tenant",
+      "source": "apps/api/src/pmc_api/auth.py:302",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/auth/tenants",
+      "handler": "tenants",
+      "source": "apps/api/src/pmc_api/auth.py:283",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/capas",
+      "handler": "list_capas",
+      "source": "apps/api/src/pmc_api/capa.py:573",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas",
+      "handler": "create_capa",
+      "source": "apps/api/src/pmc_api/capa.py:637",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}",
+      "handler": "get_capa",
+      "source": "apps/api/src/pmc_api/capa.py:632",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/capas/{capa_id}",
+      "handler": "update_capa",
+      "source": "apps/api/src/pmc_api/capa.py:693",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/actions",
+      "handler": "list_capa_actions",
+      "source": "apps/api/src/pmc_api/capa.py:1132",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/actions",
+      "handler": "create_capa_action",
+      "source": "apps/api/src/pmc_api/capa.py:1181",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/actions/{action_id}",
+      "handler": "get_capa_action",
+      "source": "apps/api/src/pmc_api/capa.py:1154",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/capas/{capa_id}/actions/{action_id}",
+      "handler": "update_capa_action",
+      "source": "apps/api/src/pmc_api/capa.py:1237",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/actions/{action_id}/transition",
+      "handler": "transition_capa_action",
+      "source": "apps/api/src/pmc_api/capa.py:1293",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/capas/{capa_id}/analysis",
+      "handler": "update_analysis",
+      "source": "apps/api/src/pmc_api/capa.py:770",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/analysis/start",
+      "handler": "start_analysis",
+      "source": "apps/api/src/pmc_api/capa.py:730",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/cancel",
+      "handler": "cancel_capa",
+      "source": "apps/api/src/pmc_api/capa.py:1098",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/close",
+      "handler": "close_capa",
+      "source": "apps/api/src/pmc_api/capa.py:1060",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/control-links",
+      "handler": "list_control_links",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:252",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/control-links",
+      "handler": "add_control_link",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:285",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/control-links/{link_id}/remove",
+      "handler": "remove_control_link",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:408",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/document-links",
+      "handler": "list_document_links",
+      "source": "apps/api/src/pmc_api/capa_links.py:201",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/document-links",
+      "handler": "add_document_link",
+      "source": "apps/api/src/pmc_api/capa_links.py:230",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/document-links/{link_id}/remove",
+      "handler": "remove_document_link",
+      "source": "apps/api/src/pmc_api/capa_links.py:261",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/effectiveness-review/start",
+      "handler": "start_effectiveness_review",
+      "source": "apps/api/src/pmc_api/capa.py:902",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/effectiveness-reviews",
+      "handler": "list_effectiveness_reviews",
+      "source": "apps/api/src/pmc_api/capa.py:950",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/effectiveness-reviews",
+      "handler": "record_effectiveness_review",
+      "source": "apps/api/src/pmc_api/capa.py:979",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/capas/{capa_id}/evidence-links",
+      "handler": "list_evidence_links",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:266",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/evidence-links",
+      "handler": "add_evidence_link",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:328",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/evidence-links/{link_id}/remove",
+      "handler": "remove_evidence_link",
+      "source": "apps/api/src/pmc_api/capa_trace_links.py:427",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/implementation/start",
+      "handler": "start_implementation",
+      "source": "apps/api/src/pmc_api/capa.py:851",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/capas/{capa_id}/plan/start",
+      "handler": "start_plan",
+      "source": "apps/api/src/pmc_api/capa.py:811",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/control-activities/{activity_id}",
+      "handler": "update_activity",
+      "source": "apps/api/src/pmc_api/control_definitions.py:344",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/control-evidence-requirements/{requirement_id}",
+      "handler": "update_evidence_requirement",
+      "source": "apps/api/src/pmc_api/control_definitions.py:416",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/control-instance-activities",
+      "handler": "list_activities",
+      "source": "apps/api/src/pmc_api/control_instance_activities.py:146",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/control-instance-activities/{activity_id}",
+      "handler": "update_activity",
+      "source": "apps/api/src/pmc_api/control_instance_activities.py:181",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/control-instance-activities/{activity_id}/transition",
+      "handler": "transition_activity",
+      "source": "apps/api/src/pmc_api/control_instance_activities.py:234",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/control-instance-evidence",
+      "handler": "list_evidence",
+      "source": "apps/api/src/pmc_api/control_instance_evidence.py:176",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/control-instance-evidence/{evidence_id}",
+      "handler": "update_evidence",
+      "source": "apps/api/src/pmc_api/control_instance_evidence.py:211",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/control-instance-evidence/{evidence_id}/review",
+      "handler": "review_evidence",
+      "source": "apps/api/src/pmc_api/control_instance_evidence.py:308",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/control-instance-evidence/{evidence_id}/submit",
+      "handler": "submit_evidence",
+      "source": "apps/api/src/pmc_api/control_instance_evidence.py:262",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/control-instances",
+      "handler": "list_instances",
+      "source": "apps/api/src/pmc_api/controls.py:681",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/control-instances",
+      "handler": "create_instance_route",
+      "source": "apps/api/src/pmc_api/controls.py:740",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/control-instances/{instance_id}",
+      "handler": "get_instance",
+      "source": "apps/api/src/pmc_api/controls.py:717",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/control-instances/{instance_id}",
+      "handler": "update_instance_route",
+      "source": "apps/api/src/pmc_api/controls.py:758",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/control-instances/{instance_id}/transition",
+      "handler": "transition_instance_route",
+      "source": "apps/api/src/pmc_api/controls.py:775",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/controls",
+      "handler": "list_controls",
+      "source": "apps/api/src/pmc_api/controls.py:574",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/controls",
+      "handler": "create_control_route",
+      "source": "apps/api/src/pmc_api/controls.py:611",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/controls/{control_id}",
+      "handler": "get_control",
+      "source": "apps/api/src/pmc_api/controls.py:592",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/controls/{control_id}",
+      "handler": "update_control_route",
+      "source": "apps/api/src/pmc_api/controls.py:620",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/controls/{control_id}/activate",
+      "handler": "activate_control_route",
+      "source": "apps/api/src/pmc_api/controls.py:655",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/controls/{control_id}/activities",
+      "handler": "list_activities",
+      "source": "apps/api/src/pmc_api/control_definitions.py:299",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/controls/{control_id}/activities",
+      "handler": "create_activity",
+      "source": "apps/api/src/pmc_api/control_definitions.py:326",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/controls/{control_id}/evidence-requirements",
+      "handler": "list_evidence_requirements",
+      "source": "apps/api/src/pmc_api/control_definitions.py:365",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/controls/{control_id}/evidence-requirements",
+      "handler": "create_evidence_requirement",
+      "source": "apps/api/src/pmc_api/control_definitions.py:396",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/controls/{control_id}/retire",
+      "handler": "retire_control_route",
+      "source": "apps/api/src/pmc_api/controls.py:670",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/documents",
+      "handler": "list_documents",
+      "source": "apps/api/src/pmc_api/documents.py:261",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/documents",
+      "handler": "create_document",
+      "source": "apps/api/src/pmc_api/documents.py:292",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/documents/processes",
+      "handler": "document_processes",
+      "source": "apps/api/src/pmc_api/documents.py:162",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/obsolete",
+      "handler": "obsolete_document",
+      "source": "apps/api/src/pmc_api/documents.py:325",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/documents/{document_id}/revisions",
+      "handler": "revisions",
+      "source": "apps/api/src/pmc_api/documents.py:360",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/revisions",
+      "handler": "create_revision",
+      "source": "apps/api/src/pmc_api/documents.py:403",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/revisions/{revision_id}/approve",
+      "handler": "_endpoint_factory/endpoint",
+      "source": "apps/api/src/pmc_api/documents.py:549",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "transition_revision"
+      ],
+      "registration": "router.add_api_route factory; csrf in registration dependencies"
+    },
+    {
+      "method": "GET",
+      "path": "/documents/{document_id}/revisions/{revision_id}/file",
+      "handler": "download_revision_file",
+      "source": "apps/api/src/pmc_api/documents.py:671",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/documents/{document_id}/revisions/{revision_id}/file",
+      "handler": "quarantine_revision_file",
+      "source": "apps/api/src/pmc_api/documents.py:586",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/revisions/{revision_id}/reject",
+      "handler": "_endpoint_factory/endpoint",
+      "source": "apps/api/src/pmc_api/documents.py:549",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "transition_revision"
+      ],
+      "registration": "router.add_api_route factory; csrf in registration dependencies"
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/revisions/{revision_id}/release",
+      "handler": "_endpoint_factory/endpoint",
+      "source": "apps/api/src/pmc_api/documents.py:549",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "transition_revision"
+      ],
+      "registration": "router.add_api_route factory; csrf in registration dependencies"
+    },
+    {
+      "method": "POST",
+      "path": "/documents/{document_id}/revisions/{revision_id}/submit",
+      "handler": "_endpoint_factory/endpoint",
+      "source": "apps/api/src/pmc_api/documents.py:549",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "transition_revision"
+      ],
+      "registration": "router.add_api_route factory; csrf in registration dependencies"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "handler": "health",
+      "source": "apps/api/src/pmc_api/main.py:112",
+      "authenticated_parameter": false,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits",
+      "handler": "list_audits",
+      "source": "apps/api/src/pmc_api/internal_audits.py:495",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits",
+      "handler": "create_audit",
+      "source": "apps/api/src/pmc_api/internal_audits.py:523",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}",
+      "handler": "get_audit",
+      "source": "apps/api/src/pmc_api/internal_audits.py:565",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/audits/{audit_id}",
+      "handler": "update_audit",
+      "source": "apps/api/src/pmc_api/internal_audits.py:572",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/agenda",
+      "handler": "list_agenda",
+      "source": "apps/api/src/pmc_api/internal_audit_agenda.py:303",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/agenda",
+      "handler": "create_agenda_item",
+      "source": "apps/api/src/pmc_api/internal_audit_agenda.py:340",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/audits/{audit_id}/agenda/{agenda_id}",
+      "handler": "update_agenda_item",
+      "source": "apps/api/src/pmc_api/internal_audit_agenda.py:369",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/agenda/{agenda_id}/withdraw",
+      "handler": "withdraw_agenda_item",
+      "source": "apps/api/src/pmc_api/internal_audit_agenda.py:402",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/competence",
+      "handler": "get_competence",
+      "source": "apps/api/src/pmc_api/internal_audit_competence.py:235",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/competence/documents",
+      "handler": "list_documents",
+      "source": "apps/api/src/pmc_api/internal_audit_competence.py:339",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/competence/reviews",
+      "handler": "list_reviews",
+      "source": "apps/api/src/pmc_api/internal_audit_competence.py:315",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/competence/reviews",
+      "handler": "create_review",
+      "source": "apps/api/src/pmc_api/internal_audit_competence.py:399",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/criteria",
+      "handler": "list_criteria",
+      "source": "apps/api/src/pmc_api/internal_audit_criteria.py:217",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/criteria",
+      "handler": "create_criterion",
+      "source": "apps/api/src/pmc_api/internal_audit_criteria.py:248",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/audits/{audit_id}/criteria/{criterion_id}",
+      "handler": "update_criterion",
+      "source": "apps/api/src/pmc_api/internal_audit_criteria.py:277",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/criteria/{criterion_id}/withdraw",
+      "handler": "withdraw_criterion",
+      "source": "apps/api/src/pmc_api/internal_audit_criteria.py:304",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/independence",
+      "handler": "get_independence",
+      "source": "apps/api/src/pmc_api/internal_audit_independence.py:201",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/independence/reviews",
+      "handler": "list_reviews",
+      "source": "apps/api/src/pmc_api/internal_audit_independence.py:337",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/independence/reviews",
+      "handler": "create_review",
+      "source": "apps/api/src/pmc_api/internal_audit_independence.py:390",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/scopes",
+      "handler": "list_scopes",
+      "source": "apps/api/src/pmc_api/internal_audit_scope.py:192",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/scopes",
+      "handler": "create_scope",
+      "source": "apps/api/src/pmc_api/internal_audit_scope.py:221",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/audits/{audit_id}/scopes/{scope_id}",
+      "handler": "update_scope",
+      "source": "apps/api/src/pmc_api/internal_audit_scope.py:250",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/scopes/{scope_id}/withdraw",
+      "handler": "withdraw_scope",
+      "source": "apps/api/src/pmc_api/internal_audit_scope.py:277",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/audits/{audit_id}/team-members",
+      "handler": "list_team_members",
+      "source": "apps/api/src/pmc_api/internal_audit_team.py:181",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/team-members",
+      "handler": "create_team_member",
+      "source": "apps/api/src/pmc_api/internal_audit_team.py:215",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/audits/{audit_id}/team-members/{team_id}",
+      "handler": "update_team_member",
+      "source": "apps/api/src/pmc_api/internal_audit_team.py:245",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/team-members/{team_id}/withdraw",
+      "handler": "withdraw_team_member",
+      "source": "apps/api/src/pmc_api/internal_audit_team.py:272",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/audits/{audit_id}/transition",
+      "handler": "transition_audit",
+      "source": "apps/api/src/pmc_api/internal_audits.py:610",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/programs",
+      "handler": "list_programs",
+      "source": "apps/api/src/pmc_api/internal_audits.py:320",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/programs",
+      "handler": "create_program",
+      "source": "apps/api/src/pmc_api/internal_audits.py:356",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal-audits/programs/{program_id}",
+      "handler": "get_program",
+      "source": "apps/api/src/pmc_api/internal_audits.py:394",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/internal-audits/programs/{program_id}",
+      "handler": "update_program",
+      "source": "apps/api/src/pmc_api/internal_audits.py:401",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/internal-audits/programs/{program_id}/transition",
+      "handler": "transition_program",
+      "source": "apps/api/src/pmc_api/internal_audits.py:439",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities",
+      "handler": "list_ncrs",
+      "source": "apps/api/src/pmc_api/nonconformities.py:395",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities",
+      "handler": "create",
+      "source": "apps/api/src/pmc_api/nonconformities.py:438",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities/{ncr_id}",
+      "handler": "get_ncr",
+      "source": "apps/api/src/pmc_api/nonconformities.py:433",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/nonconformities/{ncr_id}",
+      "handler": "update",
+      "source": "apps/api/src/pmc_api/nonconformities.py:445",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{ncr_id}/transition",
+      "handler": "transition",
+      "source": "apps/api/src/pmc_api/nonconformities.py:454",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities/{nonconformity_id}/control-links",
+      "handler": "list_control_links",
+      "source": "apps/api/src/pmc_api/ncr_links.py:548",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/control-links",
+      "handler": "add_control_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:640",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/control-links/{link_id}/remove",
+      "handler": "remove_control_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:716",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities/{nonconformity_id}/document-links",
+      "handler": "list_document_links",
+      "source": "apps/api/src/pmc_api/ncr_links.py:571",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/document-links",
+      "handler": "add_document_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:658",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/document-links/{link_id}/remove",
+      "handler": "remove_document_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:739",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities/{nonconformity_id}/evidence-links",
+      "handler": "list_evidence_links",
+      "source": "apps/api/src/pmc_api/ncr_links.py:594",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/evidence-links",
+      "handler": "add_evidence_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:676",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/evidence-links/{link_id}/remove",
+      "handler": "remove_evidence_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:762",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/nonconformities/{nonconformity_id}/risk-links",
+      "handler": "list_risk_links",
+      "source": "apps/api/src/pmc_api/ncr_links.py:526",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/risk-links",
+      "handler": "add_risk_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:622",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/nonconformities/{nonconformity_id}/risk-links/{link_id}/remove",
+      "handler": "remove_risk_route",
+      "source": "apps/api/src/pmc_api/ncr_links.py:693",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/organization/assignments",
+      "handler": "get_assignments",
+      "source": "apps/api/src/pmc_api/organization.py:272",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/organization/assignments",
+      "handler": "post_assignment",
+      "source": "apps/api/src/pmc_api/organization.py:318",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/organization/assignments/{assignment_id}",
+      "handler": "patch_assignment",
+      "source": "apps/api/src/pmc_api/organization.py:341",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/organization/members",
+      "handler": "get_members",
+      "source": "apps/api/src/pmc_api/organization.py:288",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/organization/units",
+      "handler": "get_units",
+      "source": "apps/api/src/pmc_api/organization.py:160",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/organization/units",
+      "handler": "post_unit",
+      "source": "apps/api/src/pmc_api/organization.py:175",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/organization/units/{unit_id}",
+      "handler": "get_unit",
+      "source": "apps/api/src/pmc_api/organization.py:191",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/organization/units/{unit_id}",
+      "handler": "patch_unit",
+      "source": "apps/api/src/pmc_api/organization.py:196",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/organization/units/{unit_id}/archive",
+      "handler": "post_archive",
+      "source": "apps/api/src/pmc_api/organization.py:236",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/organization/units/{unit_id}/move",
+      "handler": "post_move",
+      "source": "apps/api/src/pmc_api/organization.py:216",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/organization/units/{unit_id}/restore",
+      "handler": "post_restore",
+      "source": "apps/api/src/pmc_api/organization.py:255",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/processes",
+      "handler": "processes",
+      "source": "apps/api/src/pmc_api/processes.py:327",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/processes",
+      "handler": "create",
+      "source": "apps/api/src/pmc_api/processes.py:359",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/processes/scopes",
+      "handler": "scopes",
+      "source": "apps/api/src/pmc_api/processes.py:278",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/processes/{process_id}",
+      "handler": "process",
+      "source": "apps/api/src/pmc_api/processes.py:344",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/processes/{process_id}",
+      "handler": "update",
+      "source": "apps/api/src/pmc_api/processes.py:367",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/processes/{process_id}/archive",
+      "handler": "archive",
+      "source": "apps/api/src/pmc_api/processes.py:383",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/processes/{process_id}/restore",
+      "handler": "restore",
+      "source": "apps/api/src/pmc_api/processes.py:399",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/qms-access/active-capabilities",
+      "handler": "active_capability_summary",
+      "source": "apps/api/src/pmc_api/qms_access.py:245",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/qms-access/effective",
+      "handler": "effective_access",
+      "source": "apps/api/src/pmc_api/qms_access.py:229",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/qms-access/grants",
+      "handler": "grants",
+      "source": "apps/api/src/pmc_api/qms_access.py:216",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/qms-access/grants",
+      "handler": "grant",
+      "source": "apps/api/src/pmc_api/qms_access.py:255",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/qms-access/grants/{grant_id}/revoke",
+      "handler": "revoke",
+      "source": "apps/api/src/pmc_api/qms_access.py:264",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/risks",
+      "handler": "list_risks",
+      "source": "apps/api/src/pmc_api/risks.py:395",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context",
+        "require_capability"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks",
+      "handler": "create",
+      "source": "apps/api/src/pmc_api/risks.py:429",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/risks/{risk_id}",
+      "handler": "get_risk",
+      "source": "apps/api/src/pmc_api/risks.py:424",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/risks/{risk_id}",
+      "handler": "update",
+      "source": "apps/api/src/pmc_api/risks.py:436",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/risks/{risk_id}/control-links",
+      "handler": "list_control_links",
+      "source": "apps/api/src/pmc_api/risk_links.py:348",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks/{risk_id}/control-links",
+      "handler": "add_control_route",
+      "source": "apps/api/src/pmc_api/risk_links.py:397",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks/{risk_id}/control-links/{link_id}/remove",
+      "handler": "remove_control_route",
+      "source": "apps/api/src/pmc_api/risk_links.py:432",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/risks/{risk_id}/document-links",
+      "handler": "list_document_links",
+      "source": "apps/api/src/pmc_api/risk_links.py:370",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks/{risk_id}/document-links",
+      "handler": "add_document_route",
+      "source": "apps/api/src/pmc_api/risk_links.py:415",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks/{risk_id}/document-links/{link_id}/remove",
+      "handler": "remove_document_route",
+      "source": "apps/api/src/pmc_api/risk_links.py:450",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/risks/{risk_id}/transition",
+      "handler": "transition",
+      "source": "apps/api/src/pmc_api/risks.py:447",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": [
+        "actor_context"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/tenant/context",
+      "handler": "tenant_context",
+      "source": "apps/api/src/pmc_api/tenant.py:27",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflow-instances",
+      "handler": "instances",
+      "source": "apps/api/src/pmc_api/workflow.py:472",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflow-instances",
+      "handler": "start",
+      "source": "apps/api/src/pmc_api/workflow.py:509",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflow-instances/{instance_id}",
+      "handler": "instance",
+      "source": "apps/api/src/pmc_api/workflow.py:496",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflow-instances/{instance_id}/actions",
+      "handler": "actions",
+      "source": "apps/api/src/pmc_api/workflow.py:487",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflow-instances/{instance_id}/cancel",
+      "handler": "cancel",
+      "source": "apps/api/src/pmc_api/workflow.py:541",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflow-instances/{instance_id}/history",
+      "handler": "history",
+      "source": "apps/api/src/pmc_api/workflow.py:554",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflow-instances/{instance_id}/transition",
+      "handler": "transition",
+      "source": "apps/api/src/pmc_api/workflow.py:522",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows",
+      "handler": "definitions",
+      "source": "apps/api/src/pmc_api/workflow.py:211",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows",
+      "handler": "create",
+      "source": "apps/api/src/pmc_api/workflow.py:231",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/versions/{version_id}",
+      "handler": "version_detail",
+      "source": "apps/api/src/pmc_api/workflow.py:292",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/versions/{version_id}/assignments",
+      "handler": "assignments",
+      "source": "apps/api/src/pmc_api/workflow.py:420",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/versions/{version_id}/assignments",
+      "handler": "add_assignment",
+      "source": "apps/api/src/pmc_api/workflow.py:407",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/versions/{version_id}/assignments/{assignment_id}",
+      "handler": "edit_assignment",
+      "source": "apps/api/src/pmc_api/workflow.py:443",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/versions/{version_id}/publish",
+      "handler": "publish",
+      "source": "apps/api/src/pmc_api/workflow.py:463",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/versions/{version_id}/steps",
+      "handler": "steps",
+      "source": "apps/api/src/pmc_api/workflow.py:300",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/versions/{version_id}/steps",
+      "handler": "add_step",
+      "source": "apps/api/src/pmc_api/workflow.py:337",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/versions/{version_id}/steps/{step_id}",
+      "handler": "edit_step",
+      "source": "apps/api/src/pmc_api/workflow.py:350",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/versions/{version_id}/transitions",
+      "handler": "transitions",
+      "source": "apps/api/src/pmc_api/workflow.py:316",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/versions/{version_id}/transitions",
+      "handler": "add_transition",
+      "source": "apps/api/src/pmc_api/workflow.py:369",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/versions/{version_id}/transitions/{transition_id}",
+      "handler": "edit_transition",
+      "source": "apps/api/src/pmc_api/workflow.py:386",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/{workflow_id}",
+      "handler": "update",
+      "source": "apps/api/src/pmc_api/workflow.py:244",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/{workflow_id}/versions",
+      "handler": "versions",
+      "source": "apps/api/src/pmc_api/workflow.py:259",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": false,
+      "function_names_called": []
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{workflow_id}/versions",
+      "handler": "new_version",
+      "source": "apps/api/src/pmc_api/workflow.py:283",
+      "authenticated_parameter": true,
+      "csrf_dependency_in_decorator": true,
+      "function_names_called": []
+    }
+  ],
+  "tables": [
+    {
+      "name": "application_sessions",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:55",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "audit_events",
+      "source": "apps/api/migrations/versions/0003_audit_engine.py:20",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "external_identities",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:36",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "memberships",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:45",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "oidc_login_transactions",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:67",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "organization_member_directory_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:84",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "organization_unit_assignments",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:63",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "organization_unit_integrity_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:55",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "organization_units",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:36",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "organization_user_directory_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:95",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_access_grants",
+      "source": "apps/api/migrations/versions/0008_qms_capabilities.py:16",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_agenda_items",
+      "source": "apps/api/migrations/versions/0045_internal_audit_agenda.py:15",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_competence_reviews",
+      "source": "apps/api/migrations/versions/0048_audit_competence.py:14",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_criteria",
+      "source": "apps/api/migrations/versions/0043_internal_audit_criteria.py:15",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_execution_grant_projection",
+      "source": "apps/api/migrations/versions/0047_audit_execution_authority.py:14",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_independence_reviews",
+      "source": "apps/api/migrations/versions/0046_internal_audit_independence.py:14",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_programs",
+      "source": "apps/api/migrations/versions/0040_internal_audit_foundation.py:70",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_scopes",
+      "source": "apps/api/migrations/versions/0042_internal_audit_scope.py:14",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_audit_team_members",
+      "source": "apps/api/migrations/versions/0044_internal_audit_team.py:14",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capa_actions",
+      "source": "apps/api/migrations/versions/0031_capa_action_register.py:16",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capa_control_links",
+      "source": "apps/api/migrations/versions/0039_capa_trace_links.py:18",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capa_document_links",
+      "source": "apps/api/migrations/versions/0038_capa_document_links.py:17",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capa_effectiveness_reviews",
+      "source": "apps/api/migrations/versions/0034_capa_effectiveness_decisions.py:45",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capa_evidence_links",
+      "source": "apps/api/migrations/versions/0039_capa_trace_links.py:38",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_capas",
+      "source": "apps/api/migrations/versions/0026_qms_capa_intake.py:52",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_control_activities",
+      "source": "apps/api/migrations/versions/0018_control_definitions.py:27",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_control_evidence_requirements",
+      "source": "apps/api/migrations/versions/0018_control_definitions.py:87",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_control_instance_activities",
+      "source": "apps/api/migrations/versions/0019_instance_activities.py:32",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_control_instance_evidence",
+      "source": "apps/api/migrations/versions/0020_control_evidence_review.py:32",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_control_instances",
+      "source": "apps/api/migrations/versions/0016_qms_controls.py:118",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_controls",
+      "source": "apps/api/migrations/versions/0016_qms_controls.py:62",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_document_revisions",
+      "source": "apps/api/migrations/versions/0010_qms_documents.py:25",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_documents",
+      "source": "apps/api/migrations/versions/0010_qms_documents.py:16",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_internal_audits",
+      "source": "apps/api/migrations/versions/0040_internal_audit_foundation.py:92",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_ncr_control_links",
+      "source": "apps/api/migrations/versions/0024_ncr_links.py:50",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_ncr_document_links",
+      "source": "apps/api/migrations/versions/0024_ncr_links.py:83",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_ncr_evidence_links",
+      "source": "apps/api/migrations/versions/0025_ncr_evidence_links.py:17",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_ncr_risk_links",
+      "source": "apps/api/migrations/versions/0024_ncr_links.py:17",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_nonconformities",
+      "source": "apps/api/migrations/versions/0023_qms_nonconformities.py:53",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_process_dependency_projection",
+      "source": "apps/api/migrations/versions/0009_qms_processes.py:107",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_process_site_dependency_projection",
+      "source": "apps/api/migrations/versions/0015_process_sites.py:84",
+      "runtime_access": "private_projection_no_direct_runtime_grant",
+      "orm_model": false,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_process_sites",
+      "source": "apps/api/migrations/versions/0015_process_sites.py:14",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_processes",
+      "source": "apps/api/migrations/versions/0009_qms_processes.py:16",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_risk_control_links",
+      "source": "apps/api/migrations/versions/0022_risk_links.py:18",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_risk_document_links",
+      "source": "apps/api/migrations/versions/0022_risk_links.py:35",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "qms_risks",
+      "source": "apps/api/migrations/versions/0021_qms_risks.py:53",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "tenant_isolation_probes",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:77",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "tenants",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:18",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "users",
+      "source": "apps/api/migrations/versions/0001_identity_multitenancy.py:27",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_definitions",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:33",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_instance_events",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:159",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_instances",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:134",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_step_assignments",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:109",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_steps",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:65",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_transitions",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:84",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    },
+    {
+      "name": "workflow_versions",
+      "source": "apps/api/migrations/versions/0005_workflow_engine.py:47",
+      "runtime_access": "runtime_table_rls",
+      "orm_model": true,
+      "note": "Inventario de declaraciones upgrade; no inspección de catálogo desplegado."
+    }
+  ],
+  "definer_functions": [
+    {
+      "name": "lock_qms_process_scope",
+      "source": "apps/api/migrations/versions/0009_qms_processes.py:53",
+      "trigger_only": false,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": true,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "lock_qms_site_scope",
+      "source": "apps/api/migrations/versions/0049_tenant_suspension.py:53",
+      "trigger_only": false,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": true,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "organization_member_directory",
+      "source": "apps/api/migrations/versions/0049_tenant_suspension.py:32",
+      "trigger_only": false,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": true,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "protect_site_with_qms_processes",
+      "source": "apps/api/migrations/versions/0015_process_sites.py:115",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "protect_unit_with_qms_processes",
+      "source": "apps/api/migrations/versions/0009_qms_processes.py:119",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "qms_audit_execution_authority",
+      "source": "apps/api/migrations/versions/0047_audit_execution_authority.py:42",
+      "trigger_only": false,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": true,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_organization_member_directory_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:113",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_organization_unit_integrity_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:197",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_organization_user_directory_projection",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:137",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_qms_audit_execution_grants",
+      "source": "apps/api/migrations/versions/0047_audit_execution_authority.py:29",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_qms_process_dependencies",
+      "source": "apps/api/migrations/versions/0009_qms_processes.py:109",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_qms_process_site_projection",
+      "source": "apps/api/migrations/versions/0015_process_sites.py:89",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "sync_qms_process_site_status_projection",
+      "source": "apps/api/migrations/versions/0015_process_sites.py:105",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "validate_organization_assignment",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:218",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    },
+    {
+      "name": "validate_organization_unit",
+      "source": "apps/api/migrations/versions/0004_organization_structure.py:160",
+      "trigger_only": true,
+      "security": "DEFINER",
+      "search_path_declared": true,
+      "runtime_callable_expected": false,
+      "note": "Última declaración anterior al downgrade; ACL/getters revisados en informe."
+    }
+  ],
+  "source_sha256": {
+    "apps/api/src/pmc_api/__init__.py": "2c12b8ea17aeb6f9f72a6b02aca218bbc4508a46df9e365a8f6c45ad769e0b34",
+    "apps/api/src/pmc_api/action_center.py": "a199550a1111ff0ac908ca7bf2ca485ad0627bcbdc25218af670937a0e8e36fd",
+    "apps/api/src/pmc_api/antivirus.py": "28f07f37f092d85c9273fc25c9b44609791a0dfb209c9295920b8e6d42e8b663",
+    "apps/api/src/pmc_api/audit.py": "60f03c83d3a00bcb4a2dcacc198ec6d3d830092b562bc43469f8bc9be67c343d",
+    "apps/api/src/pmc_api/audit_service.py": "8157e6932795accee18045ac8b4807c3ae83faf5c217c7bae8b77313e518e4b5",
+    "apps/api/src/pmc_api/auth.py": "0839bb95807a3c511cb808b449bd9db7e37abe9aa7564f8b19cb5729282b4ce5",
+    "apps/api/src/pmc_api/bootstrap_database.py": "4ee269b61547f3dfa20d7b9d7071f7638bbdf5a6e8cbcc93f7c832359e357ae2",
+    "apps/api/src/pmc_api/capa.py": "e3e3393692add11a8d1828ddeffd0d4313fb0d350ab9094a423cd5af3c4e4795",
+    "apps/api/src/pmc_api/capa_links.py": "08c24bf1848c09c49b3097ac3a9db6648d1a0c08c819145e87cfd376edff4853",
+    "apps/api/src/pmc_api/capa_trace_links.py": "4e60e1fbeb09bf3ea5a8d5ea4d490ee334a6c55cdc7e1f1a27505f5c0c9363b2",
+    "apps/api/src/pmc_api/config.py": "1f2deb0cfd998d2996cf75fc34840c67d47c7d2c1f08795262eb253140afdfda",
+    "apps/api/src/pmc_api/control_definitions.py": "ae887f9b30a987e2663f67f422a246526754e82de019e30121da80de93a80835",
+    "apps/api/src/pmc_api/control_instance_activities.py": "ea9bb3a960e758c1c2aa90dcc1a3efe0fd96f6b8cbcb37b952ecdd380c330512",
+    "apps/api/src/pmc_api/control_instance_evidence.py": "a4ef8e62daee61247a41ef13035293b28182c6e16ce6744157a90034ac117a30",
+    "apps/api/src/pmc_api/controls.py": "dea94c6394b9410c5a73d64ca189403a025cc499d699673055cfea256485e40f",
+    "apps/api/src/pmc_api/database.py": "d1182fabef595e746d90c89c21c6cfe6585d39d25a9b1e16a00a1ca7f2db19d9",
+    "apps/api/src/pmc_api/documents.py": "8cc05f500471008ca5fc1012b8c60fc2195a6ffc9c7ae040a55f3f3f6d55ef8e",
+    "apps/api/src/pmc_api/internal_audit_agenda.py": "087a3a007e095f01bee2ed5b123d5da6e05a4aa51391ca9df42bf85aeecbc4e8",
+    "apps/api/src/pmc_api/internal_audit_competence.py": "b9eb54480f9977b9e7b1ab82d2ad7d551c2fdb2f84b7fdd9179e0eed6b65c3ac",
+    "apps/api/src/pmc_api/internal_audit_criteria.py": "9d25e2308c490cd98f90efab0b1373dd53b2fe55b7fe5b16e1f14979a8d9de12",
+    "apps/api/src/pmc_api/internal_audit_independence.py": "2ffc1a27c96ec5c768cec9eae4e4619612e81906e26787bab15918e4aad8d531",
+    "apps/api/src/pmc_api/internal_audit_scope.py": "702d6ff09f5bb67a91ffea8713a0677b24bb0a7afc48b93ced3eda5d8f70b254",
+    "apps/api/src/pmc_api/internal_audit_team.py": "037dacfab8fb476d36dc9957af78bc34e55ce01b1105906f354b3804cc788bca",
+    "apps/api/src/pmc_api/internal_audits.py": "e65fc9fa27cab9efadc56a761a6fc7b8322c68f98308532a17e80efda179291b",
+    "apps/api/src/pmc_api/local_identity_bootstrap.py": "41db8e5fe970e7d3d184fbfe37c8d01a6320905e065591489d8fa9f47159a1d1",
+    "apps/api/src/pmc_api/main.py": "ff797004cf57ce718766003dba8301464af1c05856562b5a39da6c7e85f4116a",
+    "apps/api/src/pmc_api/models.py": "0666c71eb8807b4db32604a214e53079a618fa1bafc473c19bc151df9584a592",
+    "apps/api/src/pmc_api/ncr_links.py": "80ff421f7ff9be040fa6a7e5c135e1bfaf778e7e6146e3f4ec5687e6733f9b16",
+    "apps/api/src/pmc_api/nonconformities.py": "19f3d7a5b15f94cdb72df021653e2105b54f59201a683a3082cf530f57ec74b6",
+    "apps/api/src/pmc_api/oidc.py": "958c9993172a483c7a2d53c18a56b69113664d8af683de26615fd304faf943fa",
+    "apps/api/src/pmc_api/organization.py": "d9c3797466e2969ef1e409c74ada13e41714f1ca69c2dfa2e20d970c62f63ab4",
+    "apps/api/src/pmc_api/organization_service.py": "4d84b0c09c09637a35d28b9352482660a6163b764bf8f0f66bec0df4fdcdcd28",
+    "apps/api/src/pmc_api/processes.py": "c5a069c01ea88319c5c080e0ca216d25d0fb9fcdf5d4f3770220b56f43dd1070",
+    "apps/api/src/pmc_api/qms_access.py": "db62799c2ac8b59cd8f18d76cfd4ea28d409bcdf8066069d2190ec25371f0b92",
+    "apps/api/src/pmc_api/risk_links.py": "e40e18021862f464c87d9ab0182abc9d0d6f5c4227e29ace7835a16fc15fc277",
+    "apps/api/src/pmc_api/risks.py": "4ea21be9dfaa0965de6ffbd862bad6ea62b92132d518be373f1ac4d4a1aa2152",
+    "apps/api/src/pmc_api/security.py": "02494c283deb37fda938ede1acab6fe8cfc7f9945bb8c7558848c840b9edd1d8",
+    "apps/api/src/pmc_api/storage.py": "cd5dcce511123e55bc311d1d2713c383e1a24ff5ceb788a6386d5da06f9be00e",
+    "apps/api/src/pmc_api/tenant.py": "970b18b41f68b307cbb047f18f158baecd4b0d273344966d521a1be097863609",
+    "apps/api/src/pmc_api/tenant_access.py": "2dd12aadaa3fa6d12e5af748fb433a082b2e56b1b5e88b1ba0328c174d80e1d4",
+    "apps/api/src/pmc_api/workflow.py": "4c5e8a78dba197a145b163213c3b706ad06ce4f0e5254ab0027ec72642ddf73e",
+    "apps/api/src/pmc_api/workflow_service.py": "72a96d3f8e0c90ab8c1484920eee620952d4d0f5176afbbc9673b9acf8d9fb93",
+    "apps/api/migrations/versions/0001_identity_multitenancy.py": "ee0f79f3c691b68d3f212bb33c4cdaadfb540074e9d9fb2342a052a526370628",
+    "apps/api/migrations/versions/0002_identity_binding_hardening.py": "b2a501842345e85b7aa6726077439c71b14cd8739a65ab3d4d21cc931fecc0a2",
+    "apps/api/migrations/versions/0003_audit_engine.py": "a836a72a71111d57e882dc9272028f446164911f4fb7005a7eb0ff7a9605847f",
+    "apps/api/migrations/versions/0004_organization_structure.py": "5bcdbac932aa478310b0465515468812ff02c00756cd04cad15101d806d724fd",
+    "apps/api/migrations/versions/0005_workflow_engine.py": "c2bc99ffbaa97f80b3133d34a88a9178e8f284674762f976bfe18b90dbc9d3eb",
+    "apps/api/migrations/versions/0006_workflow_immutability.py": "8fb933f8ae4cca399687092f911375bbf145490cde28c5555c61207bb254285a",
+    "apps/api/migrations/versions/0007_workflow_publication_lock.py": "c849508ced48f07b77436e31c05cd9e7a71e11ff4a251392560a6951635008e4",
+    "apps/api/migrations/versions/0008_qms_capabilities.py": "858a5628f896774cb6ae1b7785c7b014d98ae810b520a810bd0973b00e9ca6f5",
+    "apps/api/migrations/versions/0009_qms_processes.py": "2db0ba6c95c8f035248d6422efde7575fe4c4d476f084bb51bc7576f973d0c67",
+    "apps/api/migrations/versions/0010_qms_documents.py": "721d8224a0e4048a0634dc5962287b9e2345057a7df78216d80b3f6e569fc8c7",
+    "apps/api/migrations/versions/0011_qms_document_scope_guard.py": "a3347b7c31c399aa05d2be24b71503e22a52d91819e2da18afd2f98fe29f2ccd",
+    "apps/api/migrations/versions/0012_document_quarantine.py": "aaa5a029ce65fbd8dc34fb8b1bf2d27e85bf65ec27d3d9f32dff584e3b399c68",
+    "apps/api/migrations/versions/0013_document_obsolescence.py": "4473d8d26f062aebbfa351ee2545fd04ced01c2fb0eeaf115ac232d069e6fdaa",
+    "apps/api/migrations/versions/0014_document_owner_scope.py": "768e0879d2769d084fc36a65e0a55bc6fce145aaeb23d1d6325abdeaee9186af",
+    "apps/api/migrations/versions/0015_process_sites.py": "050d5b7bdba208566c44f00e6b1c61936f74cca5de16550d1bd63a990a5001f8",
+    "apps/api/migrations/versions/0016_qms_controls.py": "c34f812777f52bcf502a535b6d25ff6faa3ffca6d63b00fec9225916ee4a3756",
+    "apps/api/migrations/versions/0017_control_initial_applicability.py": "6c9fe0b7753c2b49df05bbb7842e9840038eeb6fbd76bdfca849735ca8bfcb37",
+    "apps/api/migrations/versions/0018_control_definitions.py": "6fbb4c9f67b0053705cd0917278292fc24374c5f73d7e311bec096c884b3681f",
+    "apps/api/migrations/versions/0019_instance_activities.py": "b102b795a37b07efd73c6cad87e33f9ac3872ea8006b75ae3e35a28a25e6dc68",
+    "apps/api/migrations/versions/0020_control_evidence_review.py": "b2f708942b45b7a675cbd697e435884d0ecb2bb9103bc8b2eb66806cf7ee211f",
+    "apps/api/migrations/versions/0021_qms_risks.py": "198713ecbd0a9de79782a6e39b9e7dc3c8d1e4583716ade350e3c53e5966c749",
+    "apps/api/migrations/versions/0022_risk_links.py": "ed0177bf75fb2bd20977f861529c247b8303fe849a88c401afb4b4cc8802d19e",
+    "apps/api/migrations/versions/0023_qms_nonconformities.py": "a67e57521a83884fae46892e007f8fdbf48d7bb4738fa32895bd4b159eddbe92",
+    "apps/api/migrations/versions/0024_ncr_links.py": "0d252107ee64ecbbd0ea273341cd8ee9d59fa98d85fdb49ace11a30a1d4542a8",
+    "apps/api/migrations/versions/0025_ncr_evidence_links.py": "06f34fd7a3458b3437a76412aa28294f733e0640affd9adbb888a7174be7b218",
+    "apps/api/migrations/versions/0026_qms_capa_intake.py": "c115583620470bd8b072ea73890048621c5f29097aa15adfb451dab5ceecfa59",
+    "apps/api/migrations/versions/0027_qms_capa_analysis.py": "71abcd72e51171cf7a60b93a97b3ce25bd69189795dfa18bf9b9302b77a36749",
+    "apps/api/migrations/versions/0028_capa_analysis_payload.py": "1e0d4535a41fd907758bd9483e3bf2e5ff65aeeae663eb353045084dbb8a6503",
+    "apps/api/migrations/versions/0029_capa_fishbone_causes.py": "d28c1366e8969be28278ff8185981c2007fdce3c07bfa8b19110ab3f7aeaae7b",
+    "apps/api/migrations/versions/0030_capa_plan_gate.py": "6bd9911f104b21866772e6beef5f33baffd97f8d473133702a750dcffaea4e82",
+    "apps/api/migrations/versions/0031_capa_action_register.py": "d19d4023ec69a18c79ff021b64cf665084ab3e197797f2441d5f0382d64fa35c",
+    "apps/api/migrations/versions/0032_capa_action_execution.py": "1e4769473bcf170da23b4287bf52880f5c2093ecfd0e3d1b63e7d93cd0ec8416",
+    "apps/api/migrations/versions/0033_capa_review_start.py": "2bf16c85eab82ceb303bb19e842b7e38b35bab7f725562d392ae92ad4458a59a",
+    "apps/api/migrations/versions/0034_capa_effectiveness_decisions.py": "6ab47c083a64c494a4a8e95d0ee6d2dc153c439db47f4347cec8ff7dcd20f871",
+    "apps/api/migrations/versions/0035_capa_cancellation.py": "659df83477c7d8480d98fadabbae51d83ea0eb7ed9f33fe7cd35470f1bf6d1a4",
+    "apps/api/migrations/versions/0036_capa_source_reference.py": "40b2f423192acb1c54da452e5633357b8def454c689c3ad07dfce19644335b1e",
+    "apps/api/migrations/versions/0037_capa_draft_edit_command.py": "f4c59ec6729ab34f4c472b70948e261364865f2e87f6f0538d2b0efc7c8bc939",
+    "apps/api/migrations/versions/0038_capa_document_links.py": "f7fd231cf7cb68fd00293b49a2c9e17e1a4e414aba90b22d88e5eff88d73b21e",
+    "apps/api/migrations/versions/0039_capa_trace_links.py": "c72f4efc72171b58a91c5b8e9ed5adb994f6c3372c87305af3377dc43f18f760",
+    "apps/api/migrations/versions/0040_internal_audit_foundation.py": "b4482cefc04f9301980d9c90e65819667958c73eec6fd9912cf25588e89fa174",
+    "apps/api/migrations/versions/0042_internal_audit_scope.py": "5095d6fd363bf45197b50fdcdbff4a56cae61817c5ad1961ca872606ec90a5da",
+    "apps/api/migrations/versions/0043_internal_audit_criteria.py": "7cb9280ffc5273dc80011283910060c5ab2ff81a75b6b923ce1a0b8c0362c0e4",
+    "apps/api/migrations/versions/0044_internal_audit_team.py": "9cbfb800e4360786364969ed063fd1c18edcced93295bf7a96d45ad2908a013f",
+    "apps/api/migrations/versions/0045_internal_audit_agenda.py": "a77aefc9929096c3f33934ab80d4dc53b1261270e3aba0624840f47bdd0f1b79",
+    "apps/api/migrations/versions/0046_internal_audit_independence.py": "111fa873f923c1f856720ef21ad8bd91ed6f2a380ac021de8ba72651f689a5f3",
+    "apps/api/migrations/versions/0047_audit_execution_authority.py": "7408f1d0f0712204bb716fbaf492be10e45bcf501168e2513e262e75051d3c79",
+    "apps/api/migrations/versions/0048_audit_competence.py": "56d8681b01f23f428b1b25e864098071e47f76ade06d7804a1b3f4892f1f473e",
+    "apps/api/migrations/versions/0049_tenant_suspension.py": "8c69562770a609369c2794460f37bb6d7d9f83d9fbe8dc3d5d9106efa7b7a099",
+    "apps/web/src/app/api/identity/[...path]/route.ts": "a33611f02ed6bf2e22003e4487b459440dc277e0ae21ac000a0cde1cff4a5f52",
+    "apps/web/src/proxy.ts": "3989728839a4bbbccfcd7f8659cd57405dc1504c66abe6a41e8b6ddf4cc8f54e",
+    "apps/web/src/lib/identity-path.ts": "edfdbfaf12c0fa85dafca045442f0c014a3363502492ebdc57c131d2ee296e6d",
+    "apps/web/src/lib/workspace-navigation.ts": "f271556c0d709d6bf412e6eb599cd7fc7d42044d79e8713fac071ff7eaef984c",
+    "apps/web/src/components/qms-access-workspace.tsx": "679a743861ed02e6438bf1c43a927e9e085c37a93e884bf1174030afd05aa1c7"
+  },
+  "framework_routes": [
+    {
+      "method": "GET/HEAD",
+      "path": "/openapi.json",
+      "authenticated": false,
+      "source": "apps/api/src/pmc_api/main.py:55",
+      "included_in_business_count": false
+    }
+  ],
+  "method": "AST decoradores+cuatro comandos documentales add_api_route; reconciliación exacta con app.openapi() en memoria. Tabla56aplicación no incluye alembic_version. SQL declaraciones antes de downgrade, no catálogo vivo."
+}

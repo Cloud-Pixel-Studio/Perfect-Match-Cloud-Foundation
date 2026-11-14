@@ -1,0 +1,29 @@
+{
+  "new_execution": {
+    "api_unit_tests": {
+      "passed": 50,
+      "skipped_db_integrations": 449,
+      "command": "PYTHONPATH=src [baseline .venv]/bin/python -m pytest -q",
+      "database_harness": false
+    },
+    "openapi_probe": {
+      "openapi_status": 200,
+      "openapi_cache_control": null,
+      "schema_path_count": 131,
+      "schema_operations": 180,
+      "framework_public_path": "/openapi.json",
+      "docs_url": null,
+      "redoc_url": null
+    },
+    "route_inventory_matches_openapi": true,
+    "synthetic_me_cache_probe": {
+      "status": 200,
+      "cache_control": null,
+      "scope": "Dependencia autenticada sintética, sin DB, cliente real ni credencial."
+    }
+  },
+  "limits": [
+    "Sin DB real ni harness PostgreSQL nuevo; controles de PR41 se citan como evidencia previa.",
+    "Sin navegador, prueba de cliente Odoo, pentest, scanner nuevo ni despliegue."
+  ]
+}
