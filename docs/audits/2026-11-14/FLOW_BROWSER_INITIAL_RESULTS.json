@@ -1,0 +1,92 @@
+{
+  "startedAt": "2026-11-14T18:48:44.304Z",
+  "base": "http://127.0.0.1:3103",
+  "api": "http://127.0.0.1:8000",
+  "qmsWritesForwarded": 0,
+  "cases": [
+    {
+      "name": "marketing: product tour, demo intent and download",
+      "evidence": "real frontend; no message sent",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0,
+        "contact": "Demo@invperfectmatch.com",
+        "transmission": "not tested; mail client intentionally not opened",
+        "onboarding": "not available"
+      }
+    },
+    {
+      "name": "marketing: 320px keyboard FAQ and navigation",
+      "evidence": "real frontend",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "anonymous entry reaches the approved login boundary",
+      "evidence": "real frontend; no authentication yet",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: actual OIDC authentication and company selection display",
+      "evidence": "real OIDC development session and GET APIs",
+      "result": "FAIL",
+      "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#username')\u001b[22m\n"
+    },
+    {
+      "name": "owner: actual OIDC authentication and company selection display",
+      "evidence": "real OIDC development session and GET APIs",
+      "result": "FAIL",
+      "error": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#username')\u001b[22m\n"
+    },
+    {
+      "name": "synthetic auditor: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Documents",
+          "Internal audits",
+          "Organization",
+          "Permissions",
+          "Audit trail"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "synthetic member: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Permissions"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    }
+  ],
+  "roles": [],
+  "finishedAt": "2026-11-14T18:49:52.626Z",
+  "summary": {
+    "pass": 5,
+    "fail": 2
+  }
+}
