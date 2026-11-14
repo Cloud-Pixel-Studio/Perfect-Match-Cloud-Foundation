@@ -118,6 +118,7 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-qms-access-integrity.sh
+      - run: ./scripts/run-qms-access-history-integrity.sh
 
   internal-audit-integrity:
     runs-on: ubuntu-24.04

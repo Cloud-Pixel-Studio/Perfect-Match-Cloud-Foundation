@@ -270,7 +270,7 @@ export function IdentityShell() {
           {presentedModule === "overview" && <WorkspaceOverview tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
           {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
-          {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} onAccessDenied={() => void loadIdentity()} />}
+          {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
           {presentedModule === "controls" && <ControlsWorkspace key={`controls-${current.id}-${current.role}-${activeTarget?.recordId ?? "register"}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} target={activeTarget} />}
           {presentedModule === "internal-audits" && <InternalAuditsWorkspace key={`internal-audits-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onAccessDenied={() => void loadIdentity()} />}
