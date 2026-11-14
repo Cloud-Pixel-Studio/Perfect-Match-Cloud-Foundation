@@ -21,3 +21,11 @@ condition = "AND"
 paths = ['''(^|/)\.ai/checkpoints/CP-AUDIT-AGENDA-06-20261113T052019Z\.json$''']
 regexTarget = "secret"
 regexes = ['''^812dbea698402f5a6adb9e203424c78db296da8ed4f770ad3f80a9d2319fab0f$''']
+
+[[allowlists]]
+description = "Four verified baseline source SHA256 checksums in architecture inventory; exact path and digest only"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)docs/audits/2026-11-14/ARCHITECTURE_ACCESS_INVENTORY\.json$''']
+regexTarget = "secret"
+regexes = ['''^0839bb95807a3c511cb808b449bd9db7e37abe9aa7564f8b19cb5729282b4ce5$''','''^db62799c2ac8b59cd8f18d76cfd4ea28d409bcdf8066069d2190ec25371f0b92$''','''^2dd12aadaa3fa6d12e5af748fb433a082b2e56b1b5e88b1ba0328c174d80e1d4$''','''^679a743861ed02e6438bf1c43a927e9e085c37a93e884bf1174030afd05aa1c7$''']

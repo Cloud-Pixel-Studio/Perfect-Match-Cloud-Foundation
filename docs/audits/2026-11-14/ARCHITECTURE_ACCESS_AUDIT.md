@@ -139,3 +139,7 @@ El conteo previo Odoo de menús/botones es un inventario estático de exposició
 5. Completar lifecycle y ejecución de auditorías con revalidación atómica, después verticales pendientes; validar flujos de cliente y operación segura antes de declarar paridad o publicar.
 
 Este orden es recomendación de ingeniería. No añade decisiones comerciales ni permisos del usuario. La entrega es un diagnóstico verificable; no certificación, pentest ni autorización de producción.
+
+## Validación de secretos del inventario
+
+Gitleaks señaló cuatro checksums SHA256 de fuentes del baseline como generic-api-key (ocho alertas al incluir las dos copias del commit local/remoto en refs compartidas). Cada valor se recalculó contra el blob exacto de PR41. Se añadió una excepción únicamente para esos cuatro valores, esa regla y el path exacto del inventario; no se excluye el archivo ni se desactiva detección de credenciales. El inventario no contiene secretos ni configuraciones privadas.

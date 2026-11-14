@@ -20,6 +20,12 @@
       "status": 200,
       "cache_control": null,
       "scope": "Dependencia autenticada sintética, sin DB, cliente real ni credencial."
+    },
+    "secret_scan": {
+      "tree": "PASS",
+      "shared_local_history": "PASS with four exact verified checksum exceptions",
+      "negative_control": "PASS: synthetic noncredential API key in exact inventory path still detected; four baseline checksums excluded",
+      "production_secrets_used": false
     }
   },
   "limits": [
