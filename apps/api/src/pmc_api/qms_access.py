@@ -147,6 +147,7 @@ def _audit(db: Session, actor: OrganizationActor, row: QMSAccessGrant, request_i
 def create_grant(
     db: Session, actor: OrganizationActor, request_id: UUID, body: GrantInput
 ) -> QMSAccessGrant:
+    actor = require_context(db, user_id=actor.user_id, tenant_id=actor.tenant_id)
     _owner(actor)
     if body.user_id == actor.user_id:
         raise HTTPException(403, "self-granting QMS capabilities is not allowed")
@@ -186,6 +187,7 @@ def create_grant(
 def revoke_grant(
     db: Session, actor: OrganizationActor, request_id: UUID, grant_id: UUID
 ) -> QMSAccessGrant:
+    actor = require_context(db, user_id=actor.user_id, tenant_id=actor.tenant_id)
     _owner(actor)
     row = db.scalar(
         select(QMSAccessGrant)

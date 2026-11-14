@@ -1,3 +1,7 @@
+## Prioridad actual — suspensión empresarial
+
+La rama codex/tenant-suspension corrige A01 del informe PR40 con migración0049 y pruebas específicas. Leer CHECKPOINT.md y docs/security/TENANT_SUSPENSION.md para límites y evidencia. La aplicación local sigue 0048 porque Docker está sin espacio; no afirmar despliegue. El WIP lifecycle queda preservado en Design Studio y requerirá un ID de migración posterior. Próximo: liberar capacidad de forma controlada antes de aplicar local; cerrar A02/políticas de lectura, workflow auditor-only y onboarding. Sin merge/producción automática.
+
 # Retomar Perfect Match QMS desde otro chat
 
 Actualizado: 13 de noviembre de 2026 (America/New_York).

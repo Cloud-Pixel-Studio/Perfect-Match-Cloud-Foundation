@@ -53,4 +53,4 @@ mypy_path = "src"
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-markers = ["process_integrity: scoped processes requiring disposable PostgreSQL", "qms_access_integrity: scoped QMS grants requiring disposable PostgreSQL", "internal_audit_integrity: scoped internal audits requiring disposable PostgreSQL", "tenant_isolation: tests requiring disposable PostgreSQL with forced RLS", "organization_integrity: tests requiring disposable PostgreSQL", "workflow_integrity: tests requiring disposable PostgreSQL"]
+markers = ["tenant_suspension_integrity: suspension boundaries requiring disposable PostgreSQL", "process_integrity: scoped processes requiring disposable PostgreSQL", "qms_access_integrity: scoped QMS grants requiring disposable PostgreSQL", "internal_audit_integrity: scoped internal audits requiring disposable PostgreSQL", "tenant_isolation: tests requiring disposable PostgreSQL with forced RLS", "organization_integrity: tests requiring disposable PostgreSQL", "workflow_integrity: tests requiring disposable PostgreSQL"]

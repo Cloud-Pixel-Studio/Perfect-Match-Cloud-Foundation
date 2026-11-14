@@ -9,7 +9,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from pmc_api import audit_service
-from pmc_api.models import Membership, OrganizationUnit, OrganizationUnitAssignment, User
+from pmc_api.models import OrganizationUnit, OrganizationUnitAssignment
+from pmc_api.tenant_access import require_tenant_access
 
 
 @dataclass(frozen=True)
@@ -21,19 +22,8 @@ class OrganizationActor:
 
 
 def require_context(db: Session, *, user_id: UUID, tenant_id: UUID | None) -> OrganizationActor:
-    if tenant_id is None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "tenant selection required")
-    membership = db.scalar(
-        select(Membership).where(
-            Membership.tenant_id == tenant_id,
-            Membership.user_id == user_id,
-            Membership.status == "active",
-        )
-    )
-    user = db.get(User, user_id)
-    if membership is None or user is None or user.status != "active":
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "tenant access denied")
-    return OrganizationActor(user.id, user.display_name, membership.role, tenant_id)
+    access = require_tenant_access(db, user_id=user_id, tenant_id=tenant_id)
+    return OrganizationActor(access.user_id, access.display_name, access.role, access.tenant_id)
 
 
 def require_write(actor: OrganizationActor) -> None:

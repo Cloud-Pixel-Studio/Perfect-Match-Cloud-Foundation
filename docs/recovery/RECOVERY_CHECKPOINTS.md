@@ -1,3 +1,9 @@
+## Suspensión empresarial · 14 noviembre 2026
+
+CP-TENANT-SUSPENSION-00-20261114T154913Z:497fuentes/Git cifrados y restaurados por SHA256 antes de editar; rama codex/tenant-suspension sobre PR40. CP-TENANT-SUSPENSION-PRESERVE-00-20261114T154650Z protege504fuentes/Git de Design Studio con WIP0049 de lifecycle; sus hashes permanecen intactos. Claves 0600 y backups fuera del árbol.
+
+CP-TENANT-SUSPENSION-DB-00-20261114T155635Z respalda la DB local 0048: restauración aislada PASS,57 tablas/50 forced RLS, sin cambios de esquema/datos fuente. Docker agotó almacenamiento durante QA; los nuevos harness usan tmpfs 512m. No se borraron imágenes/volúmenes ajenos ni se migró la DB local. Las migraciones de prueba son desechables; no afirmar restauración pos 0049 de la DB local.
+
 # Recovery checkpoints
 
 External encrypted checkpoints are stored under the local PerfectMatchQMS recovery

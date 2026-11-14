@@ -1,0 +1,11 @@
+{
+  "id": "CP-TENANT-SUSPENSION-DB-00-20261114T155635Z",
+  "verification": "PASS",
+  "schema_version": [
+    "0048_audit_competence"
+  ],
+  "user_table_count": 57,
+  "failure": null,
+  "database_mutations": "none",
+  "migration_applied": false
+}
