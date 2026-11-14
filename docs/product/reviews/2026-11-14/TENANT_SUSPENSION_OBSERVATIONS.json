@@ -1,0 +1,25 @@
+{
+  "scope": "Synthetic ephemeral database and in-process FastAPI TestClient only; no local SaaS/Keycloak/customer data",
+  "before": {
+    "organization_read": 200,
+    "audit_read": 200,
+    "qms_process_read": 200
+  },
+  "after": {
+    "existing_session_current_tenant_preserved": true,
+    "tenant_picker_empty": true,
+    "organization_read": 200,
+    "organization_edit": 200,
+    "audit_read": 200,
+    "audit_cache_control": null,
+    "qms_process_read": 200,
+    "qms_process_rows": 0,
+    "qms_process_detail": 404,
+    "effective_capabilities": {
+      "unit_id": "50000000-0000-4000-8000-000000000001",
+      "capabilities": []
+    },
+    "tenant_context": 403,
+    "organization_after_context_clear": 409
+  }
+}

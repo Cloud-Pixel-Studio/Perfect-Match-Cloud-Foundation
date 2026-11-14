@@ -1,0 +1,9 @@
+{
+  "scope": "Only synthetic ephemeral DB, migration0048, service and runtime RLS. No HTTP bypass or customer data claimed.",
+  "sole_auditor_assignee_version_published": true,
+  "assigned_auditor_eligible_action_count": 0,
+  "assigned_auditor_transition_status": 403,
+  "disabled_tenant_actor_context_still_allowed": true,
+  "disabled_tenant_visible_definitions": 1,
+  "disabled_tenant_start_instance_still_allowed": true
+}

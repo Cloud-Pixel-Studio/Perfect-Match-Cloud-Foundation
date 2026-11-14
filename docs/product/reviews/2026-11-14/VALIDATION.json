@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-11-14T13:32:47.481854+00:00",
+  "baseline_commit": "f8562540773e4d7294ff09b5abc603aa80add027",
+  "odoo_commit": "d89330cc1a8e9a2ea16992c9b49394f1dc481b7f",
+  "checkpoint": "CP-PRODUCT-ACCESS-AUDIT-00-20261114T015214Z",
+  "post_update_checkpoint": null,
+  "application_changes": false,
+  "production_or_local_qms_db_mutations": false,
+  "disposable_db_tests": {
+    "qms_access": 23,
+    "workflow": 31,
+    "organization": 17
+  },
+  "web_navigation_unit_tests": 9,
+  "reproductions": "Confirmed HTTP suspension and service/RLS workflow findings; NOT passing security controls",
+  "source_verification": {
+    "files_compared_to_current_github_git_blob_sha": 488,
+    "missing": 0,
+    "mismatched": 0
+  },
+  "inventory_validation": "PASS:109 unique menu IDs,249 unique model/method pairs, all Odoo Python implementations and all referenced SaaS HEAD files present; counts match rows",
+  "preservation_validation": "PASS:496 prior tracked/untracked files SHA256 unchanged; only CHECKPOINT deliberately prepended",
+  "source_sha256": {
+    "ACCESS_CONFIGURATION_AND_PARITY_AUDIT.md": "279b0fa3c15b849110ec6088fbba1d3e5ce6d6c0f82916b6f805664aceaa3a69",
+    "WORKFLOW_POLICY_OBSERVATIONS.json": "740f29140a861846950d3a1cd30762bb6d35c293cb0128dd5d182912c7d6e19b",
+    "ODOO_SAAS_OPTION_BY_OPTION.md": "690dde2bddd0f308f36014d71627622dde3ee4c61da25ed5acce5df3e8cbed1f",
+    "TENANT_SUSPENSION_OBSERVATIONS.json": "95034622361f6b0857fe27228c60126ab0f65fc720f70fc5a3bb7d4d4b8f3016",
+    "OPTION-INVENTORY.json": "79695d517f7c90931268fadd0e07dc2d71b6e91890e1a4ee6a212ad66203748d"
+  }
+}
