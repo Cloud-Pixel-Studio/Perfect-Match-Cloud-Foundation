@@ -36,3 +36,7 @@ A02 cierra la truncación del historial de grants en la interfaz, **no** el cat�
 No hay despliegue ni migración local de esta entrega. El runtime de desarrollo sigue PR39/DB0048; PR41 y A02 son ramas revisables. El incidente de disco local y su recuperación se documentan aparte. CI del head final y revisión humana siguen requisitos previos a merge.
 
 CP-QMS-ACCESS-HISTORY-00-20261114T162818Z preserva505fuentes/Git antes de modificar. CP-PARALLEL-AUDIT-WIP-00-20261114T183858Z preserva509fuentes/Git durante relevo; cifrados, restauración de fuentes por SHA256 y bundle verify PASS. Backup y claves fuera del árbol; no sustituyen respaldo DB.
+
+## Controles CI del inventario de auditoría
+
+El commit funcional aprobó calidad y CodeQL. El primer gate de seguridad se detuvo porque Gitleaks escanea refs de todas las ramas y encontró cuatro SHA256 del inventario de arquitectura como si fueran claves. Se verificaron contra los blobs exactos de PR41. La excepción exige simultáneamente regla generic-api-key, path exacto y uno de esos cuatro valores; no excluye el archivo. Nueve controles nuevos (cuatro hashes permitidos, cuatro fuera del path detectados y un valor distinto detectado) y los cuatro controles previos de checksum PASS. La nueva prueba se ejecuta en CI. No se presenta aquel gate fallido como aprobado ni se eliminan controles para pasar.
