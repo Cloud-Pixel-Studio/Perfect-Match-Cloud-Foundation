@@ -1,3 +1,7 @@
+## Prioridad actual — suspensión empresarial
+
+El [PR borrador41](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/41), rama codex/tenant-suspension, corrige A01 del informe PR40 con migración0049 y31pruebas específicas. Entrega funcional b0f7de816ef7775793e63f3047ef34f279d9ad58 y árbol3b11961c91b19510e9a593f38bec17250c66a3b4 verificados contra el checkout. Leer CHECKPOINT.md y docs/security/TENANT_SUSPENSION.md para límites y evidencia. La aplicación local sigue 0048 porque Docker está sin espacio; no afirmar despliegue. El WIP lifecycle queda preservado en Design Studio y requerirá un ID de migración posterior. Próximo: liberar capacidad de forma controlada antes de aplicar local; cerrar A02/políticas de lectura, workflow auditor-only y onboarding. Sin merge/producción automática.
+
 # Retomar Perfect Match QMS desde otro chat
 
 Actualizado: 13 de noviembre de 2026 (America/New_York).
