@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "branch": "codex/audit-complete-flow",
+  "base_commit": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "runtime": {
+    "frontend_preview": "http://127.0.0.1:3103",
+    "oidc_callback_web": "http://127.0.0.1:3000",
+    "api": "http://127.0.0.1:8000",
+    "db_revision": "0048 documented in checkpoint, not queried in this audit",
+    "source_revision": "PR41 with0049; migration not applied to real runtime",
+    "health_observed": 503,
+    "database": "unavailable",
+    "object_storage": "ok",
+    "malware_scanner": "ok"
+  },
+  "overall_verdict": "BLOCKED: no complete commercial-to-QMS-closure flow; infrastructure blocks real authenticated validation, and functional onboarding/audit execution/billing remain absent.",
+  "safety": {
+    "real_qms_writes": 0,
+    "real_grants_changed": 0,
+    "real_tenant_memberships_changed": 0,
+    "emails_sent": 0,
+    "database_migrated": false,
+    "production_touched": false,
+    "stored_browser_credentials_or_state": false
+  },
+  "steps": [
+    {
+      "id": "F01",
+      "stage": "marketing_product_tour",
+      "status": "PASS",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Keyboard tour,FAQ,320/1440px and scoped axe/overflow checks."
+    },
+    {
+      "id": "F02",
+      "stage": "demo_brief",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Validation and downloadable TXT; correct mailto prepared; no message sent, contract or subscription."
+    },
+    {
+      "id": "F03",
+      "stage": "anonymous_login_entry",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Login link visible and targets approved proxy path; authenticated flow blocked separately."
+    },
+    {
+      "id": "F04",
+      "stage": "commercial_onboarding",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "real_http_and_source",
+      "verdict": "/onboarding404; no onboarding/invitation/membership provisioning API. Development bootstrap is not customer onboarding."
+    },
+    {
+      "id": "F05",
+      "stage": "actual_oidc_login",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health_and_initial_failure",
+      "verdict": "DB unavailable503 and prior auth/login500; no credentials submitted in final run; no recovered storageState."
+    },
+    {
+      "id": "F06",
+      "stage": "company_selection_existing_membership",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "No final real session; synthetic presentation is not real company selection or onboarding. No auth/tenant POST attempted."
+    },
+    {
+      "id": "F07",
+      "stage": "real_authenticated_processes",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F08",
+      "stage": "real_authenticated_documents",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F09",
+      "stage": "real_authenticated_controls_evidence",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F10",
+      "stage": "real_authenticated_risks",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F11",
+      "stage": "real_authenticated_nonconformities",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F12",
+      "stage": "real_authenticated_capa",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F13",
+      "stage": "real_authenticated_internal_audits",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F14",
+      "stage": "real_authenticated_action_center",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F15",
+      "stage": "real_authenticated_organization_permissions_workflows_audit_trail",
+      "status": "BLOCKED_INFRASTRUCTURE",
+      "evidence_kind": "runtime_health",
+      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+    },
+    {
+      "id": "F16",
+      "stage": "documents_client_error_and_command_feedback",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "16 unchanged assertions, mocked API including upload feedback; no real AV/storage/SQL."
+    },
+    {
+      "id": "F17",
+      "stage": "risk_ncr_to_capa",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "13 unchanged assertions: exact source/unit filters,linked CAPA,one creation/error/replay/history/pagination,zero backend writes."
+    },
+    {
+      "id": "F18",
+      "stage": "audit_plan_and_preparation",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "85 unchanged assertions for planning/scope/criteria/team/agenda/independence/authority/competence; no execution delivered."
+    },
+    {
+      "id": "F19",
+      "stage": "audit_ready_start",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "source_and_runtime_openapi",
+      "verdict": "ready_for_execution Literal[False]; no ready/start commands in registered runtime schema."
+    },
+    {
+      "id": "F20",
+      "stage": "audit_execution_evidence_findings_ncr_reporting_closure",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "source_and_runtime_openapi",
+      "verdict": "Missing execution/evidence/findings/report/closure vertical; no invented outcome."
+    },
+    {
+      "id": "F21",
+      "stage": "follow_up_action_center_to_capa",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "Additional375px/axe case opens exact CAPA with record/unit/process UUID; no backend writes."
+    },
+    {
+      "id": "F22",
+      "stage": "commercial_subscription_license_billing",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "real_http_and_source",
+      "verdict": "Web/billing404,API/billing404; no license/subscription/billing API; no seats/ISO enforcement or purchase."
+    },
+    {
+      "id": "F23",
+      "stage": "role_navigation",
+      "status": "PASS_PRESENTATION_ONLY",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "Two cases: auditor with read caps vs member with no caps; no server authorization proof."
+    }
+  ],
+  "browser_fixture_regressions": {
+    "existing": 114,
+    "additional_follow_up": 1,
+    "passed": 115,
+    "failed": 0,
+    "skipped": 0,
+    "retries": 0,
+    "identity": "in-memory synthetic",
+    "business_api": "in-memory intercepted",
+    "real_av_s3": false,
+    "real_postgresql": false,
+    "real_oidc": false
+  },
+  "not_claimed": [
+    "all modules operational end to end",
+    "Odoo executed",
+    "certification",
+    "production ready",
+    "0049 active locally",
+    "real QMS approval or audit closure"
+  ],
+  "evidence": [
+    "FLOW_BROWSER_INITIAL_RESULTS.json",
+    "FLOW_BROWSER_RESULTS.json",
+    "FLOW_RUNTIME_AVAILABILITY.json",
+    "FLOW_FIXTURE_RESULTS.json",
+    "FLOW_EVIDENCE_MANIFEST.json"
+  ]
+}
