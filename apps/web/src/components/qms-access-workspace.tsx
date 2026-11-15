@@ -353,7 +353,7 @@ export function QMSAccessWorkspace({ role, userId, tenantId, onAccessDenied }: {
           </tr>)}</tbody></table></div>}
       <nav className="document-pagination" aria-label="Permission history pages">
         <button className="secondary-action compact-action" type="button" disabled={busy || cursors.length === 1} onClick={() => { setConfirmId(null); setCursors(value => value.slice(0, -1)); }}>Previous permissions</button>
-        <span>Page {cursors.length}</span>
+        <span aria-live="polite" aria-atomic="true">Page {cursors.length} · {currentPage.items.length} permissions shown</span>
         <button className="secondary-action compact-action" type="button" disabled={busy || !currentPage.next_cursor} onClick={() => {
           if (currentPage.next_cursor) { setConfirmId(null); setCursors(value => [...value, currentPage.next_cursor]); }
         }}>Next permissions</button>
