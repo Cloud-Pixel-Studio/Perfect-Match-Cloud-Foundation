@@ -19,6 +19,7 @@ import {
 
 import { type WorkspaceId, type WorkspaceItem, type WorkspaceTarget } from "../lib/workspace-navigation";
 import { ActionCenterWorkspace } from "./action-center-workspace";
+import { visibleDashboardMetrics } from "../lib/dashboard-metrics";
 
 const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
   processes: FolderKanban,
@@ -34,14 +35,7 @@ const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
 };
 
 export function WorkspaceOverview({ tenantName, role, sections, onNavigate }: { tenantName: string; role: string; sections: { label: string; items: WorkspaceItem[] }[]; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
-  const availableIds = new Set(sections.flatMap((section) => section.items.map((item) => item.id)));
-  const plannedMetrics: { label: string; detail: string; module: WorkspaceId }[] = [
-    { label: "Document currency", detail: "Current released revisions", module: "documents" },
-    { label: "Overdue corrective actions", detail: "Open CAPA past due date", module: "capa" },
-    { label: "High-priority risks", detail: "Active high or critical residual risks", module: "risks" },
-    { label: "Nonconformity trend", detail: "Opened and closed records over time", module: "nonconformities" },
-  ];
-  const visibleMetrics = plannedMetrics.filter((metric) => availableIds.has(metric.module));
+  const visibleMetrics = visibleDashboardMetrics(sections);
   return <section className="qms-overview" aria-labelledby="overview-heading">
     <div className="qms-overview-hero">
       <div>
