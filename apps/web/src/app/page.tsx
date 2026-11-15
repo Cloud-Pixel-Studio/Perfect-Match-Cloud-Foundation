@@ -10,14 +10,14 @@ export default async function Home() {
       <header className="identity-brand">
         <BrandMark priority />
         <div>
-          <strong>PERFECT MATCH QMS</strong>
-          <span>Quality Operations Cloud</span>
+          <strong>BEMS QUALITY</strong>
+          <span>By Perfect Match Systems</span>
         </div>
         <nav className="identity-public-nav" aria-label="Public pages"><a href="/products">Products</a></nav>
       </header>
       <IdentityShell />
       <footer className="identity-footer">
-        <span>Perfect Match QMS</span>
+        <span>BEMS Quality</span>
         <span>Quality management workspace</span>
       </footer>
     </div>
