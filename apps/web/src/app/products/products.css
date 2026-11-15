@@ -169,3 +169,16 @@
   .market-header-actions .market-signin { display: none; }
   .market-navigation { gap: 12px; }
 }
+
+/* Compact navigation: keep the page usable with keyboard, touch, and reduced motion. */
+.market-navigation { scrollbar-width: thin; }
+.market-navigation a { display: inline-flex; align-items: center; min-height: 40px; }
+@media (max-width: 600px) {
+  .market-navigation { overscroll-behavior-inline: contain; scrollbar-width: thin; }
+  .market-navigation a { min-height: 44px; flex-shrink: 0; }
+  .market-header-actions .market-button { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .market-button { transition: none; }
+  .market-button:hover { transform: none; }
+}
