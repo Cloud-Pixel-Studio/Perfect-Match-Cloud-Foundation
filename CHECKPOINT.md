@@ -1,3 +1,9 @@
+# Trabajo actual — auditoría de merges · 15 noviembre de 2026
+- Rama **codex/merge-readiness-audit-20261115**, base PR53/099d011. Solo informe y continuidad; no cambia producto. Leer docs/reviews/MERGE_READINESS_2026-11-15.md/json: snapshot de47 ramas remotas/36PR abiertos,0listos para merge conforme a gates actuales.
+-33quality PASS/3FAIL(PR22 Ruff,51parseoTS,52validaciónmeses);35CodeQL PASS/1sin corrida devuelta(PR48);35security FAIL/PR53en curso.0reviews APPROVED devueltos,7hilos pendientes en13/43/50. No declarar CodeQL verde como ausencia de alertas ni tests heredados como corrida nueva.
+-36simulaciones merge-tree con bases actuales sin conflictos; no prueban combinación funcional.21/24/28/29 reutilizados en50, evitar merges duplicados;6ramas PMC ya enmain,3ramas visual/foundation en19, WIPscope recovery no candidata. Detalles y SHA/run por PR enJSON. Ninguna rama auditada fue fusionada/cerrada/rebasada ni cambió head durante el corte.
+-CP-MERGE-READINESS-00-20261115T125325Z:537fuentes/Git cifrados/restaurados SHA256/bundle PASS antes del informe. Fuente entregada/evidencia final se preserva después. PM NO GO sin cambiar gates. No runtime/DB/producción ni WIP original/Studio modificados; aprobación humana antes de merge.
+
 # Trabajo actual — evaluación de vendors ·15noviembre2026UTC
 - Rama **codex/vendor-stable-candidates-20261115** sobre PR50/f698d0a; PR50 aporta guards producción y evidencia6imágenes. PM **NO GO** comercial; aprobación humana para merge/producción sigue requerida.
 - Solo pinsCompose/scan/SBOM: Keycloak26.8.2 y SeaweedFS4.53, metadata oficial/digests reverificados. Leer docs/security/VENDOR_CANDIDATES_2026-11-15.md/json. CI aislado nuevo pendiente; no afirmar corrección de CVE por versión. Gates HIGH/CRITICAL intactos.

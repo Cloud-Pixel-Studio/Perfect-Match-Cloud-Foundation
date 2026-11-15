@@ -1,0 +1,1973 @@
+{
+  "assessed_at": "2026-11-15T07:55:22-05:00",
+  "scope": "all 47 remote branches and 36 open PRs before creating this local audit branch",
+  "repository": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation",
+  "production_decision": "NO GO unchanged",
+  "ready_to_merge": 0,
+  "counts": {
+    "Foundation quality": {
+      "failure": 3,
+      "success": 33
+    },
+    "CodeQL": {
+      "not returned": 1,
+      "success": 35
+    },
+    "Foundation security": {
+      "failure": 35,
+      "in_progress": 1
+    }
+  },
+  "draft_prs": 35,
+  "approved_review_submissions": 0,
+  "unresolved_threads": 7,
+  "checkpoint": "CP-MERGE-READINESS-00-20261115T125325Z",
+  "method": "GitHub exact-head PR-triggered runs, failed job steps, reviews/threads, full remote head inventory and local merge-tree simulation; not a full manual source review of all 36 diffs",
+  "prs": [
+    {
+      "pr": 13,
+      "title": "Establish secure multi-tenant QMS foundation",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/13",
+      "head_branch": "codex/cp-audit-agent-foundation",
+      "head_sha": "8ad607a553f7c7e84cb398de78599fe1de3e69f8",
+      "base_branch": "main",
+      "base_sha": "13e672a6269c4200c124a0eaf88efe86cedc67ab",
+      "base_pr": null,
+      "draft": false,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "dbefb0e6e51ce1e7941d8529653c56c4d4ed1d1a",
+      "review_submissions": [
+        "COMMENTED"
+      ],
+      "approved_reviews": 0,
+      "unresolved_threads": [
+        {
+          "path": "apps/api/src/pmc_api/documents.py",
+          "line": 519,
+          "outdated": false,
+          "comment_ids": [
+            4542864912
+          ]
+        },
+        {
+          "path": "apps/api/src/pmc_api/action_center.py",
+          "line": 224,
+          "outdated": false,
+          "comment_ids": [
+            4542864919
+          ]
+        },
+        {
+          "path": "apps/api/src/pmc_api/action_center.py",
+          "line": 229,
+          "outdated": false,
+          "comment_ids": [
+            4542864923
+          ]
+        },
+        {
+          "path": "apps/api/src/pmc_api/action_center.py",
+          "line": 225,
+          "outdated": false,
+          "comment_ids": [
+            4542864931
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43145336048,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145336048",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43145336061,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145336061",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43145336035,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145336035",
+          "failed_steps": [
+            "Responsive visual and accessibility regression",
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 19,
+      "title": "Integrate merged PR #15–#17 features back into QMS foundation (#13)",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/19",
+      "head_branch": "codex/branding-identity-system",
+      "head_sha": "ae8f26298b43179297974b5a5edd48d23b11a8f5",
+      "base_branch": "codex/cp-audit-agent-foundation",
+      "base_sha": "8ad607a553f7c7e84cb398de78599fe1de3e69f8",
+      "base_pr": 13,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "547d0ec6b260aca88f5b571cd003ec5aa29719a9",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43145721486,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145721486",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43145721548,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145721548",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43145721423,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43145721423",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 20,
+      "title": "chore(agents): configure bounded Codex specialists and validate manifests",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/20",
+      "head_branch": "codex/pmc-agent-specialists-foundation",
+      "head_sha": "58a9f83a01e7c810b124c0fc497855d948aa33ba",
+      "base_branch": "codex/branding-identity-system",
+      "base_sha": "ae8f26298b43179297974b5a5edd48d23b11a8f5",
+      "base_pr": 19,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "6f90ade4098d21fbcbf5432760a836e84949693a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43147025543,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147025543",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43147025508,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147025508",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43147025514,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147025514",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 21,
+      "title": "security(config): reject insecure public endpoints in production",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/21",
+      "head_branch": "codex/pmc-production-public-url-guards",
+      "head_sha": "a66476cacf09137067949af2e1a93d2fc7d11c38",
+      "base_branch": "codex/branding-identity-system",
+      "base_sha": "ae8f26298b43179297974b5a5edd48d23b11a8f5",
+      "base_pr": 19,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "13d1dac94f698e7091644353bb45d915839a444a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43147838311,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147838311",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43147838297,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147838297",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43147838257,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43147838257",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 22,
+      "title": "chore(agents): UX/reliability specialists and external tooling evaluation",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/22",
+      "head_branch": "codex/pmc-specialists-ux-observability-20261111",
+      "head_sha": "d877a255e62d646f27f15d890f75793c8b07a6ec",
+      "base_branch": "codex/pmc-agent-specialists-foundation",
+      "base_sha": "58a9f83a01e7c810b124c0fc497855d948aa33ba",
+      "base_pr": 20,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "13d4520862c77dbf3af23569cf79e49c75af595f",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43211415659,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43211415659",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43211415603,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43211415603",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43211415722,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43211415722",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43211415641,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43211415641",
+          "failed_steps": [
+            "Run uv run ruff format --check ."
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 23,
+      "title": "style(ci): fix Ruff formatting in PMC-05 revision files",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/23",
+      "head_branch": "codex/ci-ruff-document-control-20261112",
+      "head_sha": "be195e79e74505d3fcda478c609b47a43e5cf322",
+      "base_branch": "codex/pmc-specialists-ux-observability-20261111",
+      "base_sha": "d877a255e62d646f27f15d890f75793c8b07a6ec",
+      "base_pr": 22,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "0a29fcc4290f1fd81d3e5b15a4172a08852b5128",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43221085895,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43221085895",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43221085880,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43221085880",
+          "failed_steps": []
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43221085806,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43221085806",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43221085714,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43221085714",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 24,
+      "title": "security(ci): generate deterministic CVE inventory from Trivy JSON",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/24",
+      "head_branch": "codex/p0-trivy-cve-inventory-20261112",
+      "head_sha": "6bb620766d95528333403c5b9b6e01826162b79f",
+      "base_branch": "codex/ci-ruff-document-control-20261112",
+      "base_sha": "be195e79e74505d3fcda478c609b47a43e5cf322",
+      "base_pr": 23,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "b338e179c230ede084d36c08e1dc113128b9ee53",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43277601747,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43277601747",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43277601830,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43277601830",
+          "failed_steps": []
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43277602014,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43277602014",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43277601834,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43277601834",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 25,
+      "title": "feat(web): present the QMS product with real workflows and a demo brief",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/25",
+      "head_branch": "codex/product-marketing",
+      "head_sha": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+      "base_branch": "codex/branding-identity-system",
+      "base_sha": "ae8f26298b43179297974b5a5edd48d23b11a8f5",
+      "base_pr": 19,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "f68df4ae53c2ea03f65664a819657a450985ab43",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43235351029,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43235351029",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43235351385,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43235351385",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43235351095,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43235351095",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 26,
+      "title": "fix(documents): recover creation references and accessible pagination",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/26",
+      "head_branch": "codex/document-workspace-reliability",
+      "head_sha": "a0d7675ff1987feec6e887adb6325058e6ce1027",
+      "base_branch": "codex/product-marketing",
+      "base_sha": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+      "base_pr": 25,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "4f69c2b941e77d364b1aa1140c4291eb4f494366",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43242951782,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43242951782",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43242951767,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43242951767",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43242952131,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43242952131",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 27,
+      "title": "fix(documents): retain drafts and safely recover denied or conflicting actions",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/27",
+      "head_branch": "codex/document-command-feedback",
+      "head_sha": "ba884bcba9e75422218a7b1f409d6d0a7b88876e",
+      "base_branch": "codex/document-workspace-reliability",
+      "base_sha": "a0d7675ff1987feec6e887adb6325058e6ce1027",
+      "base_pr": 26,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "b35f992f96a0fe19cf67e166015a74b02180a895",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43245223089,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43245223089",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43245222809,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43245222809",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43245222767,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43245222767",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 28,
+      "title": "fix(security): prevent stale or partially written Trivy CVE evidence",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/28",
+      "head_branch": "codex/p0-trivy-no-stale-evidence-20261112",
+      "head_sha": "1b2aef2db10ff3016bf25ff5840bd97d91d7f164",
+      "base_branch": "codex/p0-trivy-cve-inventory-20261112",
+      "base_sha": "6bb620766d95528333403c5b9b6e01826162b79f",
+      "base_pr": 24,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "b51183ecf28e253f9e56fa1ed63f84eb930e5d4a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43291968045,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43291968045",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43291967909,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43291967909",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43291968120,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43291968120",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43291967686,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43291967686",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 29,
+      "title": "fix(security): fail closed when Trivy scan target is absent",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/29",
+      "head_branch": "codex/p0-trivy-require-scanned-target-20261112",
+      "head_sha": "53474e2ed17f52b7f3471cf6d8e19bd124243fbc",
+      "base_branch": "codex/p0-trivy-no-stale-evidence-20261112",
+      "base_sha": "1b2aef2db10ff3016bf25ff5840bd97d91d7f164",
+      "base_pr": 28,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "2c0f8363fd029c038891ed20aa1ec80f9e7549bb",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43314476536,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43314476536",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43314476656,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43314476656",
+          "failed_steps": []
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43314476452,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43314476452",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43314476587,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43314476587",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 30,
+      "title": "Connect nonconformities and risks to their corrective actions",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/30",
+      "head_branch": "codex/capa-origin-workflow",
+      "head_sha": "a7b2a9ff00c51bc6bc192874d40ae2d75d6cd797",
+      "base_branch": "codex/document-command-feedback",
+      "base_sha": "ba884bcba9e75422218a7b1f409d6d0a7b88876e",
+      "base_pr": 27,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "9f68e708e4253bf5946e97a09e12d70c05833054",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43310332291,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43310332291",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43310332333,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43310332333",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43310332274,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43310332274",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 31,
+      "title": "Add internal audit programs and planning workspace",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/31",
+      "head_branch": "codex/internal-audit-planning-ui",
+      "head_sha": "5f25342ef2423a8abf4fb1b6d10a6968a47ccc24",
+      "base_branch": "codex/capa-origin-workflow",
+      "base_sha": "a7b2a9ff00c51bc6bc192874d40ae2d75d6cd797",
+      "base_pr": 30,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "ee17745fec94cd986f3e28c09b37c2fbe339ffda",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43319632849,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43319632849",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43319632987,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43319632987",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43319632754,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43319632754",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 32,
+      "title": "Add controlled, process-linked scope to internal-audit planning",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/32",
+      "head_branch": "codex/internal-audit-scope",
+      "head_sha": "8c60a5028d3852ee6492e6a6c78015ce70feea18",
+      "base_branch": "codex/internal-audit-planning-ui",
+      "base_sha": "5f25342ef2423a8abf4fb1b6d10a6968a47ccc24",
+      "base_pr": 31,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "7bc7517ff563244005e4773bc7690b2b99a0773a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43360528130,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43360528130",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43360528455,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43360528455",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43360528135,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43360528135",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 33,
+      "title": "Add controlled audit criteria and protect linked scope history",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/33",
+      "head_branch": "codex/internal-audit-criteria",
+      "head_sha": "4de65f0ddb6337761f8caaf7d35440e27b44d541",
+      "base_branch": "codex/internal-audit-scope",
+      "base_sha": "8c60a5028d3852ee6492e6a6c78015ce70feea18",
+      "base_pr": 32,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "33f5b14beb82b0c280383bca1bff06c9bcc96c4f",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43361806911,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43361806911",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43361806566,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43361806566",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43361806578,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43361806578",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 34,
+      "title": "Add versioned audit planning team without implied execution access",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/34",
+      "head_branch": "codex/internal-audit-team",
+      "head_sha": "4d2e80f2b3ed79aa1c7b3f74b986013e4ed4ac45",
+      "base_branch": "codex/internal-audit-criteria",
+      "base_sha": "4de65f0ddb6337761f8caaf7d35440e27b44d541",
+      "base_pr": 33,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "3bbaaba06b4f71ecea062ac00c023876a3cca97e",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43365509645,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43365509645",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43365509636,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43365509636",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43365509662,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43365509662",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 35,
+      "title": "Audit agenda: UTC scheduling, participant guards and recoverable history",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/35",
+      "head_branch": "codex/internal-audit-agenda",
+      "head_sha": "43df60747a160b8e155e7ab113fd70753ff309b7",
+      "base_branch": "codex/internal-audit-team",
+      "base_sha": "4d2e80f2b3ed79aa1c7b3f74b986013e4ed4ac45",
+      "base_pr": 34,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "9c737c8bc7dbcbb94969b1bb782cce872f6bbb2f",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43372682175,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43372682175",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43372682476,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43372682476",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43372682289,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43372682289",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 36,
+      "title": "Audit independence: immutable assessments and conservative preparation checks",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/36",
+      "head_branch": "codex/internal-audit-independence",
+      "head_sha": "d6f8dca519e081cf77afbb7f0485c8f54d1b86fd",
+      "base_branch": "codex/internal-audit-agenda",
+      "base_sha": "43df60747a160b8e155e7ab113fd70753ff309b7",
+      "base_pr": 35,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "c8b45cc2464254bb5f833a130108d2fb34a10b5a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43435850065,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43435850065",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43435849903,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43435849903",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43435849967,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43435849967",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 37,
+      "title": "Verify planned auditors’ scoped execution access",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/37",
+      "head_branch": "codex/internal-audit-execution-authority",
+      "head_sha": "012ba4bbcaa0b3ca1fe08c2ffa8b72340bc13c6f",
+      "base_branch": "codex/internal-audit-independence",
+      "base_sha": "d6f8dca519e081cf77afbb7f0485c8f54d1b86fd",
+      "base_pr": 36,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "7f0fa51ca7b6ecba4fab402be35444be1ae570b6",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43452521063,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43452521063",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43452520777,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43452520777",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43452520965,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43452520965",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 38,
+      "title": "Organize audit detail into accessible focused views",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/38",
+      "head_branch": "codex/internal-audit-detail-navigation",
+      "head_sha": "fbfd69a4d694cd0e44550e2fe5174daca57b7f30",
+      "base_branch": "codex/internal-audit-execution-authority",
+      "base_sha": "012ba4bbcaa0b3ca1fe08c2ffa8b72340bc13c6f",
+      "base_pr": 37,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "a9921b24408e9ec9e04518c49d09d9ad0f56500f",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43480739234,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43480739234",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43480739435,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43480739435",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43480739033,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43480739033",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 39,
+      "title": "Record audit-specific competence assessments with controlled evidence",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/39",
+      "head_branch": "codex/internal-audit-competence",
+      "head_sha": "f8562540773e4d7294ff09b5abc603aa80add027",
+      "base_branch": "codex/internal-audit-detail-navigation",
+      "base_sha": "fbfd69a4d694cd0e44550e2fe5174daca57b7f30",
+      "base_pr": 38,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "12535593e6919cab636522cc282ac1d4d5cea78b",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43529516875,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43529516875",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43529516794,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43529516794",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43529516805,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43529516805",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 40,
+      "title": "docs: audit QMS access, company setup and Odoo option parity",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/40",
+      "head_branch": "codex/product-access-parity-audit",
+      "head_sha": "32db20bd98a5aff8304f80c9faaff18ba5583c81",
+      "base_branch": "codex/internal-audit-competence",
+      "base_sha": "f8562540773e4d7294ff09b5abc603aa80add027",
+      "base_pr": 39,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "2d083bc6dfcb803cfd4e079993da56d70f26ee4a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43600500452,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43600500452",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43600500416,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43600500416",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43600500429,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43600500429",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 41,
+      "title": "fix: block suspended company access in API and PostgreSQL",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/41",
+      "head_branch": "codex/tenant-suspension",
+      "head_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "base_branch": "codex/product-access-parity-audit",
+      "base_sha": "32db20bd98a5aff8304f80c9faaff18ba5583c81",
+      "base_pr": 40,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "772f781b18a107881d360dad7e93108d240f5739",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43615015130,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43615015130",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43615015193,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43615015193",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43615015146,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43615015146",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 42,
+      "title": "Auditoría independiente de arquitectura, accesos y alcance SaaS",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/42",
+      "head_branch": "codex/audit-architecture-access",
+      "head_sha": "577ee9b78b9e8382ed9cbd9ee0b4050883027bf2",
+      "base_branch": "codex/tenant-suspension",
+      "base_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "base_pr": 41,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "e9f02f4eb0ed530ecdd0fd77e44264f0dd8860d5",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43640882700,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43640882700",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43640882656,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43640882656",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43640882660,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43640882660",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 43,
+      "title": "Auditoría independiente del recorrido comercial y de calidad",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/43",
+      "head_branch": "codex/audit-complete-flow",
+      "head_sha": "26ba21b1d4888803df3ffdafb3ddb8fdafbe267d",
+      "base_branch": "codex/tenant-suspension",
+      "base_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "base_pr": 41,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "0da8fab1b5512cd35f362867ceda106a0dfd8bdf",
+      "review_submissions": [
+        "COMMENTED"
+      ],
+      "approved_reviews": 0,
+      "unresolved_threads": [
+        {
+          "path": "docs/audits/2026-11-14/flow-browser-audit.mjs",
+          "line": 28,
+          "outdated": false,
+          "comment_ids": [
+            4575593214
+          ]
+        },
+        {
+          "path": "docs/audits/2026-11-14/flow-browser-audit.mjs",
+          "line": 246,
+          "outdated": false,
+          "comment_ids": [
+            4575593258
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43664219948,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664219948",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43664219964,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664219964",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43664219949,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664219949",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 44,
+      "title": "Historial completo y filtrable de responsabilidades QMS por empresa",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/44",
+      "head_branch": "codex/qms-access-history",
+      "head_sha": "db302b6cc7ceec5bf6121a87e804fe8a5cab4f7b",
+      "base_branch": "codex/tenant-suspension",
+      "base_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "base_pr": 41,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "b1f8ed8bb065f7feaabe5baff9ad82d5128777ec",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43664620427,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664620427",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43664620459,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664620459",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43664620450,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664620450",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 45,
+      "title": "Auditoría de operabilidad: evidencia por módulo y fallo del revisor documental",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/45",
+      "head_branch": "codex/audit-module-operability",
+      "head_sha": "2ca8f1e52743ef84a7811fb04854cb229795ee7a",
+      "base_branch": "codex/tenant-suspension",
+      "base_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "base_pr": 41,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "a6b74fc7d79bb719f07c73eb3d10e6bc53741c8d",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43664328830,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664328830",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43664329035,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664329035",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43664328800,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43664328800",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 46,
+      "title": "fix(web): announce QMS access history pagination accessibly",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/46",
+      "head_branch": "codex/frontend-access-pagination-a11y-20261115",
+      "head_sha": "47a8ef1c06ee4f3fce3ae6cfd9d83093f5a05c5b",
+      "base_branch": "codex/qms-access-history",
+      "base_sha": "db302b6cc7ceec5bf6121a87e804fe8a5cab4f7b",
+      "base_pr": 44,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "3f5f23f2c9862190a4e8bf8528d5bceca1295246",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43672486634,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672486634",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43672486719,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672486719",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43672486640,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672486640",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 47,
+      "title": "Corrige revisión documental mínima y sustitución atómica de versiones",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/47",
+      "head_branch": "codex/document-review-locking",
+      "head_sha": "1ad8843fc74fa972d061755c14b6c25837526840",
+      "base_branch": "codex/qms-access-history",
+      "base_sha": "db302b6cc7ceec5bf6121a87e804fe8a5cab4f7b",
+      "base_pr": 44,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "cc6989a0214e99befb9ffe97cd74a82850c57519",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43672588117,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672588117",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43672588148,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672588148",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43672588138,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43672588138",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 48,
+      "title": "brand: BEMS Quality identity, SVG assets and web-shell preview",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/48",
+      "head_branch": "brand/product-naming-exploration-20261114",
+      "head_sha": "bb762e3bd4211cbe1179b0abaa579deb4083f51a",
+      "base_branch": "main",
+      "base_sha": "13e672a6269c4200c124a0eaf88efe86cedc67ab",
+      "base_pr": null,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "54779b6d911f881bfcb33bc32a9082cab2046d47",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43674904176,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43674904176",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43674904186,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43674904186",
+          "failed_steps": [
+            "Trivy filesystem",
+            "Dump disposable runtime diagnostics",
+            "Write release evidence manifest"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 49,
+      "title": "brand: adapt existing product marketing site to BEMS Quality",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/49",
+      "head_branch": "brand/bems-quality-product-marketing",
+      "head_sha": "80a8795a5f23d49b28d9894b2cd2c3abe74fe755",
+      "base_branch": "codex/product-marketing",
+      "base_sha": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+      "base_pr": 25,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "0798501183fd9de6b62844f6c815e245767b7f8a",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43682546803,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43682546803",
+          "failed_steps": [
+            "Gitleaks worktree and history",
+            "Final application image scans",
+            "Third-party image scans",
+            "Generate and validate CycloneDX SBOMs",
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43682546784,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43682546784",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43682546771,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43682546771",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 50,
+      "title": "Bind six-image security evidence and enforce production URL settings",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/50",
+      "head_branch": "codex/production-readiness-gates",
+      "head_sha": "f698d0a33a1ebfa5062251747bd634b6897aacc4",
+      "base_branch": "codex/document-review-locking",
+      "base_sha": "1ad8843fc74fa972d061755c14b6c25837526840",
+      "base_pr": 47,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "50190bbd348b1bf506f169f16f16108e3d7252f6",
+      "review_submissions": [
+        "COMMENTED"
+      ],
+      "approved_reviews": 0,
+      "unresolved_threads": [
+        {
+          "path": "scripts/release_image_evidence.py",
+          "line": 308,
+          "outdated": false,
+          "comment_ids": [
+            4577003045
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43676437031,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43676437031",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43676437030,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43676437030",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43676437083,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43676437083",
+          "failed_steps": [
+            "Enforce final release gates"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 51,
+      "title": "design: BEMS Quality dashboard KPI and analytics proposal",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/51",
+      "head_branch": "design/dashboard-kpi-proposal-20261115",
+      "head_sha": "0701af3342a5aa0b871a2bafc61f960b3339b2ad",
+      "base_branch": "codex/product-marketing",
+      "base_sha": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+      "base_pr": 25,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "ddb023499c893442d06d53b4b730f329f8a26b8c",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation quality",
+          "id": 43689889275,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43689889275",
+          "failed_steps": [
+            "Run pnpm lint"
+          ]
+        },
+        {
+          "name": "Foundation security",
+          "id": 43689889208,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43689889208",
+          "failed_steps": [
+            "Gitleaks worktree and history",
+            "Final application image scans",
+            "Third-party image scans",
+            "Generate and validate CycloneDX SBOMs",
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "CodeQL",
+          "id": 43689889285,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43689889285",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 52,
+      "title": "feat(kpi): guard ratio denominators and missing trend observations",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/52",
+      "head_branch": "feat/kpi-definition-contract-20261115",
+      "head_sha": "d252851ffb90e87c0232662f5612c782f215af02",
+      "base_branch": "design/dashboard-kpi-proposal-20261115",
+      "base_sha": "0701af3342a5aa0b871a2bafc61f960b3339b2ad",
+      "base_pr": 51,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "cce9d89a633d9cf98bd48a98c8815b146d1a0343",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "CodeQL",
+          "id": 43715513748,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715513748",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation security",
+          "id": 43715513781,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715513781",
+          "failed_steps": [
+            "Gitleaks worktree and history",
+            "Final application image scans",
+            "Third-party image scans",
+            "Generate and validate CycloneDX SBOMs",
+            "Enforce final release gates"
+          ]
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43715513754,
+          "status": "completed",
+          "conclusion": "failure",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715513754",
+          "failed_steps": [
+            "Run pnpm test"
+          ]
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    },
+    {
+      "pr": 53,
+      "title": "Evaluate pinned stable Keycloak 26.8.2 and SeaweedFS 4.53 in isolated CI",
+      "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/53",
+      "head_branch": "codex/vendor-stable-candidates-20261115",
+      "head_sha": "099d011cbfd8860d305aa40c4c66936a7cac9fae",
+      "base_branch": "codex/production-readiness-gates",
+      "base_sha": "f698d0a33a1ebfa5062251747bd634b6897aacc4",
+      "base_pr": 50,
+      "draft": true,
+      "github_mergeable": true,
+      "simulated_merge_exit": 0,
+      "simulated_tree": "a305b108a3a1b52399f1b981df3128d963c60f13",
+      "review_submissions": [],
+      "approved_reviews": 0,
+      "unresolved_threads": [],
+      "runs": [
+        {
+          "name": "Foundation security",
+          "id": 43715161783,
+          "status": "in_progress",
+          "conclusion": null,
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715161783",
+          "failed_steps": []
+        },
+        {
+          "name": "CodeQL",
+          "id": 43715161763,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715161763",
+          "failed_steps": []
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43715161768,
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43715161768",
+          "failed_steps": []
+        }
+      ],
+      "merge_decision": "BLOCKED"
+    }
+  ],
+  "other_remote_branches": [
+    {
+      "branch": "codex/ai-design-studio",
+      "head_sha": "91b26b55166f043e53a44328fd12524a29d744ed",
+      "state": "already in PR19 and later ancestors; not in main",
+      "containing_open_prs": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        49,
+        50,
+        51,
+        52,
+        53
+      ]
+    },
+    {
+      "branch": "codex/internal-audit-foundation",
+      "head_sha": "4c9fcb95d16c4e4a0d4db300a19b1c5a1314c9b6",
+      "state": "already in PR19 and later ancestors; not in main",
+      "containing_open_prs": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        49,
+        50,
+        51,
+        52,
+        53
+      ]
+    },
+    {
+      "branch": "codex/visual-completion",
+      "head_sha": "e72a2a90764140d88d37fea08847578d8541f629",
+      "state": "already in PR19 and later ancestors; not in main",
+      "containing_open_prs": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        49,
+        50,
+        51,
+        52,
+        53
+      ]
+    },
+    {
+      "branch": "codex/wip-audit-scope-recovery",
+      "head_sha": "6b10edff046abd12089fb052d30e76e949ac35cc",
+      "state": "WIP recovery; no open PR, no validated delivery",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "main",
+      "head_sha": "13e672a6269c4200c124a0eaf88efe86cedc67ab",
+      "state": "base",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/00-4-main-governance-enforcement",
+      "head_sha": "cf8a3eec701562cf8a3228c33e20bb97ca0b5bb9",
+      "state": "already in main",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/00-local-foundation",
+      "head_sha": "937ae63fbc8778b913471b6922b1790db8065ae3",
+      "state": "already in main",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/01-identity-multitenancy",
+      "head_sha": "24224169edb4c31ba60dbdabe8d63dd3ebbf14a5",
+      "state": "already in main",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/02-audit-engine",
+      "head_sha": "2005c899f0d394e1872a2340c41826c845865d7b",
+      "state": "already in main",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/03-organization-structure",
+      "head_sha": "1d608ca353a2a797872cee1749794982b919f993",
+      "state": "already in main",
+      "containing_open_prs": []
+    },
+    {
+      "branch": "pmc/04-workflow-engine",
+      "head_sha": "e2cdff8abc8781e6f3e246abec08d1db8f2540ea",
+      "state": "already in main",
+      "containing_open_prs": []
+    }
+  ]
+}
