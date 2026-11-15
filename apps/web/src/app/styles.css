@@ -237,6 +237,16 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
 .qms-access-form label { display: flex; flex-direction: column; gap: var(--pm-space-2); font-size: var(--pm-text-sm); font-weight: 600; }
 .qms-access-form select { width: 100%; min-height: 44px; padding: var(--pm-space-2); color: var(--pm-text); background: var(--pm-surface); border: 1px solid var(--pm-border); border-radius: var(--pm-radius-md); }
 .qms-access-form button { justify-self: start; }
+.qms-permission-history-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--pm-space-2) var(--pm-space-4); margin-top: var(--pm-space-6); }
+.qms-permission-history-heading h3, .qms-permission-history-heading p { margin: 0; }
+.qms-permission-filters { margin: var(--pm-space-4) 0; padding: var(--pm-space-4); background: var(--pm-surface-muted); border: 1px solid var(--pm-border); border-radius: var(--pm-radius-md); }
+.qms-permission-filters fieldset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pm-space-4); min-width: 0; margin: 0; padding: 0; border: 0; }
+.qms-permission-filters label { display: flex; flex-direction: column; gap: var(--pm-space-2); min-width: 0; font-size: var(--pm-text-sm); font-weight: var(--pm-weight-semibold); }
+.qms-permission-filters :is(input, select) { width: 100%; min-width: 0; min-height: 44px; padding: var(--pm-space-2); color: var(--pm-text); background: var(--pm-surface); border: 1px solid var(--pm-border-strong); border-radius: var(--pm-radius-md); }
+.qms-permission-filter-actions { display: flex; flex-wrap: wrap; align-items: end; gap: var(--pm-space-2); grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  .qms-permission-filters fieldset { grid-template-columns: 1fr; }
+}
 .qms-access-notice { padding: var(--pm-space-3) var(--pm-space-4); color: var(--pm-success); border: 1px solid color-mix(in srgb, var(--pm-success) 28%, var(--pm-border)); border-left: 3px solid var(--pm-success); border-radius: var(--pm-radius-md); background: color-mix(in srgb, var(--pm-success) 7%, var(--pm-surface)); line-height: 1.5; }
 .qms-table-scroll { overflow-x: auto; }
 .qms-access-table { width: 100%; border-collapse: collapse; text-align: left; font-size: var(--pm-text-sm); }
