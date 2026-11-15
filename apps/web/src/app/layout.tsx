@@ -4,8 +4,9 @@ import "@perfect-match/design-system/tokens.css";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "Perfect Match | Quality Management Cloud",
-  description: "Secure identity and organization access for Perfect Match Cloud",
+  title: "BEMS Quality | Quality Management Cloud",
+  icons: { icon: "/bems-quality-mark.svg" },
+  description: "Secure identity and organization access for BEMS Quality by Perfect Match Systems",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
