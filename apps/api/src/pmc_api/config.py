@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 
-from pydantic import Field, model_validator
+from cryptography.fernet import Fernet
+from pydantic import AnyHttpUrl, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="PMC_", case_sensitive=False)
+    model_config = SettingsConfigDict(
+        env_prefix="PMC_", case_sensitive=False, hide_input_in_errors=True
+    )
 
     app_version: str = "0.5.0"
     environment: Literal["development", "test", "production"] = "development"
@@ -48,6 +52,47 @@ class Settings(BaseSettings):
                 raise ValueError("production requires Secure session cookies")
             if not self.login_transaction_key:
                 raise ValueError("production requires a login transaction encryption key")
+            try:
+                Fernet(self.login_transaction_key.encode("ascii"))
+            except (ValueError, UnicodeError):
+                raise ValueError(
+                    "production requires a valid login transaction encryption key"
+                ) from None
+            for field_name in ("web_url", "oidc_issuer", "oidc_callback_url"):
+                address = getattr(self, field_name)
+                if (
+                    any(
+                        character.isspace() or ord(character) < 32 or ord(character) == 127
+                        for character in address
+                    )
+                    or "\\" in address
+                ):
+                    raise ValueError(f"production requires valid HTTPS {field_name}")
+                try:
+                    parts = urlsplit(address)
+                    port = parts.port
+                    parsed = AnyHttpUrl(address)
+                except ValueError:
+                    raise ValueError(f"production requires valid HTTPS {field_name}") from None
+                if (
+                    parts.scheme != "https"
+                    or not parts.hostname
+                    or parts.username is not None
+                    or parts.password is not None
+                    or "#" in address
+                    or "?" in address
+                    or port == 0
+                ):
+                    raise ValueError(
+                        f"production requires HTTPS {field_name} without URL decorations"
+                    )
+                if field_name == "web_url":
+                    if parts.path not in {"", "/"}:
+                        raise ValueError("production web_url must be a public origin, not a path")
+                    # Browser Origin removes default ports, normalizes host names
+                    # and has no trailing slash. Do not normalize the exact OIDC
+                    # issuer or callback strings used by the protocol.
+                    self.web_url = str(parsed).rstrip("/")
         return self
 
 

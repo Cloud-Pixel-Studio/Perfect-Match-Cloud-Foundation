@@ -140,6 +140,8 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          date -u +%Y-%m-%dT%H:%M:%SZ > artifacts/image-scan-started-at.txt
+          rm -f artifacts/release-image-evidence.json
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-api-image.json "pmcloud-api:${IMAGE_TAG}"
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-web-image.json "pmcloud-web:${IMAGE_TAG}"
           jq -n \
@@ -164,6 +166,11 @@ jobs:
             --argjson clamav "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-clamav-image.json)" \
             '{postgres: $postgres, seaweedfs: $seaweedfs, keycloak: $keycloak, clamav: $clamav}' \
             > artifacts/third-party-image-gate.json
+      - name: Bind scanner evidence to all six actual images
+        if: always()
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: ./scripts/collect-release-image-evidence.sh "${RUNNER_TEMP}/pmcloud/dev.env" "$IMAGE_TAG" "${{ github.run_id }}"
       - name: Generate and validate CycloneDX SBOMs
         if: always()
         env:
@@ -223,9 +230,12 @@ jobs:
         if: always()
         env:
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           test "$RUNTIME_OUTCOME" = success
           test -f artifacts/release-evidence-manifest.json
+          jq -e --arg sha "$IMAGE_TAG" --arg run "$RUN_ID" '.source_sha == $sha and .workflow_run_id == $run and .integrity_verified == true and .production_authorized == false and (.images | length) == 6 and .high_or_critical_count == 0 and .secret_high_or_critical_count == 0' artifacts/release-image-evidence.json >/dev/null
           jq -e 'to_entries | all(.value == 0)' artifacts/application-image-gate.json >/dev/null
           jq -e 'to_entries | all(.value == 0)' artifacts/third-party-image-gate.json >/dev/null
           jq -e '.sboms.count == 5 and ([.sboms.repository_components,.sboms.api_components,.sboms.web_components,.sboms.keycloak_components,.sboms.clamav_components] | all(. > 0))' artifacts/release-evidence-manifest.json >/dev/null

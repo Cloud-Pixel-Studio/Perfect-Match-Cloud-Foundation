@@ -25,6 +25,12 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy src tests
       - run: uv run pytest
+      - name: Security evidence tool regression
+        working-directory: .
+        run: |
+          uv run --project apps/api --no-sync ruff check --config apps/api/pyproject.toml --target-version py39 --ignore E501,S101 scripts/release_image_evidence.py scripts/trivy_cve_inventory.py tests/test_release_image_evidence.py tests/test_trivy_cve_inventory.py
+          python3 -m unittest discover -s tests -p 'test_*.py'
+
 
   frontend:
     runs-on: ubuntu-24.04

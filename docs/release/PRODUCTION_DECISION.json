@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "assessed_at": "2026-11-15T04:16:55.319994+00:00",
+  "assessed_source_sha": "1ad8843fc74fa972d061755c14b6c25837526840",
+  "decision": "NO_GO",
+  "scope": "commercial SaaS production",
+  "readiness_owner": "PM under user delegation",
+  "production_requires_explicit_human_approval": true,
+  "basis": {
+    "quality_run": 43672588148,
+    "codeql_run": 43672588117,
+    "security_run": 43672588138,
+    "quality": "success",
+    "codeql": "success",
+    "security": "failure",
+    "runtime": "development PR39 / DB0048; not this release candidate"
+  },
+  "blockers": [
+    {
+      "id": "SECURITY_IMAGES",
+      "state": "blocked",
+      "evidence": "immutable PR47 CI artifact14145153131; SeaweedFS2HIGH, Keycloak7HIGH",
+      "clear_when": "all six candidate images have fresh bound evidence and zero HIGH/CRITICAL; no secret findings"
+    },
+    {
+      "id": "INTEGRATED_RELEASE",
+      "state": "pending",
+      "clear_when": "reviewed candidate includes required fixes and has exact-head successful CI; no inherited green"
+    },
+    {
+      "id": "STAGING_ACCEPTANCE",
+      "state": "pending",
+      "clear_when": "isolated staging validates actual OIDC/AV/private storage, cross-company permissions and full business commands with independent actors"
+    },
+    {
+      "id": "OPERATIONS",
+      "state": "pending",
+      "clear_when": "production infrastructure, TLS, MFA, managed secrets, monitoring, backups and tested recovery with agreed RPO/RTO"
+    },
+    {
+      "id": "COMMERCIAL_LIFECYCLE",
+      "state": "pending",
+      "clear_when": "company provisioning/invitations/initial authority, tenant seats/ISO entitlements and billing work end to end"
+    },
+    {
+      "id": "QMS_SCOPE",
+      "state": "pending",
+      "clear_when": "required QMS verticals including audit execution/findings/report/closure satisfy agreed Odoo-equivalence acceptance"
+    }
+  ],
+  "current_change": "startup HTTPS/key/error safeguards and bound scanner evidence; does not remediate vendor CVEs or provision infrastructure",
+  "next_step": "evaluate pinned vendor candidates only in isolated CI; production remains blocked"
+}
