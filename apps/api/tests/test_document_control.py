@@ -1,4 +1,5 @@
 """Pure domain tests for PMC-05 controlled document revisions."""
+
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -18,10 +19,17 @@ AUTHOR = UUID("30000000-0000-4000-8000-000000000001")
 REVIEWER = UUID("30000000-0000-4000-8000-000000000002")
 
 
-def change(revision: Revision, target: RevisionState, *, actor: UUID = REVIEWER,
-           tenant: UUID = TENANT, timestamp: datetime | None = None) -> Revision:
-    return transition(revision, target=target, actor_id=actor,
-                      actor_tenant_id=tenant, timestamp=timestamp)
+def change(
+    revision: Revision,
+    target: RevisionState,
+    *,
+    actor: UUID = REVIEWER,
+    tenant: UUID = TENANT,
+    timestamp: datetime | None = None,
+) -> Revision:
+    return transition(
+        revision, target=target, actor_id=actor, actor_tenant_id=tenant, timestamp=timestamp
+    )
 
 
 def draft() -> Revision:
@@ -32,8 +40,9 @@ def test_controlled_lifecycle_and_immutability() -> None:
     original = draft()
     review = change(original, RevisionState.IN_REVIEW, actor=AUTHOR)
     approved = change(review, RevisionState.APPROVED)
-    effective = change(approved, RevisionState.EFFECTIVE,
-                       timestamp=datetime(2026, 11, 12, tzinfo=UTC))
+    effective = change(
+        approved, RevisionState.EFFECTIVE, timestamp=datetime(2026, 11, 12, tzinfo=UTC)
+    )
     superseded = change(effective, RevisionState.SUPERSEDED)
     assert original.state is RevisionState.DRAFT
     assert approved.approver_id == REVIEWER

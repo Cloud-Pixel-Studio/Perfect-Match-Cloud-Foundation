@@ -3,6 +3,7 @@
 This domain component does not itself provide persistence, authorization,
 audit events or an HTTP endpoint. Callers must enforce tenant membership.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -54,6 +55,7 @@ def transition(
     timestamp: datetime | None = None,
 ) -> Revision:
     """Validate and return a new immutable revision state."""
+
     if actor_tenant_id != revision.tenant_id:
         raise InvalidRevisionTransition("Cross-tenant revision transition denied")
     if revision.number < 1:
