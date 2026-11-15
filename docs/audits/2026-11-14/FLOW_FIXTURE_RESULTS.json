@@ -1,0 +1,1462 @@
+{
+  "mode": "Identidad y API de negocio interceptadas en memoria; no OIDC real, PostgreSQL, AV ni S3 reales.",
+  "cases": [
+    {
+      "name": "ncr shows exact related actions and opens the selected CAPA",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:158",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "ncr creates once with the source and process fixed",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:167",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "risk shows exact related actions and opens the selected CAPA",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:158",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "risk creates once with the source and process fixed",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:167",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a failed creation preserves the draft and never retries automatically",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:186",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "an unconfirmed success cannot be resubmitted after cancel or refresh",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:199",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "permission denial clears source-action data and the creation form",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:216",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "responsibilities gate reading and creation independently",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:226",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unrelated results are rejected if an older API ignores the filter",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:237",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "related pagination uses the source filter on every page",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:243",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a late read cannot repopulate a different organization scope",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:254",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "cancelled sources preserve historical actions without a creation command",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:261",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "related actions and their form fit mobile and desktop with accessible names",
+      "group": [
+        "capa-origin.experience.spec.ts",
+        "CAPA from source fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:267",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "an empty process search can be cancelled and creation reopened",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:171",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "reference failure disables creation and refresh recovers it",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:183",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "register pagination reloads creation references on every page",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:195",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "late references cannot repopulate a different unit",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:210",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "revoked capabilities clear records and pending creation references",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:225",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a document does not inherit another record's obsolete confirmation",
+      "group": [
+        "documents.experience.spec.ts",
+        "document read-state fixtures (no backend mutations)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:239",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "reselecting the current document preserves its loaded revision",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:267",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "upload401 clears document context and actions",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:283",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "upload403 clears document context and actions",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:283",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "revision GET403 clears the register and document authority",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:299",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "revision POST503 preserves the form and entered draft",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:314",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "document POST503 preserves the entered registration",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:331",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "upload503 reports a temporary service problem and permits an explicit retry",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:348",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "upload409 reconciles the selected revision without repeating the upload",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:365",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "versioned command409 reconciles its target without repeating the command",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:380",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "upload202 rejected file remains unusable on the selected document",
+      "group": [
+        "documents.experience.spec.ts",
+        "document command-feedback fixtures (all document writes intercepted)"
+      ],
+      "source": "apps/web/e2e/documents.experience.spec.ts:396",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "planning records remain distinct from execution and technical audit trail",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:343",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "creating a programme sends only its existing contract",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:353",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "programme editing preserves the immutable identity and sends the current version",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:366",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "creating an audit preserves the chosen programme and lead without execution metadata",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:379",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "audit editing can clear nullable references without changing code or scope",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:392",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "review authority advances the programme lifecycle with a versioned decision",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:407",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scheduling requires manage while cancellation requires review responsibility",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:422",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only responsibility exposes records without mutating controls",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:441",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary creation failure preserves the draft without an automatic retry",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:450",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a version conflict requires explicit refresh without repeating its PATCH",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:461",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "permission denial clears the draft and locally cached planning authority",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:474",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a response from the old unit cannot repopulate the new scope",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:484",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "programme and audit pagination use the existing scoped server contracts",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:494",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "selected people survive reference searches that return another page",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:512",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a successful but unconfirmed response does not allow another blind creation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:525",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "planning forms support keyboard, mobile, desktop and both contrast themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "internal-audit planning fixtures (all QMS writes intercepted)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:535",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope creation, editing and withdrawal preserve versions and history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:603",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope conflict locks replay until explicit parent reconciliation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:627",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope refresh also reconciles a cancelled parent state",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:644",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary scope failure preserves the draft and sends only one command",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:653",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unconfirmed scope success blocks duplicate creation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:663",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope denial closes the entire cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:672",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only users can inspect paginated history without scope controls",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:682",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope from another unit is rejected rather than displayed",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:694",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "selected process survives paginated searches and uses the scoped contract",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:702",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "scope forms reflow and pass axe in both themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "structured audit scope (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:718",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion creation, editing and withdrawal preserve versions and history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:755",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion conflict locks replay until explicit parent reconciliation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:779",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion refresh also reconciles a cancelled parent state",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:796",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary criterion failure preserves the draft and sends only one command",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:805",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unconfirmed criterion success blocks duplicate creation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:815",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion denial closes the entire cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:824",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only users can inspect paginated history without criterion controls",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:834",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion from another unit is rejected rather than displayed",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:846",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "selected scope survives reference pagination and stays within its audit",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:854",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "criterion forms reflow and pass axe in both themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit criteria (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:871",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team creation, editing and withdrawal preserve versions and history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:897",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team conflict locks replay until explicit parent reconciliation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:921",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team refresh also reconciles a cancelled parent state",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:938",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary team failure preserves the draft and sends only one command",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:947",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unconfirmed team success blocks duplicate creation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:957",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team denial closes the entire cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:966",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only users can inspect paginated history without team controls",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:976",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team member from another unit is rejected rather than displayed",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:988",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "selected team person survives directory search and is immutable on edit",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:996",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "team forms reflow and pass axe in both themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit planning team (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1005",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda creation, editing and withdrawal preserve versions and history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1035",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda conflict locks replay until explicit parent reconciliation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1059",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "mismatched successful agenda response stays unconfirmed until refresh",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1076",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda refresh also reconciles a cancelled parent state",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1082",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary agenda failure preserves the draft and sends only one command",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1091",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unconfirmed agenda success blocks duplicate creation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1101",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda denial closes the entire cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1110",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only users can inspect paginated history without agenda controls",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1120",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda item from another unit is rejected rather than displayed",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1139",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "role-filtered participant choices preserve selection across pages",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1147",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "agenda forms reflow and pass axe in both themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit agenda (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1155",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "assessment, override and withdrawal append history without advancing planning version",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1178",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "plan changes make a previous assessment outdated without altering history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1185",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "conflicts preserve draft and require explicit reconciliation before another decision",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1188",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "temporary failure retains rationale and never automatically retries",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1191",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "unconfirmed success cannot be submitted again blindly",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1194",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "mismatched source version in success remains unconfirmed",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1197",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "an unknown server failure blocks independence replay until explicit reconciliation",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1200",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "permission denial clears the entire cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1205",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only users can inspect paginated reviews and preparation without commands",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1208",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "summary from another unit is rejected",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1211",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "assessment requires a conscious attestation and supports both responsive themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit independence (mocked writes, real browser)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1214",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "read-only viewers receive unverified access with no team permission totals",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit execution authority (mocked access snapshots)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1226",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "invalid totals reject the entire preparation snapshot",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit execution authority (mocked access snapshots)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1229",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a contradictory authority status is not presented as verified",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit execution authority (mocked access snapshots)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1232",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "preparation diagnostics reflow and pass accessibility checks in both themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit execution authority (mocked access snapshots)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1235",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "keyboard navigation exposes one section and preserves parent planning tabs",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "focused audit detail navigation"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1249",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "a scope draft survives other sections and saves once against the original plan",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "focused audit detail navigation"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1276",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "section navigation is locked until a pending QMS command settles",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "focused audit detail navigation"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1294",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "changing unit clears hidden drafts and resets the selected audit section",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "focused audit detail navigation"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1318",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "all sections fit mobile tablet desktop with both themes and reduced motion",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "focused audit detail navigation"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1336",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "confirmed and withdrawn decisions preserve provenance and protect an independent open draft",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1398",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "expired outdated and unavailable support never appear as current competence",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1405",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "403 closes competence and the full cached audit context",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1408",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "409 blocks replay until parent summary and history reconcile",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1411",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "503 preserves rationale validity and selected support for an explicit retry",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1414",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "mismatched success blocks duplicate review and refresh exposes recorded history",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1417",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "document prerequisite prevents reads and read-only responsibility hides commands",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1420",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "competence form and support choices are accessible in both responsive themes",
+      "group": [
+        "internal-audits.experience.spec.ts",
+        "audit competence (mocked review commands)"
+      ],
+      "source": "apps/web/e2e/internal-audits.experience.spec.ts:1423",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    },
+    {
+      "name": "isolated Action Center opens the exact CAPA follow-up without backend writes",
+      "group": [
+        "capa-origin.experience.spec.ts"
+      ],
+      "source": "apps/web/e2e/capa-origin.experience.spec.ts:280",
+      "status": [
+        "passed"
+      ],
+      "expected": true
+    }
+  ],
+  "runs": [
+    {
+      "name": "fixture-regressions",
+      "stats": {
+        "startTime": "2026-11-14T20:37:01.377Z",
+        "duration": 241955.46600000001,
+        "expected": 114,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "source_manifest": {
+        "mode": "All identity and business API responses are browser-memory fixtures; not real OIDC or SQL authorization.",
+        "backendRequestsForwarded": 0,
+        "sourceFiles": [
+          {
+            "path": "apps/web/e2e/documents.experience.spec.ts",
+            "sha256": "ec19badc69c1f72bba78bde56ea053cb2283a3775f135fa31905ffbf9cc5c011",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged."
+          },
+          {
+            "path": "apps/web/e2e/capa-origin.experience.spec.ts",
+            "sha256": "ba324c5964208e972a8ce1d20095278269217d55e495381c785adc14603a64ea",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged."
+          },
+          {
+            "path": "apps/web/e2e/internal-audits.experience.spec.ts",
+            "sha256": "ed15b381586519765210bde65d316d6b7ce98c7bffd9d2dd23fb850a1822b980",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged."
+          }
+        ],
+        "baseURL": "http://127.0.0.1:3103",
+        "exitCode": 0
+      }
+    },
+    {
+      "name": "follow-up-regression",
+      "stats": {
+        "startTime": "2026-11-14T20:41:25.427Z",
+        "duration": 2913.567,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "source_manifest": {
+        "mode": "All identity and business API responses are browser-memory fixtures; not real OIDC or SQL authorization.",
+        "backendRequestsForwarded": 0,
+        "sourceFiles": [
+          {
+            "path": "apps/web/e2e/documents.experience.spec.ts",
+            "sha256": "ec19badc69c1f72bba78bde56ea053cb2283a3775f135fa31905ffbf9cc5c011",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged."
+          },
+          {
+            "path": "apps/web/e2e/capa-origin.experience.spec.ts",
+            "sha256": "ba324c5964208e972a8ce1d20095278269217d55e495381c785adc14603a64ea",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged. One additional isolated Action Center to CAPA navigation assertion appended."
+          },
+          {
+            "path": "apps/web/e2e/internal-audits.experience.spec.ts",
+            "sha256": "ed15b381586519765210bde65d316d6b7ce98c7bffd9d2dd23fb850a1822b980",
+            "adaptation": "Only import ./support/auth replaced with ./auth-fixture; assertions unchanged."
+          }
+        ],
+        "baseURL": "http://127.0.0.1:3103",
+        "exitCode": 0
+      }
+    }
+  ],
+  "backend_business_requests_forwarded": 0,
+  "real_qms_writes": 0,
+  "summary": {
+    "passed": 115,
+    "failed": 0,
+    "skipped": 0,
+    "retried": 0
+  }
+}
