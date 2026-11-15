@@ -106,8 +106,8 @@ export function IdentityShell() {
 
   if (view !== "authenticated" || !identity) {
     const copyByState: Record<IdentityViewState, [string, string]> = {
-      anonymous: ["Welcome to Perfect Match", "Use your approved identity provider to continue."],
-      authenticated: ["Welcome to Perfect Match", "Select an organization to continue."],
+      anonymous: ["Welcome to BEMS Quality", "Use your approved identity provider to continue."],
+      authenticated: ["Welcome to BEMS Quality", "Select an organization to continue."],
       expired: ["Your session has expired", "Authenticate again to return to your organization."],
       denied: ["Access denied", "Your identity does not have access to the requested organization."],
       error: ["Identity service unavailable", "The local identity boundary could not be reached."],
@@ -123,7 +123,7 @@ export function IdentityShell() {
           <p>{copy[1]}</p>
           <a className="primary-action" href={`${apiUrl}/auth/login`}>
             <LogIn aria-hidden="true" size={18} />
-            Continue to Perfect Match
+            Continue to BEMS Quality
           </a>
           <div className="login-footnote">
             <ShieldCheck aria-hidden="true" size={15} />
