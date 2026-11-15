@@ -30,7 +30,7 @@ export function ProductDemoRequest() {
     const url = URL.createObjectURL(new Blob([result.brief], { type: "text/plain;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = "bems-quality-demo-brief.txt";
+    link.download = "perfect-match-qms-demo-brief.txt";
     document.body.appendChild(link);
     link.click();
     link.remove();
