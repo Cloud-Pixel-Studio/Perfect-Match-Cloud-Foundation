@@ -36,6 +36,13 @@ export function completeMonthlySeries(
   observations: Readonly<Record<string, number>>,
 ): readonly { month: string; count: number }[] | null {
   if (new Set(months).size !== months.length) throw new RangeError("Duplicate month keys");
+  // Reject invalid or out-of-order periods rather than plotting misleading trends.
+  if (months.some((month) => !/^\\d{4}-(0[1-9]|1[0-2])$/.test(month))) {
+    throw new RangeError("Months must use YYYY-MM with a valid calendar month");
+  }
+  if (months.some((month, index) => index > 0 && month <= months[index - 1])) {
+    throw new RangeError("Months must be in strictly ascending order");
+  }
   const result: { month: string; count: number }[] = [];
   for (const month of months) {
     if (!Object.prototype.hasOwnProperty.call(observations, month)) return null;
