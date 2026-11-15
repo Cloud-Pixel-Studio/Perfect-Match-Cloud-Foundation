@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   Building2,
   ChartNoAxesCombined,
-  BarChart3,
   ClipboardCheck,
   FileText,
   FolderKanban,
@@ -19,7 +18,6 @@ import {
 
 import { type WorkspaceId, type WorkspaceItem, type WorkspaceTarget } from "../lib/workspace-navigation";
 import { ActionCenterWorkspace } from "./action-center-workspace";
-import { canPreviewQualityTrends, visibleDashboardMetrics } from "../lib/dashboard-metrics";
 
 const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
   processes: FolderKanban,
@@ -35,7 +33,6 @@ const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
 };
 
 export function WorkspaceOverview({ tenantName, role, sections, onNavigate }: { tenantName: string; role: string; sections: { label: string; items: WorkspaceItem[] }[]; onNavigate: (id: WorkspaceId, target?: WorkspaceTarget | null) => void }) {
-  const visibleMetrics = visibleDashboardMetrics(sections);
   return <section className="qms-overview" aria-labelledby="overview-heading">
     <div className="qms-overview-hero">
       <div>
@@ -45,25 +42,6 @@ export function WorkspaceOverview({ tenantName, role, sections, onNavigate }: { 
       </div>
       <div className="qms-overview-context"><span className="qms-overview-context-icon"><ShieldCheck aria-hidden="true" size={22} /></span><span><small>Private tenant workspace</small><strong>{tenantName}</strong><span>Current role: {role}</span></span></div>
     </div>
-    {visibleMetrics.length > 0 && <section className="qms-insights" aria-labelledby="qms-insights-heading">
-      <div className="qms-insights-heading">
-        <div><p className="eyebrow">Quality intelligence</p><h3 id="qms-insights-heading">Performance overview</h3></div>
-        <span className="qms-insights-status">Analytics in preparation</span>
-      </div>
-      <p className="qms-insights-description">Indicators will appear when verified, organization-scoped reporting is available. No sample values are shown in your live workspace.</p>
-      <div className="qms-insights-grid">
-        {visibleMetrics.map((metric) => <article className="qms-insights-card" key={metric.module}>
-          <span className="qms-insights-label">{metric.label}</span>
-          <strong className="qms-insights-value" aria-label="Metric not yet available">—</strong>
-          <small>{metric.detail}</small>
-          <button type="button" onClick={() => onNavigate(metric.module)}>Open {metric.module === "capa" ? "CAPA" : metric.module} <ArrowUpRight aria-hidden="true" size={15} /></button>
-        </article>)}
-      </div>
-      {canPreviewQualityTrends(visibleMetrics) && <div className="qms-insights-chart-placeholder">
-        <BarChart3 aria-hidden="true" size={21} />
-        <span><strong>Trends and charts are coming next</strong><small>Historical series require validated, permission-scoped source data.</small></span>
-      </div>}
-    </section>}
     <ActionCenterWorkspace compact role={role} onNavigate={onNavigate} />
     <div className="qms-overview-sections">
       {sections.slice(1).map((section) => {
