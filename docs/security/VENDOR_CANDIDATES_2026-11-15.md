@@ -17,3 +17,7 @@ CP-VENDOR-CANDIDATES-00-20261115T042218Z:535 fuentes cifradas/restauradas por SH
 Avances externos detectados: PR48/49 proponen BEMS Quality y marketing; son drafts separados con comprobaciones visuales pendientes. No se mezclan sus fuentes antiguas con esta rama de seguridad ni se cambia identidad por inferencia.
 
 Validación local:36 pruebas de evidencia/parser/collector PASS; ambos YAML parseados; Compose efectivo/scan/SBOM contienen los mismos pins exactos (credenciales solo en RAM); Gitleaks árbol0 hallazgos. No se han descargado/ejecutado estas imágenes localmente. CP-VENDOR-CANDIDATES-06-20261115T042319Z restaura537fuentes por SHA256 y bundle verify PASS. CI funcional y CVE de candidatos todavía pendiente.
+
+## Resultado posterior verificado
+
+099d011: calidad43715161768 y CodeQL43715161763 PASS. Security43715161783 falla solo gate final: Keycloak6HIGH, SeaweedFS1HIGH, otras4imágenes0HIGH/CRITICAL y0secret. Artefacto14162129065 ZIP SHA256440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d verificado; runtime/browser/binding/scans/SBOM/ZAP PASS. No atribuir este resultado a9b398e4, que solo incorpora logging50 y requiere su propio CI. NO GO se mantiene; ver docs/reviews/MERGE_REPAIRS_2026-11-15.md/json.

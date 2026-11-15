@@ -47,6 +47,17 @@
   "source_base": "f698d0a33a1ebfa5062251747bd634b6897aacc4",
   "checkpoint": "CP-VENDOR-CANDIDATES-00-20261115T042218Z",
   "production_authorized": false,
-  "ci_status": "pending",
-  "live_database": "unchanged; no real volume attached or migration applied"
+  "ci_status": "099d011 complete: quality/CodeQL PASS; security FAIL only final gate; current9b398e4 must be assessed separately",
+  "live_database": "unchanged; no real volume attached or migration applied",
+  "verified_artifact": 14162129065,
+  "verified_zip_sha256": "440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d",
+  "measured_findings": {
+    "keycloak": 6,
+    "seaweedfs": 1,
+    "api": 0,
+    "web": 0,
+    "postgres": 0,
+    "clamav": 0
+  },
+  "secret_findings": 0
 }

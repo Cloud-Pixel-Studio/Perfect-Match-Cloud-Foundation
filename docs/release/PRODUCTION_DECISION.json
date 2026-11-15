@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "assessed_at": "2026-11-15T04:16:55.319994+00:00",
-  "assessed_source_sha": "1ad8843fc74fa972d061755c14b6c25837526840",
+  "assessed_at": "2026-11-15T13:32:55.142668+00:00",
+  "assessed_source_sha": "099d011cbfd8860d305aa40c4c66936a7cac9fae",
   "decision": "NO_GO",
   "scope": "commercial SaaS production",
   "readiness_owner": "PM under user delegation",
   "production_requires_explicit_human_approval": true,
   "basis": {
-    "quality_run": 43672588148,
-    "codeql_run": 43672588117,
-    "security_run": 43672588138,
+    "quality_run": 43715161768,
+    "codeql_run": 43715161763,
+    "security_run": 43715161783,
     "quality": "success",
     "codeql": "success",
     "security": "failure",
@@ -19,7 +19,7 @@
     {
       "id": "SECURITY_IMAGES",
       "state": "blocked",
-      "evidence": "immutable PR47 CI artifact14145153131; SeaweedFS2HIGH, Keycloak7HIGH",
+      "evidence": "verified artifact14162129065 ZIP440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d; SeaweedFS1HIGH, Keycloak6HIGH; exact099d011 only",
       "clear_when": "all six candidate images have fresh bound evidence and zero HIGH/CRITICAL; no secret findings"
     },
     {
@@ -48,6 +48,6 @@
       "clear_when": "required QMS verticals including audit execution/findings/report/closure satisfy agreed Odoo-equivalence acceptance"
     }
   ],
-  "current_change": "startup HTTPS/key/error safeguards and bound scanner evidence; does not remediate vendor CVEs or provision infrastructure",
-  "next_step": "evaluate pinned vendor candidates only in isolated CI; production remains blocked"
+  "current_change": "verified CI/quality repairs, retired duplicate PRs, scanner/harness log privacy; new exact-head runs remain separate",
+  "next_step": "remediate remaining vendor findings without waiver; fix3Action Center projection issues and integrate verified source before staging; no production"
 }
