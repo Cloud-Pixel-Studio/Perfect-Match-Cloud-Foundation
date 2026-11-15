@@ -1,7 +1,7 @@
 # Perfect Match Cloud
 
 Perfect Match Cloud is a proprietary, greenfield, SaaS-first quality management
-and compliance platform owned by Perfect Match Investments, LLC. It is being
+and compliance platform whose product and commercialization rights are held personally by Bárbara De Sola. Perfect Match Investments LLC is a separate consulting entity. It is being
 built as an independent multi-tenant product and is not an Odoo or ERP project.
 
 The development foundation includes local OIDC identity and tenant isolation
