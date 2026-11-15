@@ -141,3 +141,4 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-process-integrity.sh
+      - run: ./scripts/run-document-review-integrity.sh

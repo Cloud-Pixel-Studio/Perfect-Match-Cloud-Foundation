@@ -13,6 +13,7 @@ make test ENV_FILE="$env_file"
 ./scripts/run-tenant-suspension-integrity.sh
 ./scripts/run-internal-audit-integrity.sh
 ./scripts/run-process-integrity.sh
+./scripts/run-document-review-integrity.sh
 make build ENV_FILE="$env_file"
 make health ENV_FILE="$env_file"
 ./security/opengrep/test-rules.sh

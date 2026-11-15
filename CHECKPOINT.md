@@ -1,3 +1,9 @@
+# Trabajo actual — corrección documental · 14 noviembre de 2026 (UTC15)
+- Rama **codex/document-review-locking**, mismo worktree tenant-suspension; base db302b6/PR44, remota comprobada0/0 antes de editar. CP-DOCUMENT-REVIEW-LOCK-00-20261115T030903Z restaura521fuentes/Git cifrados y bundle verify PASS. Sin migraciones, modelos, roles, RLS, grants ni dependencias nuevas; runtime real sigue PR39/DB0048.
+- M01 corregido en fuente: submit/approve/reject leen ámbito inmutable del padre y bloquean revisión fresca; release bloquea padre→hijo. No requiere author/release/obsolete para decidir. Hallazgo independiente adicional: un único flush podía activar UUIDmenor antes de retirar anterior y provocar23505; ahora se persiste anterior primero, dentro de misma transacción/try/rollback y sin commit intermedio.
+- Probado:4RED M01/ordenlocks→4PASS;2RED deterministas23505→PASS; suite completa18HTTP/PostgreSQL PASS y199regresiones de dominio PASS.50API unitarias PASS/509DBomitidas sin harness. Ruff/formato/mypy75 PASS; ShellCheck/Gitleaksárbol/OpenGrep6reglas1archivo0hallazgos. Revisión independiente acotada sinP1/P2 pendientes; no nueva corrida browser/frontend(ningún cambioUI), AV/storage en memoria. CIharness agregado a process-integrity y checkpoint.
+- Entrega para revisión en la rama indicada; CP-DOCUMENT-REVIEW-LOCK-06-20261115T032536Z restaura526fuentes/Git y hashes coinciden con la fuente probada antes de registrar esta nota. Infra/vendor: investigación oficial en docs/security/VENDOR_EVALUATION_2026-11-14.md; las estables verificadas no acreditan cerrar los9HIGH. Sin actualizar imágenes ni desplegar. CI del head final y aprobación humana pendientes.
+
 # Perfect Match QMS — continuidad del 14 de noviembre de 2026
 
 ## Retomar
