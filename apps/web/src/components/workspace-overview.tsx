@@ -19,7 +19,7 @@ import {
 
 import { type WorkspaceId, type WorkspaceItem, type WorkspaceTarget } from "../lib/workspace-navigation";
 import { ActionCenterWorkspace } from "./action-center-workspace";
-import { visibleDashboardMetrics } from "../lib/dashboard-metrics";
+import { canPreviewQualityTrends, visibleDashboardMetrics } from "../lib/dashboard-metrics";
 
 const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
   processes: FolderKanban,
@@ -59,10 +59,10 @@ export function WorkspaceOverview({ tenantName, role, sections, onNavigate }: { 
           <button type="button" onClick={() => onNavigate(metric.module)}>Open {metric.module === "capa" ? "CAPA" : metric.module} <ArrowUpRight aria-hidden="true" size={15} /></button>
         </article>)}
       </div>
-      <div className="qms-insights-chart-placeholder">
+      {canPreviewQualityTrends(visibleMetrics) && <div className="qms-insights-chart-placeholder">
         <BarChart3 aria-hidden="true" size={21} />
         <span><strong>Trends and charts are coming next</strong><small>Historical series require validated, permission-scoped source data.</small></span>
-      </div>
+      </div>}
     </section>}
     <ActionCenterWorkspace compact role={role} onNavigate={onNavigate} />
     <div className="qms-overview-sections">
