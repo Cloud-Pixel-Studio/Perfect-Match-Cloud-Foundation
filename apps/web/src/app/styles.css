@@ -1330,3 +1330,23 @@ h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: 0; }
   .modal-dialog-form footer { align-items: stretch; flex-direction: column-reverse; }
   .modal-dialog-form footer button { width: 100%; }
 }
+
+/* Overview analytics: deliberately data-free until authorized aggregates are available. */
+.qms-insights { margin: var(--pm-space-5) 0; min-width: 0; }
+.qms-insights-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.qms-insights-heading h3 { margin: 4px 0 0; font-size: clamp(1.1rem, 2vw, 1.4rem); }
+.qms-insights-status { border: 1px solid var(--pm-border); border-radius: 99px; padding: 6px 11px; color: var(--pm-text-muted); font-size: .75rem; }
+.qms-insights-description { color: var(--pm-text-muted); max-width: 68ch; }
+.qms-insights-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pm-space-3); }
+.qms-insights-card { display: flex; flex-direction: column; min-width: 0; gap: 7px; border: 1px solid var(--pm-border); border-radius: 12px; padding: var(--pm-space-4); background: var(--pm-surface); }
+.qms-insights-label { color: var(--pm-text-muted); font-size: .8rem; font-weight: 600; }
+.qms-insights-value { font-size: 2rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.qms-insights-card small { color: var(--pm-text-muted); line-height: 1.5; }
+.qms-insights-card button { display: inline-flex; align-items: center; gap: 5px; align-self: flex-start; margin-top: auto; padding: 8px 0; background: transparent; border: 0; color: var(--pm-primary); font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; text-align: left; }
+.qms-insights-card button:focus-visible { outline: 2px solid var(--pm-primary); outline-offset: 3px; }
+.qms-insights-chart-placeholder { display: flex; align-items: center; gap: var(--pm-space-3); margin-top: var(--pm-space-3); padding: var(--pm-space-4); border: 1px dashed var(--pm-border); border-radius: 12px; color: var(--pm-text-muted); }
+.qms-insights-chart-placeholder span { display: grid; gap: 3px; }
+.qms-insights-chart-placeholder strong { color: var(--pm-text); }
+.qms-insights-chart-placeholder small { line-height: 1.5; }
+@media (max-width: 1080px) { .qms-insights-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) { .qms-insights-grid { grid-template-columns: 1fr; } .qms-insights-chart-placeholder { align-items: flex-start; } }
