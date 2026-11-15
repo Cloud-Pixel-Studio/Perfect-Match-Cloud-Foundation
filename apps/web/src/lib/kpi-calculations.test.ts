@@ -28,6 +28,15 @@ describe("KPI calculation contracts", () => {
     expect(completeMonthlySeries(["2026-09", "2026-10"], { "2026-09": 0 })).toBeNull();
   });
 
+  it("rejects malformed, non-calendar and unordered monthly periods", () => {
+    for (const month of ["2026-00", "2026-13", "2026-1", "2026/01", "2026-01-extra"]) {
+      expect(() => completeMonthlySeries([month], { [month]: 1 })).toThrow(RangeError);
+    }
+    expect(() => completeMonthlySeries(["2026-10", "2026-09"], { "2026-10": 1, "2026-09": 2 }))
+      .toThrow(RangeError);
+    expect(completeMonthlySeries([], {})).toEqual([]);
+  });
+
   it("rejects duplicate periods and malformed counts", () => {
     expect(() => completeMonthlySeries(["2026-09", "2026-09"], { "2026-09": 1 })).toThrow(RangeError);
     expect(() => completeMonthlySeries(["2026-09"], { "2026-09": -2 })).toThrow(RangeError);
