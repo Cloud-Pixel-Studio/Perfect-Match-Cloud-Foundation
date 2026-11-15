@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "base_commit": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "checkpoint": "CP-MODULE-AUDIT-06B-20261114T210826Z",
+  "hash_algorithm": "SHA256",
+  "note": "Integrity manifest, not a digital identity/QMS signature. No fullref/production security claim.",
+  "files": [
+    {
+      "path": ".github/workflows/security.yml",
+      "sha256": "0d4a7c7f1ff82a4f8d70e980c7bb494ea00418815950feab111240ae7d47165a"
+    },
+    {
+      "path": ".gitleaks.toml",
+      "sha256": "aa1862838600c9b288bd52cda47b63a44949dee38c56086d4ace076c8787059f"
+    },
+    {
+      "path": "CHECKPOINT.md",
+      "sha256": "7afbbf4051785400d62c44579bd508bd1bd7a8aeb719e13b1e7880e21d193166"
+    },
+    {
+      "path": "apps/api/tests/test_module_operability_http_integrity.py",
+      "sha256": "beb427dc800e8add7f97e0b1b080c07517dd8bfe341139d8c76d48676e7c8387"
+    },
+    {
+      "path": "docs/audits/2026-11-14/MODULE_OPERABILITY_AUDIT.md",
+      "sha256": "660a1c4978b3c2a434551a558ccd57dc00a1aa419a9c6ac6d317c90e5eb7d06d"
+    },
+    {
+      "path": "docs/audits/2026-11-14/MODULE_OPERABILITY_EVIDENCE.json",
+      "sha256": "8eb9b510ca480abc89c8fbc737b1d3967e0862687ca2cd916716ce1b63fb1196"
+    },
+    {
+      "path": "docs/audits/2026-11-14/MODULE_OPERABILITY_ROUTES.md",
+      "sha256": "7e80f0081922486d45d14eccb5170bbc4ae352fe89db0ba3a1c78ce5122b19a4"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-format-final.log",
+      "sha256": "b1589e558de12a68704dd4a8223f2d36ac6a88906f2ee6989c0778b550734808"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-format.log",
+      "sha256": "a7b33b14dcd88b8016b9d74d605d0ba45f7a54081064355a3e9ec7c9a8735a9e"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-mypy-final.log",
+      "sha256": "4ef32b02733c640ba275e5de2c0f630d3ea2a6293bb124ad0dc2173d46e40541"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-mypy.log",
+      "sha256": "e6a337f5d3c5bfc91aa5e09a3e3e6ba1ed5d06d2dac23e22cac9db017a5c00ea"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-ruff-final.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-ruff.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/api-unit.log",
+      "sha256": "c90a02bf81fae21715954942080e31d3bc63ad2a125bba872e2897a81172f518"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/architecture-allowlist-checks.log",
+      "sha256": "917d43b329b46ce9d4fb40b46fb8f53618ffb69fac4489d2c7bbf1f3a09a0d30"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/audit-docs-gitleaks.log",
+      "sha256": "199edc1dd8657fb59b45c2adc84b37ed17c7a44c0c6730e7b8abf3e39ac23f58"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/audit-tests-gitleaks.log",
+      "sha256": "ad626c62ecca8cca0ce65feee9c2d4e320a2be605c6045bdcdb401c636a40651"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/build_evidence.py",
+      "sha256": "d6df16498735df43c6cfc5d369d08f87f6166cf3b8db2795dba83f7c1d00e165"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/checkpoint-allowlist-final.log",
+      "sha256": "12bdf435d8ef60d55854c7295d5a3842e9c3e8f2a06ff09326470e204ada99f2"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/harness-shellcheck.log",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/internal-audit-integrity.log",
+      "sha256": "8bac7894cb3638a44c9fc1aa9c7368188f14ac47a55630554344d2c65bbc5be8"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/log-credential-check.json",
+      "sha256": "b0b483264055b786cb515d364f4b2165a718ab7940298c8c85828920411c1a9e"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/module-http-initial-failures.log",
+      "sha256": "46385eaab58f4914602c1f220276d30a5d10f5a9f86129139cc8cf8af38d235b"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/module-http-integrity.log",
+      "sha256": "e667f45ecdf3ebb16a89723f23a6f09a068767b160d9d93b0de60fbf928e300b"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/module_audit_trace.py",
+      "sha256": "f8b6c5974a114799b5e40f1d6f63e337e4651d695b5d75241aecc3044e3e0dc6"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/organization-integrity.log",
+      "sha256": "f8b565ceaae0aee064417cefcb4578bad74c2edef2eeaa7712eaeaa0be0b386e"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/process-integrity.log",
+      "sha256": "dc0ea22c5298b10f431d97f3448196f8a1267a5f6f576e294e74c738e336bb80"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/qms-access-integrity.log",
+      "sha256": "db43877313564a10cfae54e164de44c0b1d9d4b8ffa2ec8a275caf060a2b730d"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/run-module-http-integrity.sh",
+      "sha256": "84f1e32ae18813e23b4de68676dd37f9e2114728245a0f9a4cba70b104c0f4f4"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/source-tree-gitleaks.log",
+      "sha256": "df989db55d3282b2df0b48f4096a4d8c2c8eaabb0fdf1b99678bdca1f8dd60ee"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/tenant-isolation.log",
+      "sha256": "6899afb19b186e5678ae61e8b7bacfbd2c04eb027007c6977755d0d0ad486632"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/tenant-suspension-integrity.log",
+      "sha256": "a06d644e87355ceacd87c44aa287a1c1fe42634cab4238629ec8c6b07905342f"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/web-build.log",
+      "sha256": "a04317ef0880e3c3ad7bdd7e56f03eb5025510a25e1852ea748a562f1738835a"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/web-lint.log",
+      "sha256": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/web-typecheck.log",
+      "sha256": "99d7c2179cdd316467c51f37901025a0753453664d741214ba56fc631fa6c0bc"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/web-unit.log",
+      "sha256": "d2c638b7ce67081ea8f309e5388cad7c83f903eeefad2eb9d63364d4fd883660"
+    },
+    {
+      "path": "docs/audits/2026-11-14/module-operability-evidence/workflow-integrity.log",
+      "sha256": "5bbcf16a45b91c5b5642381b4533dd1c4098a5abc3c505290ecad1bbc7f31638"
+    },
+    {
+      "path": "security/tests/test_architecture_checksum_allowlist.py",
+      "sha256": "c5722ab2acf2424a49f8ccf4c65f546c20c265e9b061ced43f80b8defffec7f8"
+    }
+  ],
+  "raw_artifacts": [
+    {
+      "path": "artifacts/module-operability-20261114/api-format-final.log",
+      "sha256": "b1589e558de12a68704dd4a8223f2d36ac6a88906f2ee6989c0778b550734808",
+      "bytes": 28
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-format.log",
+      "sha256": "a7b33b14dcd88b8016b9d74d605d0ba45f7a54081064355a3e9ec7c9a8735a9e",
+      "bytes": 28
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-mypy-final.log",
+      "sha256": "4ef32b02733c640ba275e5de2c0f630d3ea2a6293bb124ad0dc2173d46e40541",
+      "bytes": 44
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-mypy-focused.log",
+      "sha256": "355a435c33a29b8f3f0db0815b88731b7ae35c080fe47fdbc27e9330572711aa",
+      "bytes": 44
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-mypy.log",
+      "sha256": "e6a337f5d3c5bfc91aa5e09a3e3e6ba1ed5d06d2dac23e22cac9db017a5c00ea",
+      "bytes": 44
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-ruff-final.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "bytes": 19
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-ruff.log",
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "bytes": 19
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-unit-calls.json",
+      "sha256": "5a93b107b0842a7053b1a99b098e163cf8a0d4df07f784e09a119831fa1032f2",
+      "bytes": 18792
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-unit.log",
+      "sha256": "c90a02bf81fae21715954942080e31d3bc63ad2a125bba872e2897a81172f518",
+      "bytes": 1579
+    },
+    {
+      "path": "artifacts/module-operability-20261114/api-unit.xml",
+      "sha256": "42c6dc97e082629a7e1865220f5ffa5c4728930053d5dcdbfcc0c46deb9f37d2",
+      "bytes": 197221
+    },
+    {
+      "path": "artifacts/module-operability-20261114/architecture-allowlist-checks.log",
+      "sha256": "917d43b329b46ce9d4fb40b46fb8f53618ffb69fac4489d2c7bbf1f3a09a0d30",
+      "bytes": 83
+    },
+    {
+      "path": "artifacts/module-operability-20261114/audit-docs-gitleaks.log",
+      "sha256": "199edc1dd8657fb59b45c2adc84b37ed17c7a44c0c6730e7b8abf3e39ac23f58",
+      "bytes": 79
+    },
+    {
+      "path": "artifacts/module-operability-20261114/audit-tests-gitleaks.log",
+      "sha256": "ad626c62ecca8cca0ce65feee9c2d4e320a2be605c6045bdcdb401c636a40651",
+      "bytes": 80
+    },
+    {
+      "path": "artifacts/module-operability-20261114/checkpoint-allowlist-baseline.log",
+      "sha256": "afa8911899d999a948fea458fb6606489c26221afcdcf14e8ef66aeb6370e8df",
+      "bytes": 486
+    },
+    {
+      "path": "artifacts/module-operability-20261114/checkpoint-allowlist-final.log",
+      "sha256": "12bdf435d8ef60d55854c7295d5a3842e9c3e8f2a06ff09326470e204ada99f2",
+      "bytes": 180
+    },
+    {
+      "path": "artifacts/module-operability-20261114/harness-shellcheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "artifacts/module-operability-20261114/initial-module-http/module-http-integrity-calls.json",
+      "sha256": "63ada9286867b271b9869fc441a7defe8c9085bfc19aec443c6d0a036db3b184",
+      "bytes": 33458
+    },
+    {
+      "path": "artifacts/module-operability-20261114/initial-module-http/module-http-integrity.log",
+      "sha256": "1f3c23bf683b8395693d9b11e402a19b5751480d2fc1920732d538ca7cf357dd",
+      "bytes": 16042
+    },
+    {
+      "path": "artifacts/module-operability-20261114/initial-module-http/module-http-integrity.xml",
+      "sha256": "130af808afba7cff91e5d8c8eaf9dd04fbd1643786f54d0f91b829ad1c5d5bd2",
+      "bytes": 7020
+    },
+    {
+      "path": "artifacts/module-operability-20261114/internal-audit-integrity-calls.json",
+      "sha256": "96a6ea2cf4ddca873bcc8bbc10be633e8fb5ce596e51e1ee5607cc806bbb68a3",
+      "bytes": 755341
+    },
+    {
+      "path": "artifacts/module-operability-20261114/internal-audit-integrity.log",
+      "sha256": "8bac7894cb3638a44c9fc1aa9c7368188f14ac47a55630554344d2c65bbc5be8",
+      "bytes": 12007
+    },
+    {
+      "path": "artifacts/module-operability-20261114/internal-audit-integrity.xml",
+      "sha256": "597f578945cf32caa144ad6550d1fb96e22a129d75feee6f71f2b4123d5ceb46",
+      "bytes": 18859
+    },
+    {
+      "path": "artifacts/module-operability-20261114/log-credential-check.json",
+      "sha256": "b0b483264055b786cb515d364f4b2165a718ab7940298c8c85828920411c1a9e",
+      "bytes": 197
+    },
+    {
+      "path": "artifacts/module-operability-20261114/module-http-integrity-calls.json",
+      "sha256": "6dce08344d2d424dc846666ca17a27f574723937d649f11816d900d8c28f4a7a",
+      "bytes": 69563
+    },
+    {
+      "path": "artifacts/module-operability-20261114/module-http-integrity.log",
+      "sha256": "e667f45ecdf3ebb16a89723f23a6f09a068767b160d9d93b0de60fbf928e300b",
+      "bytes": 10487
+    },
+    {
+      "path": "artifacts/module-operability-20261114/module-http-integrity.xml",
+      "sha256": "38d4bdb205c8768a8bf902e5830b83da2d6755c9326fced0c1e088d3422001de",
+      "bytes": 1397
+    },
+    {
+      "path": "artifacts/module-operability-20261114/module-http-operations.json",
+      "sha256": "789135ecec8871db90d14526fd838ab6e581d6a784965ae2ef2c8802397afb2b",
+      "bytes": 19043
+    },
+    {
+      "path": "artifacts/module-operability-20261114/organization-integrity-calls.json",
+      "sha256": "e879c811fc5fb8d3a084a1e430792b91a2acf11832f08f833497b9855372a70f",
+      "bytes": 12653
+    },
+    {
+      "path": "artifacts/module-operability-20261114/organization-integrity.log",
+      "sha256": "c4a3431eba3ebdd3393d0e3f8c6a2e3bdd8815e116d2914f7fb1611d07072b76",
+      "bytes": 28124
+    },
+    {
+      "path": "artifacts/module-operability-20261114/organization-integrity.xml",
+      "sha256": "f13805effd45169307e1d601372c04736ef1a14e6e7612b728b7efc054c01085",
+      "bytes": 2517
+    },
+    {
+      "path": "artifacts/module-operability-20261114/process-integrity-calls.json",
+      "sha256": "f7f86aefd66f71efbfc80579fcad50e504c45d6c6d9c1913e061aac7043ff069",
+      "bytes": 682144
+    },
+    {
+      "path": "artifacts/module-operability-20261114/process-integrity.log",
+      "sha256": "dc0ea22c5298b10f431d97f3448196f8a1267a5f6f576e294e74c738e336bb80",
+      "bytes": 22539
+    },
+    {
+      "path": "artifacts/module-operability-20261114/process-integrity.xml",
+      "sha256": "07460df5547984c8cbc7dbce52af961dca3fc0de849fdfbce5201149bf47b17e",
+      "bytes": 28729
+    },
+    {
+      "path": "artifacts/module-operability-20261114/qms-access-integrity-calls.json",
+      "sha256": "a82944d238e0df6a699ef9270114a21cebb4202bfc432ec65dcae519d707787c",
+      "bytes": 23465
+    },
+    {
+      "path": "artifacts/module-operability-20261114/qms-access-integrity.log",
+      "sha256": "67211291bb6914d98ce604b1426d805800db42fa2c7f39e6d649313eed25ca02",
+      "bytes": 39990
+    },
+    {
+      "path": "artifacts/module-operability-20261114/qms-access-integrity.xml",
+      "sha256": "f03fe1321cc1ddf88820c0da7d1df21b457281684ea17c139419fded24b97672",
+      "bytes": 3441
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry1-module-http/module-http-integrity-calls.json",
+      "sha256": "d2c0ad69194d134858a92549246ec10c1bc6478017391c1543cdce798161ad92",
+      "bytes": 61503
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry1-module-http/module-http-integrity.log",
+      "sha256": "94f1fd577dc712a23487c32a3ab7c33d1a339f6ab337042c68074ab77d697964",
+      "bytes": 14968
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry1-module-http/module-http-integrity.xml",
+      "sha256": "cf0c8825f038129dcac93060f43cc4f114b90cbd7f865566ef9cb2ce7c2d9ff1",
+      "bytes": 6229
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry1-module-http/module-http-operations.json",
+      "sha256": "6bccfa96c39fcecb2b3f6d586b8ca2420931129335ffd339b071626166403578",
+      "bytes": 16436
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry2-module-http/module-http-integrity-calls.json",
+      "sha256": "0c3797ce517203e39f277c772bb3f876180f6763cbc270fa12b4dd79b9619750",
+      "bytes": 68672
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry2-module-http/module-http-integrity.log",
+      "sha256": "695ad252b7adc4c5b67f4fa1af69c49dbdd22469a80267ea5772fdcbd8c0ed89",
+      "bytes": 35431
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry2-module-http/module-http-integrity.xml",
+      "sha256": "25eaf4d924682296d1f7e420083b105aeb1d6a7c996cb1d13398c19a69f05334",
+      "bytes": 27017
+    },
+    {
+      "path": "artifacts/module-operability-20261114/retry2-module-http/module-http-operations.json",
+      "sha256": "79c4c4b13e7b879c0c17505f2101c4a84b85d3d1d98e52fd8dc28ee3c0b853f5",
+      "bytes": 18376
+    },
+    {
+      "path": "artifacts/module-operability-20261114/route-inventory-draft.json",
+      "sha256": "802ac9e0a7b933269fb68c42098d596cf2159d08cdd364330120c231c5831ceb",
+      "bytes": 221549
+    },
+    {
+      "path": "artifacts/module-operability-20261114/source-tree-gitleaks.log",
+      "sha256": "df989db55d3282b2df0b48f4096a4d8c2c8eaabb0fdf1b99678bdca1f8dd60ee",
+      "bytes": 79
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-isolation-calls.json",
+      "sha256": "327f1adcfef005eb6063d7203daab575bb912d377973e8f793efdc4da8488688",
+      "bytes": 19351
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-isolation.log",
+      "sha256": "6899afb19b186e5678ae61e8b7bacfbd2c04eb027007c6977755d0d0ad486632",
+      "bytes": 9806
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-isolation.xml",
+      "sha256": "84007dc3bf6011fab8db3b9d05b2d4d94d5fbc942d7762f4f5e67159793f6aca",
+      "bytes": 3733
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-suspension-integrity-calls.json",
+      "sha256": "e15906b1c819f18ed77bc33a0a5e1a1a076f7c58362648dc321b4cda142c4ba4",
+      "bytes": 229558
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-suspension-integrity.log",
+      "sha256": "a06d644e87355ceacd87c44aa287a1c1fe42634cab4238629ec8c6b07905342f",
+      "bytes": 9923
+    },
+    {
+      "path": "artifacts/module-operability-20261114/tenant-suspension-integrity.xml",
+      "sha256": "4395eacad958cddfd3ca3102538bb4b216052a5b90395611e3b839192cc78f2d",
+      "bytes": 4791
+    },
+    {
+      "path": "artifacts/module-operability-20261114/web-build.log",
+      "sha256": "2b4c3ed7d5b730643761a14aa98c710e9fd6ddd7c0ca2a8bde68d5ae5f452590",
+      "bytes": 813
+    },
+    {
+      "path": "artifacts/module-operability-20261114/web-lint.log",
+      "sha256": "b543827ce56a63357c629028555ecec2cc964dda33dbbf2a9a2872b1a2ab20f8",
+      "bytes": 28
+    },
+    {
+      "path": "artifacts/module-operability-20261114/web-typecheck.log",
+      "sha256": "99d7c2179cdd316467c51f37901025a0753453664d741214ba56fc631fa6c0bc",
+      "bytes": 90
+    },
+    {
+      "path": "artifacts/module-operability-20261114/web-unit.log",
+      "sha256": "6b700384def06a1285a89709a57aac816b7e57edb8ae1d67213ab0ebca40cbcc",
+      "bytes": 269
+    },
+    {
+      "path": "artifacts/module-operability-20261114/workflow-integrity-calls.json",
+      "sha256": "b8d57635f54a58e95499969a84df6d742bb44d3c5c2ec32199e243fdf2c01926",
+      "bytes": 40814
+    },
+    {
+      "path": "artifacts/module-operability-20261114/workflow-integrity.log",
+      "sha256": "4ff2a12a0c6e0fa1332a28299fd9d5f387eb3d59b9f2532f33b678964c925380",
+      "bytes": 43183
+    },
+    {
+      "path": "artifacts/module-operability-20261114/workflow-integrity.xml",
+      "sha256": "f5e3aebbbaae9772fda608cba77bda6dc4708be193eda21ff2e785930858579f",
+      "bytes": 4240
+    }
+  ]
+}
