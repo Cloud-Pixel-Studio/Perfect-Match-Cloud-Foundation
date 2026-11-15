@@ -1,5 +1,5 @@
 export const DEMO_CONTACT_EMAIL = "Demo@invperfectmatch.com";
-export const DEMO_ENQUIRY_SUBJECT = "Perfect Match QMS demo request";
+export const DEMO_ENQUIRY_SUBJECT = "BEMS Quality demo request";
 
 export const productPriorities = [
   { value: "documents", label: "Documents" },
@@ -65,7 +65,7 @@ export function buildProductEnquiry(input: ProductEnquiryInput): ProductEnquiryR
 
   const standards = isoInterestOptions.filter((option) => input.isoInterests.includes(option.value));
   const brief = [
-    "Perfect Match QMS — demo brief",
+    "BEMS Quality — demo brief",
     "",
     `Company: ${company || "Not specified"}`,
     "Company workspace: 1 independent workspace",
@@ -73,7 +73,7 @@ export function buildProductEnquiry(input: ProductEnquiryInput): ProductEnquiryR
     `Main priority: ${priority.label}`,
     `ISO interests: ${standards.length ? standards.map((option) => `${option.label} (${option.state})`).join(", ") : "None selected"}`,
     "",
-    "Requested product: Perfect Match QMS base, company workspace and team seats.",
+    "Requested product: BEMS Quality base, company workspace and team seats.",
     "ISO selections express interest only; availability must be confirmed.",
     "This brief is not a quote, order or subscription.",
   ].join("\n");

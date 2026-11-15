@@ -33,7 +33,7 @@ describe("interface design contracts", () => {
   });
 
   it("presents the commercial model without conflating seats and authority", () => {
-    expect(products).toContain("Perfect Match QMS");
+    expect(products).toContain("BEMS Quality");
     expect(products).toContain("Seats inside your company space");
     expect(products).toContain("ISO addons by standard and edition");
     expect(products).toContain("Access and approval responsibilities stay separately assigned");

@@ -17,7 +17,7 @@ export function BrandMark({ className = "", priority = false, size = 40 }: Brand
         className="brand-mark-light"
         height={size}
         priority={priority}
-        src="/brand/selected/pmqms-mark.svg"
+        src="/brand/selected/bems-quality-mark.svg"
         unoptimized
         width={size}
       />
@@ -26,7 +26,7 @@ export function BrandMark({ className = "", priority = false, size = 40 }: Brand
         className="brand-mark-dark"
         height={size}
         priority={priority}
-        src="/brand/selected/pmqms-mark-dark.svg"
+        src="/brand/selected/bems-quality-mark-dark.svg"
         unoptimized
         width={size}
       />
