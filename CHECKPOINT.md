@@ -1,3 +1,8 @@
+# Trabajo actual — evaluación de vendors ·15noviembre2026UTC
+- Rama **codex/vendor-stable-candidates-20261115** sobre PR50/f698d0a; PR50 aporta guards producción y evidencia6imágenes. PM **NO GO** comercial; aprobación humana para merge/producción sigue requerida.
+- Solo pinsCompose/scan/SBOM: Keycloak26.8.2 y SeaweedFS4.53, metadata oficial/digests reverificados. Leer docs/security/VENDOR_CANDIDATES_2026-11-15.md/json. CI aislado nuevo pendiente; no afirmar corrección de CVE por versión. Gates HIGH/CRITICAL intactos.
+- CP-VENDOR-CANDIDATES-00-20261115T042218Z restaura535fuentes cifradas/SHA256 y bundle verify PASS. No se actualiza runtime local, no pull/up ni volúmenes reales; sigue PR39/DB0048. PR48/49 externos de branding BEMS Quality detectados, no integrados.
+
 # Trabajo actual — criterios de producción · 14 noviembre2026 (UTC15)
 - Rama **codex/production-readiness-gates**, base PR47/1ad8843. Usuario delega al PM decidir readiness; decisión actual **NO GO** para SaaS comercial. Se conserva aprobación humana antes de producción. Leer docs/release/PRODUCTION_READINESS.md y PRODUCTION_DECISION.json; no basta health200/scanners/tests.
 - CI final47: calidad43672588148/CodeQL43672588117 PASS; security43672588138 falla gate final. Artefacto14145153131 SHA2562ad07f85... verificado: API/web0HIGH/CRITICAL, SeaweedFS2HIGH, Keycloak7HIGH. No se modifican imágenes en esta rama.
