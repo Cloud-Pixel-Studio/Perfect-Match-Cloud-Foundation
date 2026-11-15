@@ -304,12 +304,14 @@ def main() -> int:
         )
         payload["inspection_sha256"] = inspection_hash
         write_atomic(args.output, payload)
-        print(
-            f"Bound 6 images; HIGH/CRITICAL={payload['high_or_critical_count']}; secret HIGH/CRITICAL={payload['secret_high_or_critical_count']}; not production authorization"
-        )
+        # Keep machine evidence in its artifact, never echo scanner-derived data.
+        print("Bound 6 images; details are in release evidence; not production authorization")
         return 0
-    except (OSError, ValueError, TypeError, KeyError) as exc:
-        print(f"Release image evidence failed closed: {exc}", file=sys.stderr)
+    except (OSError, ValueError, TypeError, KeyError):
+        # Exception text may contain private paths or scanner-controlled strings.
+        print(
+            "Release image evidence failed closed; verify input reports locally.", file=sys.stderr
+        )
         return 2
 
 

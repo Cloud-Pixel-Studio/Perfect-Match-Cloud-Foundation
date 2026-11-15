@@ -282,6 +282,71 @@ class EvidenceTests(unittest.TestCase):
             self.assertTrue(json.loads(output.read_text())["integrity_verified"])
             self.assertEqual(list(Path(directory).glob(".release-images-*.tmp")), [])
 
+    def test_cli_console_is_static_while_evidence_keeps_finding_counts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command, output, _ = self.cli_fixture(directory)
+            path = Path(directory) / "api.json"
+            report = json.loads(path.read_text())
+            report["Results"][0]["Vulnerabilities"] = [
+                {
+                    "VulnerabilityID": "CVE-SYNTHETIC-LOG",
+                    "PkgName": "synthetic-package",
+                    "InstalledVersion": "1",
+                    "Severity": "HIGH",
+                }
+            ]
+            report["Results"][0]["Secrets"] = [
+                {"Severity": "HIGH", "Match": "synthetic-private-match"}
+            ]
+            path.write_text(json.dumps(report))
+            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                result.stdout,
+                "Bound 6 images; details are in release evidence; not production authorization\n",
+            )
+            self.assertEqual(result.stderr, "")
+            payload = json.loads(output.read_text())
+            self.assertEqual(payload["high_or_critical_count"], 1)
+            self.assertEqual(payload["secret_high_or_critical_count"], 1)
+            self.assertFalse(payload["production_authorized"])
+            self.assertNotIn("synthetic-private-match", output.read_text())
+
+    def test_cli_invalid_timestamp_does_not_echo_scanner_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command, output, _ = self.cli_fixture(directory)
+            path = Path(directory) / "api.json"
+            report = json.loads(path.read_text())
+            report["CreatedAt"] = "synthetic-private-timestamp"
+            path.write_text(json.dumps(report))
+            output.write_text('{"stale_success":true}')
+            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(
+                result.stderr,
+                "Release image evidence failed closed; verify input reports locally.\n",
+            )
+            self.assertNotIn("synthetic-private-timestamp", result.stderr)
+            self.assertFalse(output.exists())
+
+    def test_cli_file_error_does_not_echo_input_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command, output, _ = self.cli_fixture(directory)
+            command[command.index("--inspection") + 1] = str(
+                Path(directory) / "private-runtime-input.json"
+            )
+            output.write_text('{"stale_success":true}')
+            result = subprocess.run(command, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(
+                result.stderr,
+                "Release image evidence failed closed; verify input reports locally.\n",
+            )
+            self.assertNotIn("private-runtime-input", result.stderr)
+            self.assertFalse(output.exists())
+
     def test_sixth_invalid_report_removes_stale_output(self):
         with tempfile.TemporaryDirectory() as directory:
             command, output, scans = self.cli_fixture(directory)
