@@ -54,6 +54,9 @@ describe("KPI calculation contracts", () => {
 
   it("rejects duplicate periods and malformed counts", () => {
     expect(() => completeMonthlySeries(["2026-09", "2026-09"], { "2026-09": 1 })).toThrow(RangeError);
-    expect(() => completeMonthlySeries(["2026-09"], { "2026-09": -2 })).toThrow(RangeError);
+    for (const invalidCount of [-2, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(() => completeMonthlySeries(["2026-09"], { "2026-09": invalidCount })).toThrow(RangeError);
+    }
+    expect(completeMonthlySeries(["2026-09"], Object.create({ "2026-09": 0 }) as Record<string, number>)).toBeNull();
   });
 });
