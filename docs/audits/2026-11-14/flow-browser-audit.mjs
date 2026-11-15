@@ -1,7 +1,8 @@
 // Read-only browser audit. QMS mutations are blocked; explicit mock cases stay in memory.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, open, rename, unlink } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 
 const require = createRequire(resolve("apps/web/package.json"));
@@ -16,8 +17,30 @@ await mkdir(shots, { recursive: true });
 const report = { startedAt: new Date().toISOString(), base, api, qmsWritesForwarded: 0, cases: [], roles: [] };
 const healthResponse = await fetch(`${api}/health`);
 // Health payloads are unnecessary for read-only readiness; never persist response bodies.
-report.runtimeHealth = { checkedAt: new Date().toISOString(), status: healthResponse.status };
+const observedStatus = healthResponse.status;
+// Declassify to an explicit finite set; unknown HTTP statuses block real cases.
+report.runtimeHealth = {
+  checkedAt: new Date().toISOString(),
+  status: observedStatus === 200 ? 200 : observedStatus === 503 ? 503 : 0,
+};
 const browser = await chromium.launch({ headless: true });
+
+// Atomic replacement also repairs permissions of an existing0644 report.
+async function persistReport() {
+  const temporary = resolve(out, `browser-results-${randomUUID()}.tmp`);
+  let handle;
+  try {
+    handle = await open(temporary, "wx", 0o600);
+    await handle.writeFile(JSON.stringify(report, null, 2));
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rename(temporary, resolve(out, "browser-results.json"));
+  } finally {
+    if (handle) await handle.close();
+    await unlink(temporary).catch(error => { if (error.code !== "ENOENT") throw error; });
+  }
+}
 
 async function run(name, evidence, operation) {
   try {
@@ -26,7 +49,7 @@ async function run(name, evidence, operation) {
   } catch (error) {
     report.cases.push({ name, evidence, result: "FAIL", error: String(error.message).slice(0, 1500) });
   }
-  await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2), { mode: 0o600 });
+  await persistReport();
 }
 
 async function layout(page, screenshot) {
@@ -139,7 +162,7 @@ const modules = [
 ];
 
 if (report.runtimeHealth.status !== 200) {
-  report.cases.push({ name: "real OIDC and business GET navigation", evidence: "actual health endpoint", result: "BLOCKED", detail: "Database unavailable; no credential submitted and no business request attempted." });
+  report.cases.push({ name: "real OIDC and business GET navigation", evidence: "actual health endpoint", result: "BLOCKED", detail: "Runtime health unavailable; no credential submitted and no business request attempted." });
 }
 for (const [role, user, key] of (report.runtimeHealth.status === 200 ? [["member", "pmc-user-a", "KEYCLOAK_USER_A_PASSWORD"], ["owner", "pmc-local-owner", "KEYCLOAK_OWNER_PASSWORD"]] : [])) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
@@ -244,6 +267,6 @@ for (const [role, caps, expected] of [["auditor", ["audits.read", "documents.rea
 await browser.close();
 report.finishedAt = new Date().toISOString();
 report.summary = { pass: report.cases.filter(item => item.result === "PASS").length, fail: report.cases.filter(item => item.result === "FAIL").length, blocked: report.cases.filter(item => item.result === "BLOCKED").length, expectedDenial: report.cases.filter(item => item.result === "EXPECTED_DENIAL").length };
-await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2), { mode: 0o600 });
+await persistReport();
 console.log(JSON.stringify({ summary: report.summary, failed: report.cases.filter(item => item.result === "FAIL").map(({ name, error }) => ({ name, error })), qmsWritesForwarded: report.qmsWritesForwarded }));
 process.exitCode = report.summary.fail ? 1 : 0;
