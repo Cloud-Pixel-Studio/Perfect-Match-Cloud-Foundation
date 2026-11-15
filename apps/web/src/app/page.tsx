@@ -6,10 +6,10 @@ export default function Home() {
   return (
     <div className="identity-page">
       <header className="identity-brand">
-        <Image alt="" height={40} priority src="/brand-mark.png" unoptimized width={40} />
+        <Image alt="" height={40} priority src="/bems-quality-mark.svg" unoptimized width={40} />
         <div>
-          <strong>PERFECT MATCH</strong>
-          <span>Quality Management Cloud</span>
+          <strong>BEMS Quality</strong>
+          <span>By Perfect Match Systems</span>
         </div>
       </header>
       <IdentityShell />
