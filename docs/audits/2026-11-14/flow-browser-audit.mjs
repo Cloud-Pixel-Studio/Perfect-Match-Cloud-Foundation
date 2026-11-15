@@ -15,7 +15,8 @@ await mkdir(out, { recursive: true });
 await mkdir(shots, { recursive: true });
 const report = { startedAt: new Date().toISOString(), base, api, qmsWritesForwarded: 0, cases: [], roles: [] };
 const healthResponse = await fetch(`${api}/health`);
-report.runtimeHealth = { checkedAt: new Date().toISOString(), status: healthResponse.status, body: await healthResponse.json() };
+// Health payloads are unnecessary for read-only readiness; never persist response bodies.
+report.runtimeHealth = { checkedAt: new Date().toISOString(), status: healthResponse.status };
 const browser = await chromium.launch({ headless: true });
 
 async function run(name, evidence, operation) {
@@ -25,7 +26,7 @@ async function run(name, evidence, operation) {
   } catch (error) {
     report.cases.push({ name, evidence, result: "FAIL", error: String(error.message).slice(0, 1500) });
   }
-  await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2));
+  await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2), { mode: 0o600 });
 }
 
 async function layout(page, screenshot) {
@@ -243,6 +244,6 @@ for (const [role, caps, expected] of [["auditor", ["audits.read", "documents.rea
 await browser.close();
 report.finishedAt = new Date().toISOString();
 report.summary = { pass: report.cases.filter(item => item.result === "PASS").length, fail: report.cases.filter(item => item.result === "FAIL").length, blocked: report.cases.filter(item => item.result === "BLOCKED").length, expectedDenial: report.cases.filter(item => item.result === "EXPECTED_DENIAL").length };
-await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2));
+await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2), { mode: 0o600 });
 console.log(JSON.stringify({ summary: report.summary, failed: report.cases.filter(item => item.result === "FAIL").map(({ name, error }) => ({ name, error })), qmsWritesForwarded: report.qmsWritesForwarded }));
 process.exitCode = report.summary.fail ? 1 : 0;
