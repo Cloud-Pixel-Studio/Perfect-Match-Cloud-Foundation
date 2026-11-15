@@ -1,3 +1,16 @@
+## Formato final de evidencia y límite del scanner local
+- Checkpoint de fuente estructurada CP-FLOW-RECOVERED-06C-20261114T210748Z; evidencia raw en06/06B, ver manifiestos externos/cifrados.
+- FLOW_EVIDENCE_MANIFEST schema2 usa arrays{path,sha256}; verifier reproducible nuevo comprueba documentos y opcional raw.0leaks árbol final, sin2excepciones nuevas. Fullrefs LOCAL conserva2false positives del commit intermedio1217da0 por logs SHA, no credenciales; NOpublicado. No afirmar PASS globalrefs local. Root publica árbol final sobre3c6d058e; c25e/1217 se preservan cifrados, sin reset/force/reescritura.
+
+## Gate transversal de secretos
+- Se incorporan3 archivos compartidos desde tenant-suspension: excepción de4SHA256 exactos/ruta/regla del inventario de arquitectura,9 controles de inventario+4 previos de checkpoint y CI. No se ignoran secretos reales ni archivos completos. El historial completo dio8apariciones previas en2commits; tras corrección controles13/13,árbol/historial0leaks PASS. Primer commit de lecturas c25e39e6480b0b1af097c740d72c20e911d7b5c4 preservado con bundle cifrado restaurado/mirror/fsck/exact-tree.
+
+# Revalidación real del recorrido —14noviembre2026
+- Rama codex/audit-complete-flow, entrega previa PR43/3c6d058e. Health200 tras recuperación de VM, DB/API0048 sin migración por esta auditoría. Preview propio3103; callback3000. Solo docs/script/capturas, sin cambiar producto/grants/POSTQMS/empresa/producción.
+- Corrida recuperada: 28PASS/0FAIL, dos OIDC reales; miembro11pantallas y propietario6 según roles, GET reales con estados200;375px oscuro/axe/overflow acotados.503/roles sintéticos siguen evidencia separada. No pruebas de escritura QMS ni cierre comercial. Leer docs/audits/2026-11-14/COMPLETE_FLOW_AUDIT.md y FLOW_BROWSER_RECOVERED_RESULTS.json.
+- Primeras corridas recuperadas conservadas: errores de selector de runner, corregidos sin fuenteapp.5PASS/1BLOCKED infraestructura anterior sigue histórico, no estado actual. Onboarding, ready/start/hallazgos/reporte/cierre y billing siguen BLOCKED_FUNCIONAL.
+- CP-FLOW-RECOVERED-00-20261114T205256Z preservó fuente/Git antes de cambiar. Checkpoint final CP-FLOW-RECOVERED-06-20261114T210112Z; estado de restauracion en manifiesto publico. Evidencia previa y nueva separadas; claves/backups externos. Preview3103 detenido,2 autogenerados Next preservados externamente y solo esos archivos propios normalizados.
+
 # Auditoría independiente del recorrido — 14 noviembre 2026
 - Rama **codex/audit-complete-flow**, base PR41/8133bac47a0731c31738d942f131b17902bb6fe5. Informe `docs/audits/2026-11-14/COMPLETE_FLOW_AUDIT.md`, matriz/JSON/manifiestoSHA256/scripts/capturas. Soloauditoría; sin producto/DBreal/grants/POSTQMS/email/producción/push/merge.
 - Finalbrowser:3PASS públicos reales+2PASS navegación de roles sintéticos+1BLOCKED OIDC/GETnegocio porDB503. Primer JSON5PASS/2FAILlogin conservado; /auth/login500yhealthPostgreSQLunavailable explican#usernametimeout. No11módulosreales verificados, ni credenciales enviadas en corrida final. Runtime documentado0048,0049fuentePR41 noaplicada; recuperacióninfra porroot.

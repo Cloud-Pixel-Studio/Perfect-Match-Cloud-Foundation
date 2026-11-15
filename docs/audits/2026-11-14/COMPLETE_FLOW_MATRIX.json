@@ -8,13 +8,13 @@
     "oidc_callback_web": "http://127.0.0.1:3000",
     "api": "http://127.0.0.1:8000",
     "db_revision": "0048 documented in checkpoint, not queried in this audit",
-    "source_revision": "PR41 with0049; migration not applied to real runtime",
-    "health_observed": 503,
-    "database": "unavailable",
+    "source_revision": "PR43/3c6d058e frontend, API/DB0048 unchanged by this audit",
+    "health_observed": 200,
+    "database": "ok",
     "object_storage": "ok",
     "malware_scanner": "ok"
   },
-  "overall_verdict": "BLOCKED: no complete commercial-to-QMS-closure flow; infrastructure blocks real authenticated validation, and functional onboarding/audit execution/billing remain absent.",
+  "overall_verdict": "BLOCKED_FUNCTIONAL: real OIDC and authorized read-only screens now verified, but onboarding/audit execution/closure/billing remain absent. No real QMS transaction was written.",
   "safety": {
     "real_qms_writes": 0,
     "real_grants_changed": 0,
@@ -44,7 +44,7 @@
       "stage": "anonymous_login_entry",
       "status": "PASS_WITH_LIMIT",
       "evidence_kind": "real_public_browser",
-      "verdict": "Login link visible and targets approved proxy path; authenticated flow blocked separately."
+      "verdict": "Anonymous entry and real OIDC development login verified separately; no new customer onboarding."
     },
     {
       "id": "F04",
@@ -56,79 +56,79 @@
     {
       "id": "F05",
       "stage": "actual_oidc_login",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health_and_initial_failure",
-      "verdict": "DB unavailable503 and prior auth/login500; no credentials submitted in final run; no recovered storageState."
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_get",
+      "verdict": "Member and owner log in through real development Keycloak/callback; authorized normal authentication sessions only, no stored credentials/storageState."
     },
     {
       "id": "F06",
       "stage": "company_selection_existing_membership",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "No final real session; synthetic presentation is not real company selection or onboarding. No auth/tenant POST attempted."
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_get",
+      "verdict": "Existing company selection display and role navigation inspected for member and owner; no auth/tenant POST or company creation performed."
     },
     {
       "id": "F07",
       "stage": "real_authenticated_processes",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F08",
       "stage": "real_authenticated_documents",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F09",
       "stage": "real_authenticated_controls_evidence",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F10",
       "stage": "real_authenticated_risks",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F11",
       "stage": "real_authenticated_nonconformities",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F12",
       "stage": "real_authenticated_capa",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F13",
       "stage": "real_authenticated_internal_audits",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F14",
       "stage": "real_authenticated_action_center",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F15",
       "stage": "real_authenticated_organization_permissions_workflows_audit_trail",
-      "status": "BLOCKED_INFRASTRUCTURE",
-      "evidence_kind": "runtime_health",
-      "verdict": "Real authenticated GET traversal not completed or claimed while DB503; independent synthetic cases are listed separately."
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
     },
     {
       "id": "F16",
@@ -170,7 +170,7 @@
       "stage": "follow_up_action_center_to_capa",
       "status": "PASS_ISOLATED",
       "evidence_kind": "browser_memory_fixture",
-      "verdict": "Additional375px/axe case opens exact CAPA with record/unit/process UUID; no backend writes."
+      "verdict": "Additional375px/axe case opens exact CAPA with record/unit/process UUID; no backend writes. Real Action Center GET screen inspected separately; exact cross-record follow-up remains the isolated fixture evidence."
     },
     {
       "id": "F22",
@@ -213,6 +213,25 @@
     "FLOW_BROWSER_RESULTS.json",
     "FLOW_RUNTIME_AVAILABILITY.json",
     "FLOW_FIXTURE_RESULTS.json",
-    "FLOW_EVIDENCE_MANIFEST.json"
+    "FLOW_EVIDENCE_MANIFEST.json",
+    "FLOW_BROWSER_RECOVERED_INITIAL_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_SELECTOR_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_LOADING_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_HEADING_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_RESULTS.json",
+    "FLOW_RUNTIME_RECOVERED_AVAILABILITY.json"
+  ],
+  "recovered_browser_summary": {
+    "pass": 28,
+    "fail": 0,
+    "blocked": 0,
+    "expectedDenial": 0
+  },
+  "recovered_browser_limits": [
+    "Source frontend inherits PR41; real API/DB0048",
+    "No suspension0049 or new grants/page API attributed to runtime",
+    "No QMS mutation or company-switch POST",
+    "503 feedback cases explicitly mocked, not real outages",
+    "Earlier infrastructure failures and audit-selector failures retained separately"
   ]
 }

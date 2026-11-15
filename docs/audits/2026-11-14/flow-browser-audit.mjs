@@ -9,8 +9,8 @@ const { chromium, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const base = process.env.FLOW_WEB_URL ?? "http://127.0.0.1:3103";
 const api = process.env.FLOW_API_URL ?? "http://127.0.0.1:8000";
-const out = resolve("artifacts/complete-flow-audit-20261114");
-const shots = resolve("docs/audits/2026-11-14/screenshots");
+const out = resolve(process.env.FLOW_OUTPUT ?? "artifacts/complete-flow-audit-20261114");
+const shots = resolve(process.env.FLOW_SCREENSHOTS ?? "docs/audits/2026-11-14/screenshots");
 await mkdir(out, { recursive: true });
 await mkdir(shots, { recursive: true });
 const report = { startedAt: new Date().toISOString(), base, api, qmsWritesForwarded: 0, cases: [], roles: [] };
@@ -21,7 +21,7 @@ const browser = await chromium.launch({ headless: true });
 async function run(name, evidence, operation) {
   try {
     const detail = await operation();
-    report.cases.push({ name, evidence, result: "PASS", detail });
+    report.cases.push({ name, evidence, result: detail?.readOutcome === "EXPECTED_DENIAL_NOT_A_SUCCESSFUL_DATA_READ" ? "EXPECTED_DENIAL" : "PASS", detail });
   } catch (error) {
     report.cases.push({ name, evidence, result: "FAIL", error: String(error.message).slice(0, 1500) });
   }
@@ -60,14 +60,29 @@ async function authenticate(page, user, key) {
   await expect(page.getByRole("navigation", { name: "QMS modules" })).toBeVisible();
 }
 
+async function settleWorkspace(page) {
+  const active = page.locator("#qms-active-workspace");
+  await expect(active.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 20000 });
+  await expect(active.getByRole("status", { name: /^Loading/i })).toHaveCount(0, { timeout: 20000 });
+  await expect(active.getByRole("status").filter({ hasText: /^Loading\b/i })).toHaveCount(0, { timeout: 20000 });
+  await page.waitForLoadState("networkidle");
+}
+
 async function chooseUnit(page) {
-  const select = page.locator("#qms-active-workspace > section select").first();
-  if (!await select.isVisible()) return;
+  const scope = page.getByRole("combobox", { name: "Organization scope", exact: true });
+  const organizationalUnit = page.getByRole("combobox", { name: "Organizational unit", exact: true });
+  const select = await scope.count() ? scope : organizationalUnit;
+  if (!await select.count() || !await select.isVisible()) return { selection: "not required" };
   const options = select.locator('option:not([disabled])[value]:not([value=""])');
-  if (await options.count() && !await select.inputValue()) {
-    await select.selectOption(await options.first().getAttribute("value"));
+  if (!await options.count()) return { selection: "no available scope" };
+  const demo = options.filter({ hasText: "DEV-ACCESS-UI" });
+  const selected = await demo.count() === 1 ? demo : options.first();
+  const value = await selected.getAttribute("value");
+  if (await select.inputValue() !== value) {
+    await select.selectOption(value);
     await page.waitForLoadState("networkidle");
   }
+  return { selection: await selected.textContent() };
 }
 
 const publicContext = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: "reduce" });
@@ -140,44 +155,60 @@ for (const [role, user, key] of (report.runtimeHealth.status === 200 ? [["member
   if (!authenticated) { await context.close(); continue; }
   const visible = new Set(await page.getByRole("navigation", { name: "QMS modules" }).getByRole("link").evaluateAll(links => links.map(link => new URL(link.href).hash.slice(1))));
   for (const [hash, name] of modules.filter(([hash]) => visible.has(hash))) {
-    await run(`${role}: ${name} reads and accessible desktop layout`, "real runtime0048 GET APIs; source PR41 frontend", async () => {
+    await run(`${role}: ${name} reads and accessible desktop layout`, "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)", async () => {
       const responses = []; const listener = response => { if (response.url().includes("/api/identity/")) responses.push({ path: new URL(response.url()).pathname.replace("/api/identity", ""), status: response.status() }); };
       page.on("response", listener);
       try {
         await page.goto(`${base}/#${hash}`, { waitUntil: "networkidle" });
-        await chooseUnit(page);
         await expect(page.locator(`#${hash}`)).toBeVisible();
+        await settleWorkspace(page);
+        const unitSelection = await chooseUnit(page);
+        await settleWorkspace(page);
         if (name === "internal-audits") {
           await page.getByRole("tab", { name: "Scheduled audits", exact: true }).click();
-          await page.waitForLoadState("networkidle");
-          const record = page.locator(".ncr-record-list button").first();
-          if (await record.count()) {
-            await record.click(); await page.waitForLoadState("networkidle");
-            const readiness = page.getByRole("tab", { name: "Readiness", exact: true });
-            if (await readiness.count()) { await readiness.click(); await page.waitForLoadState("networkidle"); }
-          }
+          await settleWorkspace(page);
+          const record = page.locator(".ncr-record-list button").filter({ hasText: "DEMO-AUD-001" });
+          await expect(record).toBeVisible();
+          await record.click(); await settleWorkspace(page);
+          const readiness = page.getByRole("tab", { name: "Readiness", exact: true });
+          await expect(readiness).toBeEnabled();
+          await readiness.click(); await settleWorkspace(page);
+          await expect(readiness).toHaveAttribute("aria-selected", "true");
+          await expect(page.getByRole("heading", { name: "Independence and preparation", exact: true })).toBeVisible();
         }
-        return { headings: await page.locator("#qms-active-workspace").getByRole("heading").allTextContents(), alerts: await page.locator("#qms-active-workspace [role=alert]").allTextContents(), statuses: await page.locator("#qms-active-workspace [role=status]").allTextContents(), responses, ...await layout(page, name === "internal-audits" ? "audits-readiness-desktop.png" : role === "owner" && name === "permissions" ? "permissions-owner-desktop.png" : null) };
+
+        const serverErrors = responses.filter(item => item.status >= 500);
+        const denials = responses.filter(item => item.status === 403);
+        assert.deepEqual(serverErrors, [], "A screen with server errors is not a successful read");
+        assert.deepEqual(responses.filter(item => item.status >= 400 && item.status !== 403), [], "Unexpected API failure");
+        return { readOutcome: denials.length ? "EXPECTED_DENIAL_NOT_A_SUCCESSFUL_DATA_READ" : "GET_SCREEN_INSPECTED", denials, unitSelection, headings: await page.locator("#qms-active-workspace").getByRole("heading").allTextContents(), alerts: await page.locator("#qms-active-workspace [role=alert]").allTextContents(), statuses: await page.locator("#qms-active-workspace [role=status]").allTextContents(), responses, ...await layout(page, `real-${role}-${name}-desktop.png`) };
       } finally { page.off("response", listener); }
     });
   }
   await run(`${role}: mobile375 dark module navigation`, "real runtime0048 GET APIs", async () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(`${base}/#${role === "member" ? "documents-heading" : "organization-workspace-heading"}`, { waitUntil: "networkidle" });
+    await expect(page.locator(`#${role === "member" ? "documents-heading" : "organization-workspace-heading"}`)).toBeVisible();
+    await settleWorkspace(page);
     await chooseUnit(page);
-    await page.getByRole("checkbox", { name: "Use dark theme" }).check();
+    await settleWorkspace(page);
+    if (!await page.getByRole("checkbox", { name: "Use dark theme", exact: true }).isChecked()) await page.locator("label.theme-switch").click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    const moduleSelect = page.getByLabel("Module", { exact: true });
+    const moduleSelect = page.locator(".qms-mobile-navigation select");
+    await expect(moduleSelect).toHaveAccessibleName(/^Module\b/);
     await expect(moduleSelect).toBeVisible();
     await moduleSelect.selectOption("actions");
     await expect(page.locator("#action-center-heading")).toBeVisible();
+    await settleWorkspace(page);
     return layout(page, `${role}-actions-mobile-dark.png`);
   });
   await run(`${role}: 503 action-center read error`, "HTTP response mocked in browser memory; QMS backend unchanged", async () => {
     await page.route("**/api/identity/action-center?**", route => route.fulfill({ status: 503, json: { detail: "Isolated synthetic outage" } }));
+    await page.goto(`${base}/#action-center-heading`, { waitUntil: "networkidle" });
     await page.getByRole("button", { name: "Refresh action center", exact: true }).click();
-    await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
-    return { alert: await page.getByRole("alert").textContent(), ...await layout(page) };
+    const alert = page.locator("#qms-active-workspace").getByRole("alert");
+    await expect(alert).toContainText("temporarily unavailable");
+    return { alert: await alert.textContent(), ...await layout(page) };
   });
   assert.deepEqual(blocked, [], "Read-only scenarios must not attempt QMS mutations");
   await context.close();
@@ -211,7 +242,7 @@ for (const [role, caps, expected] of [["auditor", ["audits.read", "documents.rea
 
 await browser.close();
 report.finishedAt = new Date().toISOString();
-report.summary = { pass: report.cases.filter(item => item.result === "PASS").length, fail: report.cases.filter(item => item.result === "FAIL").length, blocked: report.cases.filter(item => item.result === "BLOCKED").length };
+report.summary = { pass: report.cases.filter(item => item.result === "PASS").length, fail: report.cases.filter(item => item.result === "FAIL").length, blocked: report.cases.filter(item => item.result === "BLOCKED").length, expectedDenial: report.cases.filter(item => item.result === "EXPECTED_DENIAL").length };
 await writeFile(resolve(out, "browser-results.json"), JSON.stringify(report, null, 2));
 console.log(JSON.stringify({ summary: report.summary, failed: report.cases.filter(item => item.result === "FAIL").map(({ name, error }) => ({ name, error })), qmsWritesForwarded: report.qmsWritesForwarded }));
 process.exitCode = report.summary.fail ? 1 : 0;

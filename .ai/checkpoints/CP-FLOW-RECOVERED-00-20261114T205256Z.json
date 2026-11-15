@@ -1,0 +1,13 @@
+{
+  "id": "CP-FLOW-RECOVERED-00-20261114T205256Z",
+  "branch": "codex/audit-complete-flow",
+  "baseCommit": "3c6d058e64afa10f4e3695500dbdae35a3c0ec6f",
+  "sourceEntries": 520,
+  "artifacts": {
+    "source.tar.gz.enc": "d5cdb309ade825ce7239ba0da7c90258f6cf0bfd3392da0cb209040abc788e14",
+    "repository.bundle.enc": "895a806bc3d0068db651c3116e4d318bf6230016561e2981313fd28aa7bb1105"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}
