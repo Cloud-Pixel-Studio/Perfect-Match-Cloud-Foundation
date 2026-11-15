@@ -15,6 +15,7 @@ export function ProductTour() {
   const [selected, setSelected] = useState(0);
   const buttons = useRef<Array<HTMLButtonElement | null>>([]);
   const view = views[selected];
+  const panelId = `${id}-panel`;
 
   function navigate(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     let next = index;
@@ -31,11 +32,11 @@ export function ProductTour() {
   return (
     <div className="market-tour">
       <div className="market-tour-tabs" role="tablist" aria-label="Explore quality workflows">
-        {views.map((item, index) => <button aria-controls={`${id}-panel`} aria-selected={selected === index} id={`${id}-${item.id}`} key={item.id} onClick={() => setSelected(index)} onKeyDown={(event) => navigate(event, index)} ref={(node) => { buttons.current[index] = node; }} role="tab" tabIndex={selected === index ? 0 : -1} type="button">{item.label}</button>)}
+        {views.map((item, index) => <button aria-controls={panelId} aria-selected={selected === index} id={`${id}-${item.id}`} key={item.id} onClick={() => setSelected(index)} onKeyDown={(event) => navigate(event, index)} ref={(node) => { buttons.current[index] = node; }} role="tab" tabIndex={selected === index ? 0 : -1} type="button">{item.label}</button>)}
       </div>
-      <div aria-labelledby={`${id}-${view.id}`} className="market-tour-panel" id={`${id}-panel`} role="tabpanel" tabIndex={0}>
+      <div aria-labelledby={`${id}-${view.id}`} className="market-tour-panel" id={panelId} role="tabpanel" tabIndex={0}>
         <div className="market-tour-copy"><span className="market-tour-index">0{selected + 1} / PRODUCT IN PRACTICE</span><h3>{view.title}</h3><p>{view.copy}</p><ul>{view.points.map((point) => <li key={point}><CheckCircle2 aria-hidden="true" size={17} />{point}</li>)}</ul><a href={`/brand/product/${view.id}.png`} target="_blank" rel="noopener noreferrer">Open the full capture <ArrowUpRight aria-hidden="true" size={16} /></a></div>
-        <figure className="market-tour-capture"><div><Image alt={`${view.label}: real Perfect Match QMS interface with synthetic demo data`} height={view.id === "documents" ? 762 : 800} src={`/brand/product/${view.id}.png`} width={1192} unoptimized /></div><figcaption>{view.record}<span>Real interface · synthetic demo data · partial view</span></figcaption></figure>
+        <figure className="market-tour-capture"><div><Image alt={`${view.label}: real BEMS Quality interface with synthetic demo data`} height={view.id === "documents" ? 762 : 800} src={`/brand/product/${view.id}.png`} width={1192} unoptimized /></div><figcaption>{view.record}<span>Real interface · synthetic demo data · partial view</span></figcaption></figure>
       </div>
     </div>
   );
