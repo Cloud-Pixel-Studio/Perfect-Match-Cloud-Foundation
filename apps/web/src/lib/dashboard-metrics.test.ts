@@ -15,7 +15,7 @@ describe("dashboard metric visibility", () => {
 
   it("never creates fake values and does not duplicate metrics", () => {
     const metrics = visibleDashboardMetrics(workspaceSectionsForContext("member", ["documents.read", "risks.manage", "capa.read", "nonconformities.read"]));
-    expect(new Set(metrics.map((metric) => metric.module).size).toBe(metrics.length);
+    expect(new Set(metrics.map((metric) => metric.module)).size.toBe(metrics.length);
     expect(metrics.every((metric) => !("value" in metric))).toBe(true);
   });
 
