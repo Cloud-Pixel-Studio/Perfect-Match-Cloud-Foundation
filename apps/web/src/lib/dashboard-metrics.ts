@@ -21,3 +21,8 @@ export function visibleDashboardMetrics(
   const visible = new Set(sections.flatMap((section) => section.items.map((item) => item.id)));
   return plannedDashboardMetrics.filter((metric) => visible.has(metric.module));
 }
+
+/** Trend preview is relevant only where the viewer can access NCR or CAPA. */
+export function canPreviewQualityTrends(metrics: readonly DashboardMetric[]): boolean {
+  return metrics.some((metric) => metric.module === "nonconformities" || metric.module === "capa");
+}
