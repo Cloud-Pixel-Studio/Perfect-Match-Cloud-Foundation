@@ -24,3 +24,5 @@ python3 security/tests/test_checkpoint_secret_allowlist.py
 ./scripts/check-licenses.sh
 
 printf 'Focused checkpoint commands passed. Full scanner evidence is collected separately.\n'
+
+python3 -m unittest discover -s tests -p "test_*.py"
