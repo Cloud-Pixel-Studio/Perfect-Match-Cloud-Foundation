@@ -37,7 +37,7 @@ export function completeMonthlySeries(
 ): readonly { month: string; count: number }[] | null {
   if (new Set(months).size !== months.length) throw new RangeError("Duplicate month keys");
   // Reject invalid or out-of-order periods rather than plotting misleading trends.
-  if (months.some((month) => !/^\\d{4}-(0[1-9]|1[0-2])$/.test(month))) {
+  if (months.some((month) => typeof month !== "string" || month.length !== 7 || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month))) {
     throw new RangeError("Months must use YYYY-MM with a valid calendar month");
   }
   if (months.some((month, index) => index > 0 && month <= months[index - 1])) {

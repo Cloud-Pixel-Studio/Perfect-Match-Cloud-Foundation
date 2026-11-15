@@ -28,6 +28,21 @@ describe("KPI calculation contracts", () => {
     expect(completeMonthlySeries(["2026-09", "2026-10"], { "2026-09": 0 })).toBeNull();
   });
 
+  it.each(Array.from({ length: 12 }, (_, month) => `2026-${String(month + 1).padStart(2, "0")}`))(
+    "accepts every valid calendar month %s without inventing observations",
+    (month) => {
+      expect(completeMonthlySeries([month], { [month]: 0 })).toEqual([{ month, count: 0 }]);
+      expect(completeMonthlySeries([month], {})).toBeNull();
+    },
+  );
+
+  it.each(["2026-01\n", "2026-01\r\n", " 2026-01", "2026-01 ", "\\d{4}-01"])(
+    "rejects decorated or nonnumeric period %j",
+    (month) => {
+      expect(() => completeMonthlySeries([month], { [month]: 0 })).toThrow(RangeError);
+    },
+  );
+
   it("rejects malformed, non-calendar and unordered monthly periods", () => {
     for (const month of ["2026-00", "2026-13", "2026-1", "2026/01", "2026-01-extra"]) {
       expect(() => completeMonthlySeries([month], { [month]: 1 })).toThrow(RangeError);
