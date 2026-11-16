@@ -87,5 +87,6 @@ vigente; ninguna de estas correcciones autoriza merge o producción.
 
 Pendientes: aceptación de usuarios, visuales responsive poblados/screen reader,
 escala/performance, resolución de vendors y demás dominios funcionales/comerciales.
-Los workflows auditor-only y su defensa SQL completa son otra brecha: ocultar su
-tarea ejecutable en esta cola no corrige su publicación ni amplía autorizaciones.
+La cola no corrigió por sí sola la publicación auditor-only. La entrega posterior
+WORKFLOW_EXECUTOR_VALIDATION.md cierra esa validación API; la defensa SQL completa
+sigue pendiente. Ninguna de ellas amplía autorizaciones.
