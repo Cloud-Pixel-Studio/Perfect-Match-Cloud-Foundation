@@ -61,6 +61,7 @@ from pmc_api.models import (
     QMSControlInstanceEvidence,
     QMSDocument,
     QMSProcess,
+    QMSProcessSite,
 )
 from pmc_api.organization_service import OrganizationActor
 from pmc_api.processes import (
@@ -324,6 +325,77 @@ def test_process_sites_are_multi_valued_scoped_and_audited() -> None:
             {"id": row.id},
         )
         assert event["site_ids"] == []
+
+
+@pytest.mark.parametrize("sites", [[], [SITE]])
+def test_process_form_edits_fields_and_sites_in_one_version(sites: list[UUID]) -> None:
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        row = create(db, site_ids=[SITE])
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        row = update_process(
+            db,
+            actor(),
+            uuid4(),
+            row.id,
+            ProcessPatch(expected_version=1, name="Form update with sites", site_ids=sites),
+        )
+        assert row.name == "Form update with sites"
+        assert row.row_version == 2
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        assert set(
+            db.scalars(
+                select(QMSProcessSite.site_unit_id).where(QMSProcessSite.process_id == row.id)
+            )
+        ) == set(sites)
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        event = db.scalar(
+            text(
+                "SELECT new_values FROM audit_events WHERE resource_id=:id AND action='process.updated'"
+            ),
+            {"id": row.id},
+        )
+        assert event["row_version"] == 2
+        assert event["site_ids"] == sorted(str(site) for site in sites)
+
+
+def test_invalid_site_form_edit_rolls_back_process_and_audit() -> None:
+    with Session(engine("PMC_TEST_RUNTIME_DATABASE_URL"), expire_on_commit=False) as db:
+        row = create(db, site_ids=[SITE])
+        process_id, original_name = row.id, row.name
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        with pytest.raises(HTTPException) as error:
+            update_process(
+                db,
+                actor(),
+                uuid4(),
+                process_id,
+                ProcessPatch(
+                    expected_version=1,
+                    name="Must roll back",
+                    site_ids=[FOREIGN_SITE],
+                ),
+            )
+        assert error.value.status_code == 409
+        set_request_context(db, user_id=MEMBER, tenant_id=TENANT_A)
+        db.expire_all()
+        persisted = db.get(QMSProcess, process_id)
+        assert persisted is not None and persisted.name == original_name
+        assert persisted.row_version == 1
+        assert list(
+            db.scalars(
+                select(QMSProcessSite.site_unit_id).where(QMSProcessSite.process_id == process_id)
+            )
+        ) == [SITE]
+        set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+        assert (
+            db.scalar(
+                text(
+                    "SELECT count(*) FROM audit_events WHERE resource_id=:id AND action='process.updated'"
+                ),
+                {"id": process_id},
+            )
+            == 0
+        )
 
 
 def test_process_site_rejects_foreign_tenant() -> None:
