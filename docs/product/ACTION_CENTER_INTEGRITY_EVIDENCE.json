@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "checks": [
+    "operator: summary independent of page size",
+    "operator: source totals reconcile",
+    "operator: page bound respected",
+    "operator: exact unit scope excludes unitless workflows",
+    "reviewer: summary independent of page size",
+    "reviewer: source totals reconcile",
+    "reviewer: page bound respected",
+    "reviewer: exact unit scope excludes unitless workflows",
+    "operator: team oversight denied",
+    "operator: CAPA items reference actionable parent states"
+  ],
+  "check_count": 10,
+  "results": {
+    "operator": {
+      "all_summary": {
+        "total": 6,
+        "overdue": 1,
+        "due_soon": 1,
+        "unassigned": 0,
+        "by_source": {
+          "capa": 3,
+          "workflow": 1,
+          "control_activity": 2
+        }
+      },
+      "practice_summary": {
+        "total": 3,
+        "overdue": 0,
+        "due_soon": 0,
+        "unassigned": 0,
+        "by_source": {
+          "capa": 1,
+          "control_activity": 2
+        }
+      }
+    },
+    "reviewer": {
+      "all_summary": {
+        "total": 0,
+        "overdue": 0,
+        "due_soon": 0,
+        "unassigned": 0,
+        "by_source": {}
+      },
+      "practice_summary": {
+        "total": 0,
+        "overdue": 0,
+        "due_soon": 0,
+        "unassigned": 0,
+        "by_source": {}
+      }
+    }
+  },
+  "business_mutations": 0,
+  "runtime_database": "0048 unchanged",
+  "tests": {
+    "http_postgres": 18,
+    "workflow_postgres_regression": 31,
+    "api_unit": 93,
+    "db_skipped_without_harness": 530
+  },
+  "scope": "read-only queue; no database/schema/grant/production change",
+  "browser": {
+    "runtime": "local real, no mocks",
+    "populated_queue_items": 6,
+    "exact_capa_parent_child_navigation": "PASS",
+    "highlighted_targets": 1,
+    "all_ui_buttons_tested": false
+  }
+}
