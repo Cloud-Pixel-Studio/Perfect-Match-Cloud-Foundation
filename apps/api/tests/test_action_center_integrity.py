@@ -361,7 +361,9 @@ def test_workflow_eligibility_matches_assignment_types(
 def test_auditor_assignment_is_not_presented_as_personal_executable_work(
     boundary: Boundary,
 ) -> None:
-    version = workflow_version(boundary, "user", str(USERS["auditor"]))
+    # A valid executor can later become read-only; preserve the legacy-instance
+    # queue regression without publishing a newly invalid auditor-only graph.
+    version = workflow_version(boundary, "user", str(USERS["admin"]))
     boundary.call(
         "POST",
         "/workflow-instances",
@@ -371,10 +373,13 @@ def test_auditor_assignment_is_not_presented_as_personal_executable_work(
         },
         expected=201,
     )
-    assert boundary.call("GET", "/action-center", role="auditor")["summary"]["total"] == 0
-    assert (
-        boundary.call("GET", "/action-center?scope=team", role="auditor")["summary"]["total"] == 2
-    )
+    with boundary.admin.begin() as db:
+        db.execute(
+            text("UPDATE memberships SET role='auditor' WHERE tenant_id=:t AND user_id=:u"),
+            {"t": A, "u": USERS["admin"]},
+        )
+    assert boundary.call("GET", "/action-center", role="admin")["summary"]["total"] == 0
+    assert boundary.call("GET", "/action-center?scope=team", role="admin")["summary"]["total"] == 2
 
 
 def control_work(case: Boundary) -> tuple[dict[str, Any], dict[str, Any]]:

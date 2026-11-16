@@ -113,6 +113,7 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-workflow-integrity.sh
+      - run: ./scripts/run-workflow-executor-integrity.sh
 
   qms-access-integrity:
     runs-on: ubuntu-24.04

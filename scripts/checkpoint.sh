@@ -8,6 +8,7 @@ make test ENV_FILE="$env_file"
 ./scripts/run-audit-integrity.sh
 ./scripts/run-organization-integrity.sh
 ./scripts/run-workflow-integrity.sh
+./scripts/run-workflow-executor-integrity.sh
 ./scripts/run-qms-access-integrity.sh
 ./scripts/run-qms-access-history-integrity.sh
 ./scripts/run-tenant-suspension-integrity.sh
