@@ -25,4 +25,4 @@ python3 security/tests/test_checkpoint_secret_allowlist.py
 
 printf 'Focused checkpoint commands passed. Full scanner evidence is collected separately.\n'
 
-python3 -m unittest discover -s tests -p "test_*.py"
+uv run --project apps/api --no-sync python -m unittest discover -s tests -p "test_*.py"
