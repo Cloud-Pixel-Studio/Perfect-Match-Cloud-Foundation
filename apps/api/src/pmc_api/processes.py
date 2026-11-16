@@ -242,10 +242,15 @@ def update_process(
     site_ids = changes.pop("site_ids", None)
     for key, value in changes.items():
         setattr(row, key, value)
-    if site_ids is not None:
-        _replace_sites(db, row, site_ids)
     row.row_version += 1
     row.updated_at = datetime.now(UTC)
+    if site_ids is not None:
+        # Replacing site links executes SQL and may autoflush the edited parent.
+        # Its version must already advance once when the integrity trigger runs.
+        try:
+            _replace_sites(db, row, site_ids)
+        except DBAPIError as error:
+            _database_error(db, error)
     return _commit(db, actor, request_id, row, "process.updated", before)
 
 
