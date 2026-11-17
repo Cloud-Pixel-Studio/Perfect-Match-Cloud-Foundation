@@ -1,0 +1,9 @@
+{
+  "id": "CP-AUDIT-READINESS-00-20261117T003532Z",
+  "branch": "codex/workflow-executor-validation",
+  "baseCommit": "8e31a588330bdeb9c8d82cc5d575af50b6c6e0c0",
+  "sourceEntries": 557,
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

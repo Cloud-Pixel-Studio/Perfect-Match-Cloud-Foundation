@@ -2,11 +2,18 @@
 
 ## Retomar
 - Repositorio oficial: Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation. Odoo es solo referencia funcional; no introducir sus dependencias ni mezclar infraestructura.
-- Rama actual: **codex/workflow-executor-validation**, base PR56/0aabd96. Consultar git status/HEAD/upstream y PR asociado antes de editar. Sin merge/producción; revisión humana requerida.
+- Rama actual: **codex/audit-readiness-consistency**, base PR57/8e31a58. Consultar git status/HEAD/upstream y PR asociado antes de editar. Sin merge/producción; revisión humana requerida.
 - Empresa=tenant independiente; sedes/departamentos son unidades. QMS completo es base, addons=normas/ediciones ISO. Básico1empresa+3seats+1ISO es propuesta del usuario, sin precio ni enforcement implementados.
 - Stack vigente: Next/React/TypeScript/Inter/Lucide/tokens claro-oscuro; FastAPI/PostgreSQL FORCE RLS/Keycloak OIDC/storage privado/ClamAV. No reescribir lo operativo.
 
-## Último hito: ejecutores Workflow
+## Último hito: preparación de auditorías consistente
+- Leer docs/product/AUDIT_PREPARATION_CONSISTENCY.md. API detecta evaluaciones de independencia/competencia añadidas o retiradas durante la consulta (409/refresh), revalida empresa/actor/lectura y los permisos usados para totales sensibles (403/404). Competencia recalcula la disponibilidad de evaluar tras revocación de review. Historial intacto; sin grants/esquemas/contratos nuevos.
+-6 fallos reproducidos antes del fix→6 PASS;127 integración PostgreSQL0049 PASS sobre código final;6 compatibilidad0048 PASS.93 unitarias PASS/568DB omitidas sin harness. Ruff/formato79/mypy43, diff PASS; OpenGrep6reglas/2archivos0, Gitleaks árbol0. Sin nuevo browser/buildfrontend/WCAG.
+- Preview API local actualizado SOLO internal_audit_independence.py/internal_audit_competence.py; health/rootfs-readonly/cap_drop/no-new-privileges PASS.24 comprobaciones OIDC/API/proxy PASS, incluida denegación otra empresa.0mutaciones QMS/grants/schema. Lecturas puntuales; no snapshot serializable ni autoridad de ejecución. ready_for_execution sigue false.
+-CP-AUDIT-READINESS-00-20261117T003532Z y02-20261117T004122Z:557 fuentes/Git restauradas SHA256/bundle PASS;2 archivos runtime previos cifrados/descifrados idénticos. Imagen anterior pmcloud-api:before-audit-readiness-20261117. Sin cambio DB; no nuevo restoreDB/S3 afirmado.
+-PR57 calidad43975076042/CodeQL43975076095 PASS; seguridad43975076032 falla solo control final de release. CI del nuevo head y revisión independiente/humana pendientes. No merge/producción.
+
+## Hito previo: ejecutores Workflow
 - Leer docs/product/WORKFLOW_EXECUTOR_VALIDATION.md y WORKFLOW_EXECUTOR_EVIDENCE.json. A05 corregido en API: cada usuario/rol/unidad asignado debe disponer de ejecutor activo owner/admin/member; auditor técnico solo lectura, unidad vacía insuficiente.
 - Publicación e inicio revalidan responsables; inicio valida pasos futuros. Transiciones a tareas/aprobaciones exigen ejecutor destino. Inicio terminal y publicación/inicio de plantilla retirada se rechazan. Instancias previas pueden terminar; versiones/historia intactas. No autogrants ni cambio de roles/modelos/migraciones/deps. A06 SQL completo y A09 editor/paginación siguen pendientes.
 - Pruebas:4RED previos corregidos;32HTTP/PostgreSQL0049 PASS y32compatibilidad0048 PASS;31Workflowlegacy y18CentroAcciones PASS. Caso cola de auditor ahora publica con admin válido y cambia a auditor después, sin omitir cobertura.
@@ -16,7 +23,7 @@
 - http://127.0.0.1:3000/ y /products. Tenant A; unidad **DEMO-PRACTICA · DEMO · Laboratorio de práctica**. Operador pmc-user-a; revisor pmc-multi-user; owner pmc-local-owner configura. Contraseñas en fichero privado, nunca Git.
 - Leer docs/product/DEMO_SANDBOX.md. Ejemplos LAB-* persistentes: procesos/documentos-PDF/controles-tareas-evidencia/riesgos/NCR/CAPA/planificación auditoría/Workflow. LAB-QA/LAB-WFX son pruebas con historia. Retirar/cancelar/archivar según dominio, no borrar historia ni resetear datos.
 - scripts/seed-demo-sandbox.py --verify solo lee; --apply añade sin sobrescribir ni restaurar grants revocados. scripts/exercise-demo-sandbox.py --apply tiene47checks; runtime-workflow-executors-e2e.py --apply crea SOLO QA local y requiere checkpoint DB verificado. Sin --apply no escriben negocio.
-- Runtime sigue **DB0048/PR39** con capas API locales: processes.py fix formulario, action_center.py/action_center_queries.py, workflow_service.py y dependencia existente tenant_access.py. Esta última comprueba empresa/actor activos en API Workflow. No se desplegó toda suspensión legacy/RLS0049 ni A02; no atribuirlos al runtime.
+- Runtime sigue **DB0048/PR39** con capas API locales: processes.py fix formulario, action_center.py/action_center_queries.py, workflow_service.py y dependencia existente tenant_access.py y los2 módulos de preparación de auditorías del último hito. tenant_access.py comprueba empresa/actor activos en API Workflow. No se desplegó toda suspensión legacy/RLS0049 ni A02; no atribuirlos al runtime.
 - Solo API recreada, rootfs read-only/cap_drop/no-new-privileges conservados. Imagen anterior: pmcloud-api:before-workflow-executors-20261116. Otros servicios/datos previos intactos; no vendors nuevos ni producción.
 
 ## Entregas y seguridad
