@@ -19,7 +19,8 @@ make test ENV_FILE="$env_file"
 make build ENV_FILE="$env_file"
 make health ENV_FILE="$env_file"
 ./security/opengrep/test-rules.sh
-opengrep scan --no-git-ignore --config security/opengrep/rules.yml --exclude security/tests/fixtures .
+# Match CI's source scope; generated toolchains and builds remain gitignored.
+opengrep scan --error --strict --config security/opengrep/rules.yml --exclude security/tests/fixtures .
 gitleaks dir --config .gitleaks.toml --redact --no-banner .
 gitleaks git --config .gitleaks.toml --redact --no-banner .
 python3 security/tests/test_checkpoint_secret_allowlist.py
