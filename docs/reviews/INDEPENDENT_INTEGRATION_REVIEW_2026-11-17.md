@@ -75,3 +75,36 @@ mutation or new DB restoration is asserted for this CI-only change.
 Original PRs and review discussions remain preserved. Integration must receive
 follow-up review and exact-head checks; then the official Keycloak release
 blocker must be remediated before the normal integration order can proceed.
+
+
+## CI-discovered disposable-port collision
+
+Quality run44101322213 on69fb164 failed in job134101766093 before the document
+review tests: Docker exit125, binding127.0.0.1:55478 already in use. The previous
+process suite had202 PASS. No product handler had changed. This infrastructure
+failure is recorded rather than concealed by repeatedly requesting a green run.
+
+The document-review and next Action Center harnesses now let Docker allocate an
+available host port while preserving127.0.0.1-only exposure. An explicit
+PMC_TEST_POSTGRES_PORT is still honored after numeric1..65535 validation; a
+collision with an explicit override is an error. Each script reads and validates
+the binding of its own named container before constructing SQL URLs. Tmpfs,
+ephemeral credentials, fixture database guards and owned-container cleanup remain.
+No system process is killed and no demo/customer database is used.
+
+Local reproduction held BOTH55478 and55479 occupied before running the existing
+suites. Document review18 PASS on127.0.0.1:32769, Action Center18 PASS on:32770;
+both owned containers were removed by their normal traps. Six invalid-port
+configurations failed explicitly with exit2. These36 executions repeat existing
+coverage under a new port-occupation scenario; do not add them to the273 distinct
+baseline DB tests. ShellCheck, bash syntax and diff checks PASS.
+
+The independent reviewer inspected the port fix, override/error path, loopback
+restriction and the reservation harness, and independently ran syntax/ShellCheck
+checks with no new findings. The reviewer did not re-run the real DB suites;
+the two execution results above were verified by the implementing agent.
+
+CP-INTEGRATION-REVIEW-06B-20261117T141712Z seals702 source/Git files at published
+69fb164 before this second fix, with AES-GCM restoration/hash/bundle/tamper PASS.
+A new exact-head CI is required for the harness correction. Neither this fix nor
+the candidate-schema correction resolves the official Keycloak6HIGH blocker.

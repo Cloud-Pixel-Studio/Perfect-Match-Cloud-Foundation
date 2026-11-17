@@ -9,13 +9,24 @@ else
   ./scripts/build-test-postgres.sh
 fi
 container="pmcloud-action-center-integrity-$$"
-port=${PMC_TEST_POSTGRES_PORT:-55479}
+# Let Docker allocate an available loopback port for the disposable database.
+port=${PMC_TEST_POSTGRES_PORT:-}
+if [[ -n "$port" ]] && { [[ ! "$port" =~ ^[0-9]+$ ]] || (( 10#$port < 1 || 10#$port > 65535 )); }; then
+  echo "PMC_TEST_POSTGRES_PORT must be a TCP port between 1 and 65535" >&2
+  exit 2
+fi
 bootstrap_password=$(openssl rand -hex 24)
 migration_password=$(openssl rand -hex 24)
 runtime_password=$(openssl rand -hex 24)
 cleanup() { docker rm -f "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 docker run --tmpfs /var/lib/postgresql:rw,nosuid,nodev,size=512m --detach --rm --name "$container" --publish "127.0.0.1:${port}:5432" --env POSTGRES_DB=pmcloud_tenant_suspension --env POSTGRES_USER=pmcloud_bootstrap --env POSTGRES_PASSWORD="$bootstrap_password" pmcloud-postgres:local >/dev/null
+binding=$(docker port "$container" 5432/tcp)
+if [[ ! "$binding" =~ ^127\.0\.0\.1:([0-9]+)$ ]]; then
+  echo "Unable to resolve the isolated PostgreSQL loopback binding" >&2
+  exit 1
+fi
+port=${BASH_REMATCH[1]}
 for _ in $(seq 1 30); do docker exec "$container" pg_isready -U pmcloud_bootstrap -d pmcloud_tenant_suspension >/dev/null 2>&1 && break; sleep 1; done
 export POSTGRES_DB=pmcloud_tenant_suspension POSTGRES_MIGRATION_USER=pmcloud_migrator POSTGRES_MIGRATION_PASSWORD="$migration_password" POSTGRES_RUNTIME_USER=pmcloud_app POSTGRES_RUNTIME_PASSWORD="$runtime_password"
 export PMC_DATABASE_ADMIN_URL="postgresql+pg8000://pmcloud_bootstrap:${bootstrap_password}@127.0.0.1:${port}/pmcloud_tenant_suspension"
