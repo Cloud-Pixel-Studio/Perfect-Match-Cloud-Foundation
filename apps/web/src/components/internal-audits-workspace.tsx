@@ -2,6 +2,7 @@
 
 import { CalendarDays, ClipboardList, Plus, RefreshCw } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useId, useRef, useState } from "react";
+import { AuditPlanDownload } from "./audit-plan-download";
 import { AuditDetailSections } from "./audit-detail-sections";
 import { InternalAuditCompetence } from "./internal-audit-competence";
 import { InternalAuditIndependence } from "./internal-audit-independence";
@@ -319,6 +320,7 @@ function PlanningScope({ unit, capabilities, onAccessError, onBusyChange }: {
           <p className="ia-scope-summary">{selected.objective || "No program objective recorded."}</p>
           <dl className="ncr-metadata"><div><dt>{isProgram(selected) ? "Starts" : "Planned start"}</dt><dd>{dateLabel(isProgram(selected) ? selected.date_start : selected.planned_start)}</dd></div><div><dt>{isProgram(selected) ? "Ends" : "Planned end"}</dt><dd>{dateLabel(isProgram(selected) ? selected.date_end : selected.planned_end)}</dd></div><div><dt>{isProgram(selected) ? "Responsible person" : "Lead auditor"}</dt><dd>{ownerLabel(isProgram(selected) ? selected.owner_user_id : selected.lead_auditor_user_id)}</dd></div><div><dt>Version</dt><dd>{selected.row_version}</dd></div>
             {!isProgram(selected) && <div className="ncr-wide"><dt>Program</dt><dd>{selected.program_id ? programNames[selected.program_id] ?? "Linked program" : "Standalone audit"}</dd></div>}</dl>
+          {!isProgram(selected) && <AuditPlanDownload key={selected.id + "-" + selected.row_version} audit={selected} unitLabel={unit.code + " · " + unit.name} disabled={locked || !!editor || !!command} onBusyChange={value => { pending.current = value; setBusy(value); busyCallback.current(value); }} onAccessChanged={status => invalidate(new ResponseError(status))} />}
           {isProgram(selected) ? <section className="ncr-read-section"><h4>Program description</h4><p>{selected.description || "No additional description recorded."}</p></section> : <>
             <AuditDetailSections key={selected.id} disabled={busy || !!editor || !!command}
               scope={<>            <section className="ncr-read-section"><h4>Scope summary</h4><p>{selected.scope_summary || "No scope summary recorded."}</p></section>
