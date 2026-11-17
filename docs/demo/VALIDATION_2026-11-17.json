@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-17",
+  "application_source_sha": "d707210ee615c09798304f4256e86fab59d47847",
+  "origin": "https://demo.3-238-70-198.sslip.io",
+  "purpose": "isolated synthetic demo, public marketing and authenticated company workspaces",
+  "api_checks": {
+    "status": "PASS",
+    "checks": [
+      "organization create/edit",
+      "grant effective",
+      "grant revoked",
+      "organization archive",
+      "organization restore",
+      "process create/edit",
+      "process archive",
+      "process restore",
+      "risk create/edit",
+      "risk controlled close",
+      "closed risk immutable",
+      "NCR create/edit",
+      "NCR cancel",
+      "CAPA create/edit",
+      "CAPA cancel",
+      "document Initial practice file",
+      "existing file overwrite denied",
+      "document Revised practice file",
+      "document scanned clean",
+      "document obsolete",
+      "control create/edit",
+      "activity definition edit",
+      "implementation create/edit",
+      "task assigned",
+      "task in progress",
+      "evidence edited",
+      "evidence submitted",
+      "unauthorized evidence review denied",
+      "independent evidence rejection",
+      "QA task completed",
+      "control retired",
+      "audit program create/edit",
+      "audit create/edit",
+      "audit scope create/edit",
+      "audit scope withdraw",
+      "audit cancel",
+      "audit program cancel",
+      "workflow create/edit",
+      "workflow retire",
+      "select independent company",
+      "cross-company denial processes",
+      "cross-company denial risks",
+      "cross-company denial nonconformities",
+      "cross-company denial capas",
+      "cross-company denial controls",
+      "cross-company denial internal-audits",
+      "audit events retained"
+    ],
+    "check_count": 47,
+    "run_suffix": "1117215401",
+    "runtime_schema": "not inspected by this API harness; verify deployment inventory separately",
+    "writes": "only new synthetic QA records and one temporary grant revoked; no deletion",
+    "limitations": "API round trips, not all UI buttons or Odoo parity. QA records retained with history."
+  },
+  "workflow_checks": {
+    "status": "PASS",
+    "checks": [
+      "empty unit publication denied",
+      "failed publication preserves draft",
+      "terminal start publication denied",
+      "valid publication and start",
+      "assigned operator completes step",
+      "history retained",
+      "retired definition start denied",
+      "existing history unchanged after denied start"
+    ],
+    "synthetic_qa_only": true,
+    "grant_or_role_changes": 0,
+    "deletions": 0,
+    "run_suffix": "1117215847"
+  },
+  "repeat_seed": {
+    "new_records": 0,
+    "companies": 2,
+    "edits_and_history_preserved": true
+  },
+  "python_root_tests": {
+    "count": 90,
+    "result": "PASS",
+    "tool_wrapper_required": true
+  },
+  "targeted_sast": {
+    "rules": 6,
+    "python_files": 2,
+    "findings": 0,
+    "result": "PASS --error --strict",
+    "not_full_security_audit": true
+  },
+  "gitleaks_worktree": {
+    "result": "PASS",
+    "findings": 0,
+    "private_credential_file_outside_scan_and_repository": true
+  },
+  "schema": "0049_tenant_suspension",
+  "db_restore": {
+    "checkpoint": "CP-DEMO-DATA-01",
+    "tables": 57,
+    "data_comparison": "ordered row JSON hash and counts equal",
+    "isolated_network": "none",
+    "data_volume": "temporary tmpfs",
+    "owner_and_privileges_restored": false,
+    "s3_or_keycloak_restore_proven": false,
+    "encrypted_copy_off_vm": true
+  },
+  "browser": {
+    "marketing_to_oidc_to_company_panel": "PASS operator",
+    "document_pdf_download_sha256": "63c18247dad80875f0f073362dfc86d3bb16005432442784af2b09dc71e81d18",
+    "audit_plan": "LAB-AUD-002 version 5 HTML downloaded",
+    "all_buttons_tested": false,
+    "screenshots": "artifacts/previews/2026-11-17-vm-demo (ignored, local)"
+  },
+  "security_limitations": [
+    "Six HIGH findings in evaluated pinned Keycloak image remain production release blockers.",
+    "No authenticated penetration test or load test claimed.",
+    "Public marketing was explicitly requested by the user; no outer BasicAuth remains.",
+    "Application authentication, permissions, tenant isolation and file scanning remain enabled."
+  ],
+  "production_release_approved": false,
+  "previous_installation_preserved": true
+}
