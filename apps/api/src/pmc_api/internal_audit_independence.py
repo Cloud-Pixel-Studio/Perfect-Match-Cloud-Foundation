@@ -17,6 +17,7 @@ from pmc_api import audit_service
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.database import get_db
 from pmc_api.internal_audit_competence import _counts as competence_counts
+from pmc_api.internal_audit_competence import _latest as latest_competence_review
 from pmc_api.internal_audits import _audit, _audit_values, _db_error
 from pmc_api.models import QMSAuditIndependenceReview, QMSInternalAudit
 from pmc_api.qms_access import actor_context, require_capability
@@ -210,6 +211,8 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
             text("SELECT qms_has_capability('documents.read',:unit)"), {"unit": parent.unit_id}
         )
     )
+    competence_review = latest_competence_review(db, parent) if document_access else None
+    competence_version = competence_review.review_version if competence_review else 0
     competence = competence_counts(db, parent) if document_access else None
     base_blockers = _eligibility(parent, actor.user_id, facts)
     current = bool(
@@ -314,9 +317,24 @@ def get_independence(audit_id: UUID, db: DB, authenticated: Authenticated) -> In
             ),
         ),
     ]
-    db.refresh(parent)
+    # Plan versions do not change when an assessment is appended or withdrawn.
+    # Recheck both histories and the privileges used to produce this diagnostic.
+    # These remain point-in-time reads, never reusable execution authorization.
+    actor = actor_context(db, authenticated)
+    db.expire(parent)
+    parent = _audit(db, actor, audit_id)
+    if facts["review_authority"]:
+        require_capability(db, "audits.review", parent.unit_id)
+    if document_access:
+        require_capability(db, "documents.read", parent.unit_id)
     if parent.row_version != version:
         raise HTTPException(409, "plan changed during preparation check; refresh")
+    last_review = _latest(db, parent)
+    last_competence = latest_competence_review(db, parent) if document_access else None
+    if (last_review.review_version if last_review else 0) != (
+        review.review_version if review else 0
+    ) or (last_competence.review_version if last_competence else 0) != competence_version:
+        raise HTTPException(409, "assessment history changed during preparation check; refresh")
     return IndependenceSummary(
         audit_id=parent.id,
         unit_id=parent.unit_id,

@@ -930,3 +930,78 @@ def test_audit_read_revoked_after_summary_materialization_returns_access_denial(
         assert revoked and denied.value.status_code in {403, 404}
     finally:
         runtime.dispose()
+
+
+def test_preparation_rejects_competence_withdrawn_during_read(
+    case: Case, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record(case)
+    db = case.plan.records.r.db
+    original = competence._counts
+    runtime = _engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    changed = False
+
+    def withdraw_after_count(*args: Any, **kwargs: Any) -> tuple[int, int]:
+        nonlocal changed
+        result = original(*args, **kwargs)
+        if not changed:
+            changed = True
+            with Session(runtime) as other:
+                competence.create_review(
+                    case.plan.parent,
+                    body(case, version=1, decision="withdrawn"),
+                    _request(),
+                    other,
+                    _authenticated(REVIEWER),
+                )
+        return result
+
+    monkeypatch.setattr(independence, "competence_counts", withdraw_after_count)
+    try:
+        with pytest.raises(HTTPException) as conflict:
+            independence.get_independence(case.plan.parent, db, _authenticated(REVIEWER))
+        assert changed and conflict.value.status_code == 409
+        fresh = independence.get_independence(case.plan.parent, db, _authenticated(REVIEWER))
+        assert next(c.status for c in fresh.checks if c.code == "competence") == "blocked"
+        assert not fresh.ready_for_execution
+    finally:
+        runtime.dispose()
+
+
+def test_competence_rechecks_review_action_after_materialization(
+    case: Case, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    db = case.plan.records.r.db
+    set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+    grant = db.scalar(
+        text(
+            "SELECT id FROM qms_access_grants WHERE user_id=:user AND unit_id=:unit "
+            "AND capability='audits.review' AND status='active'"
+        ),
+        {"user": REVIEWER, "unit": UNIT_A},
+    )
+    assert grant
+    db.rollback()
+    original = db.execute
+    runtime = _engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    revoked = False
+
+    def revoke_after_materialization(statement: Any, *args: Any, **kwargs: Any) -> Any:
+        nonlocal revoked
+        result = original(statement, *args, **kwargs)
+        if not revoked and "from totals" in str(statement).lower():
+            frozen = result.freeze()
+            revoked = True
+            with Session(runtime) as other:
+                set_request_context(other, user_id=OWNER, tenant_id=TENANT_A)
+                revoke_grant(other, _actor(OWNER, "owner"), uuid4(), grant)
+            return frozen()
+        return result
+
+    monkeypatch.setattr(db, "execute", revoke_after_materialization)
+    try:
+        result = summary(case)
+        assert revoked and not result.can_review
+        assert "An explicit audits.review responsibility is required." in result.review_blockers
+    finally:
+        runtime.dispose()

@@ -243,7 +243,6 @@ def get_competence(
     actor = actor_context(db, authenticated)
     version = parent.row_version
     latest = _latest(db, parent)
-    blockers = _blockers(db, parent, actor.user_id)
     snapshot = (
         db.execute(
             text(
@@ -289,6 +288,7 @@ SELECT totals.planned_auditors,totals.current_assessments,page.*
         )
         for row in rows
     ]
+    actor = actor_context(db, authenticated)
     db.expire(parent)
     parent = _audit(db, actor, audit_id)
     require_capability(db, "documents.read", parent.unit_id)
@@ -297,6 +297,7 @@ SELECT totals.planned_auditors,totals.current_assessments,page.*
         latest.review_version if latest else 0
     ):
         raise HTTPException(409, "plan or competence history changed during check; refresh")
+    blockers = _blockers(db, parent, actor.user_id)
     return CompetenceSummary(
         audit_id=parent.id,
         unit_id=parent.unit_id,

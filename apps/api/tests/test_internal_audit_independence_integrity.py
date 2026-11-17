@@ -12,6 +12,7 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm import Session
 from test_internal_audit_agenda_integrity import Records, person
 from test_internal_audit_agenda_integrity import add as add_agenda
 from test_internal_audit_agenda_integrity import records as records
@@ -25,7 +26,9 @@ from test_internal_audit_integrity import (
     UNIT_A,
     UNIT_A_OTHER,
     UNIT_B,
+    _actor,
     _authenticated,
+    _engine,
     _grant,
     _request,
 )
@@ -36,6 +39,7 @@ from pmc_api import audit_service
 from pmc_api import internal_audit_criteria as criteria
 from pmc_api import internal_audit_independence as independence
 from pmc_api.database import set_request_context
+from pmc_api.internal_audit_competence import _counts as competence_counts
 from pmc_api.internal_audits import (
     InternalAuditPatch,
     InternalAuditTransition,
@@ -534,5 +538,104 @@ def test_concurrent_reviewers_cannot_append_using_the_same_history_version(plan:
         assert (
             len(independence.list_reviews(x.parent, x.records.r.db, _authenticated(REVIEWER))) == 1
         )
+    finally:
+        runtime.dispose()
+
+
+@pytest.mark.parametrize("capability", ["audits.read", "audits.review", "documents.read"])
+def test_preparation_rechecks_access_after_materialization(
+    plan: Plan, monkeypatch: pytest.MonkeyPatch, capability: str
+) -> None:
+    from pmc_api.qms_access import revoke_grant
+
+    db = plan.records.r.db
+    if capability == "documents.read":
+        _grant(db, REVIEWER, capability)
+    set_request_context(db, user_id=OWNER, tenant_id=TENANT_A)
+    grant = db.scalar(
+        text(
+            "SELECT id FROM qms_access_grants WHERE user_id=:user AND unit_id=:unit "
+            "AND capability=:capability AND status='active'"
+        ),
+        {"user": REVIEWER, "unit": UNIT_A, "capability": capability},
+    )
+    assert grant
+    db.rollback()
+    original = independence._execution_authority
+    runtime = _engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    revoked = False
+
+    def revoke_once() -> None:
+        nonlocal revoked
+        if not revoked:
+            revoked = True
+            with Session(runtime) as other:
+                set_request_context(other, user_id=OWNER, tenant_id=TENANT_A)
+                revoke_grant(other, _actor(OWNER, "owner"), uuid4(), grant)
+
+    def revoke_after_authority(*args: Any, **kwargs: Any) -> independence.ExecutionAuthority:
+        result = original(*args, **kwargs)
+        revoke_once()
+        return result
+
+    # Document access is determined after authority: revoke after its own count instead.
+    if capability == "documents.read":
+        count = competence_counts
+
+        def revoke_after_count(*args: Any, **kwargs: Any) -> tuple[int, int]:
+            result = count(*args, **kwargs)
+            revoke_once()
+            return result
+
+        monkeypatch.setattr(independence, "competence_counts", revoke_after_count)
+    else:
+        monkeypatch.setattr(independence, "_execution_authority", revoke_after_authority)
+    try:
+        with pytest.raises(HTTPException) as denied:
+            independence.get_independence(plan.parent, db, _authenticated(REVIEWER))
+        assert revoked and denied.value.status_code in {403, 404}
+    finally:
+        runtime.dispose()
+
+
+def test_preparation_rejects_independence_withdrawn_during_read(
+    plan: Plan, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    record(plan)
+    original = independence._execution_authority
+    runtime = _engine("PMC_TEST_RUNTIME_DATABASE_URL")
+    changed = False
+
+    def withdraw_after_authority(*args: Any, **kwargs: Any) -> independence.ExecutionAuthority:
+        nonlocal changed
+        result = original(*args, **kwargs)
+        if not changed:
+            changed = True
+            with Session(runtime) as other:
+                independence.create_review(
+                    plan.parent,
+                    independence.ReviewInput(
+                        expected_audit_version=plan.version,
+                        expected_review_version=1,
+                        decision="withdrawn",
+                        notes="Assessment withdrawn during diagnostic read.",
+                        independence_attested=False,
+                    ),
+                    _request(),
+                    other,
+                    _authenticated(REVIEWER),
+                )
+        return result
+
+    monkeypatch.setattr(independence, "_execution_authority", withdraw_after_authority)
+    try:
+        with pytest.raises(HTTPException) as conflict:
+            independence.get_independence(plan.parent, plan.records.r.db, _authenticated(REVIEWER))
+        assert changed and conflict.value.status_code == 409
+        fresh = independence.get_independence(
+            plan.parent, plan.records.r.db, _authenticated(REVIEWER)
+        )
+        assert fresh.review_version == 2 and not fresh.review_current
+        assert not fresh.ready_for_execution
     finally:
         runtime.dispose()
