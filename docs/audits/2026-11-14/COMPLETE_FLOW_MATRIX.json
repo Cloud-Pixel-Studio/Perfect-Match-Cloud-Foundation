@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "branch": "codex/audit-complete-flow",
+  "base_commit": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "runtime": {
+    "frontend_preview": "http://127.0.0.1:3103",
+    "oidc_callback_web": "http://127.0.0.1:3000",
+    "api": "http://127.0.0.1:8000",
+    "db_revision": "0048 documented in checkpoint, not queried in this audit",
+    "source_revision": "PR43/3c6d058e frontend, API/DB0048 unchanged by this audit",
+    "health_observed": 200,
+    "database": "ok",
+    "object_storage": "ok",
+    "malware_scanner": "ok"
+  },
+  "overall_verdict": "BLOCKED_FUNCTIONAL: real OIDC and authorized read-only screens now verified, but onboarding/audit execution/closure/billing remain absent. No real QMS transaction was written.",
+  "safety": {
+    "real_qms_writes": 0,
+    "real_grants_changed": 0,
+    "real_tenant_memberships_changed": 0,
+    "emails_sent": 0,
+    "database_migrated": false,
+    "production_touched": false,
+    "stored_browser_credentials_or_state": false
+  },
+  "steps": [
+    {
+      "id": "F01",
+      "stage": "marketing_product_tour",
+      "status": "PASS",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Keyboard tour,FAQ,320/1440px and scoped axe/overflow checks."
+    },
+    {
+      "id": "F02",
+      "stage": "demo_brief",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Validation and downloadable TXT; correct mailto prepared; no message sent, contract or subscription."
+    },
+    {
+      "id": "F03",
+      "stage": "anonymous_login_entry",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_public_browser",
+      "verdict": "Anonymous entry and real OIDC development login verified separately; no new customer onboarding."
+    },
+    {
+      "id": "F04",
+      "stage": "commercial_onboarding",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "real_http_and_source",
+      "verdict": "/onboarding404; no onboarding/invitation/membership provisioning API. Development bootstrap is not customer onboarding."
+    },
+    {
+      "id": "F05",
+      "stage": "actual_oidc_login",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_get",
+      "verdict": "Member and owner log in through real development Keycloak/callback; authorized normal authentication sessions only, no stored credentials/storageState."
+    },
+    {
+      "id": "F06",
+      "stage": "company_selection_existing_membership",
+      "status": "PASS_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_get",
+      "verdict": "Existing company selection display and role navigation inspected for member and owner; no auth/tenant POST or company creation performed."
+    },
+    {
+      "id": "F07",
+      "stage": "real_authenticated_processes",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F08",
+      "stage": "real_authenticated_documents",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F09",
+      "stage": "real_authenticated_controls_evidence",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F10",
+      "stage": "real_authenticated_risks",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F11",
+      "stage": "real_authenticated_nonconformities",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F12",
+      "stage": "real_authenticated_capa",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F13",
+      "stage": "real_authenticated_internal_audits",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F14",
+      "stage": "real_authenticated_action_center",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F15",
+      "stage": "real_authenticated_organization_permissions_workflows_audit_trail",
+      "status": "PASS_READ_ONLY_WITH_LIMIT",
+      "evidence_kind": "real_oidc_and_runtime0048_get",
+      "verdict": "Real authorized GET screen(s), role-scoped navigation and axe/overflow inspected; see exact responses/cases in FLOW_BROWSER_RECOVERED_RESULTS.json. No business creation/edit/approval, files uploaded, AV/S3 content transaction or closure tested."
+    },
+    {
+      "id": "F16",
+      "stage": "documents_client_error_and_command_feedback",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "16 unchanged assertions, mocked API including upload feedback; no real AV/storage/SQL."
+    },
+    {
+      "id": "F17",
+      "stage": "risk_ncr_to_capa",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "13 unchanged assertions: exact source/unit filters,linked CAPA,one creation/error/replay/history/pagination,zero backend writes."
+    },
+    {
+      "id": "F18",
+      "stage": "audit_plan_and_preparation",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "85 unchanged assertions for planning/scope/criteria/team/agenda/independence/authority/competence; no execution delivered."
+    },
+    {
+      "id": "F19",
+      "stage": "audit_ready_start",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "source_and_runtime_openapi",
+      "verdict": "ready_for_execution Literal[False]; no ready/start commands in registered runtime schema."
+    },
+    {
+      "id": "F20",
+      "stage": "audit_execution_evidence_findings_ncr_reporting_closure",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "source_and_runtime_openapi",
+      "verdict": "Missing execution/evidence/findings/report/closure vertical; no invented outcome."
+    },
+    {
+      "id": "F21",
+      "stage": "follow_up_action_center_to_capa",
+      "status": "PASS_ISOLATED",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "Additional375px/axe case opens exact CAPA with record/unit/process UUID; no backend writes. Real Action Center GET screen inspected separately; exact cross-record follow-up remains the isolated fixture evidence."
+    },
+    {
+      "id": "F22",
+      "stage": "commercial_subscription_license_billing",
+      "status": "BLOCKED_FUNCTIONAL",
+      "evidence_kind": "real_http_and_source",
+      "verdict": "Web/billing404,API/billing404; no license/subscription/billing API; no seats/ISO enforcement or purchase."
+    },
+    {
+      "id": "F23",
+      "stage": "role_navigation",
+      "status": "PASS_PRESENTATION_ONLY",
+      "evidence_kind": "browser_memory_fixture",
+      "verdict": "Two cases: auditor with read caps vs member with no caps; no server authorization proof."
+    }
+  ],
+  "browser_fixture_regressions": {
+    "existing": 114,
+    "additional_follow_up": 1,
+    "passed": 115,
+    "failed": 0,
+    "skipped": 0,
+    "retries": 0,
+    "identity": "in-memory synthetic",
+    "business_api": "in-memory intercepted",
+    "real_av_s3": false,
+    "real_postgresql": false,
+    "real_oidc": false
+  },
+  "not_claimed": [
+    "all modules operational end to end",
+    "Odoo executed",
+    "certification",
+    "production ready",
+    "0049 active locally",
+    "real QMS approval or audit closure"
+  ],
+  "evidence": [
+    "FLOW_BROWSER_INITIAL_RESULTS.json",
+    "FLOW_BROWSER_RESULTS.json",
+    "FLOW_RUNTIME_AVAILABILITY.json",
+    "FLOW_FIXTURE_RESULTS.json",
+    "FLOW_EVIDENCE_MANIFEST.json",
+    "FLOW_BROWSER_RECOVERED_INITIAL_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_SELECTOR_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_LOADING_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_HEADING_RESULTS.json",
+    "FLOW_BROWSER_RECOVERED_RESULTS.json",
+    "FLOW_RUNTIME_RECOVERED_AVAILABILITY.json"
+  ],
+  "recovered_browser_summary": {
+    "pass": 28,
+    "fail": 0,
+    "blocked": 0,
+    "expectedDenial": 0
+  },
+  "recovered_browser_limits": [
+    "Source frontend inherits PR41; real API/DB0048",
+    "No suspension0049 or new grants/page API attributed to runtime",
+    "No QMS mutation or company-switch POST",
+    "503 feedback cases explicitly mocked, not real outages",
+    "Earlier infrastructure failures and audit-selector failures retained separately"
+  ]
+}
