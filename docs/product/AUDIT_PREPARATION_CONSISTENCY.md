@@ -104,3 +104,16 @@ runtime steps succeeded, but that is not security approval for this new head.
 Current vendor counts were not reverified here. New-head CI, independent code
 review and human approval remain required. No merge or production deployment.
 PM release decision remains **NO GO** pending the documented release blockers.
+
+## CI follow-up
+
+PR58/19fafd0 CodeQL43990314033 passed. Quality43990314141 passed its
+integration/frontend/shell jobs but failed backend `mypy src tests`: two tests
+accessed an imported alias through a module which does not re-export it. The
+previous local mypy command checked only43 application modules, not the full79
+application/test modules required by CI. Tests now reference the originating
+competence function while still patching its caller boundary. No production
+behavior, test assertion or CI gate was weakened; `mypy src tests` passes locally.
+Security43990314009 failed only the final release gate. New-head CI remains
+required. CP-AUDIT-CONTINUATION-00-20261117T010510Z verified encrypted source/Git
+restoration before this correction.

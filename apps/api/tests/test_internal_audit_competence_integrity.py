@@ -937,7 +937,7 @@ def test_preparation_rejects_competence_withdrawn_during_read(
 ) -> None:
     record(case)
     db = case.plan.records.r.db
-    original = independence.competence_counts
+    original = competence._counts
     runtime = _engine("PMC_TEST_RUNTIME_DATABASE_URL")
     changed = False
 

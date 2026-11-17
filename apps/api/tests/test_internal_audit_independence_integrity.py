@@ -39,6 +39,7 @@ from pmc_api import audit_service
 from pmc_api import internal_audit_criteria as criteria
 from pmc_api import internal_audit_independence as independence
 from pmc_api.database import set_request_context
+from pmc_api.internal_audit_competence import _counts as competence_counts
 from pmc_api.internal_audits import (
     InternalAuditPatch,
     InternalAuditTransition,
@@ -579,7 +580,7 @@ def test_preparation_rechecks_access_after_materialization(
 
     # Document access is determined after authority: revoke after its own count instead.
     if capability == "documents.read":
-        count = independence.competence_counts
+        count = competence_counts
 
         def revoke_after_count(*args: Any, **kwargs: Any) -> tuple[int, int]:
             result = count(*args, **kwargs)
