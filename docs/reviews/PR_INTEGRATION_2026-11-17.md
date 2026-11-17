@@ -150,3 +150,51 @@ Final delivered source/Git and detailed logs/screenshots are sealed separately
 before handoff. Any publication must preserve the merge-parent graph and verify
 that the remote tree equals the tested local tree. No force-push, worktree reset,
 branch deletion, history erasure or automatic production deployment is authorized.
+
+
+## Exact combined CI and reviewed visual references
+
+Published candidate `4eca4c083227f9673b3db320087b1ce392f8b1d8` preserves all36
+original PR heads; remote/local source trees match. PR60 targets the existing
+foundation branch, preserving PR13's review discussions. There are37 open PRs
+including this consolidation, with zero original merges/closures performed.
+
+- Foundation quality44013427619: all11 jobs PASS, including the real PostgreSQL
+  HTTP suites, tenant isolation and downgrade safety guards. Expected rejected
+  destructive downgrades print SQL errors while their guard checks pass.
+- CodeQL44013427623: PASS.
+- Foundation security44013427661: runtime and scanner/image binding PASS; API,
+  web, PostgreSQL, SeaweedFS4.54 and ClamAV0 High/Critical, Keycloak6. Passive ZAP
+  66PASS/2 informational WARN/0FAIL. This is not an authenticated penetration test.
+-158 browser cases:156 PASS;2 product screenshot comparisons failed. All other
+  browser/role/responsive cases passed, including permission announcements and
+  audit-plan downloads. The failing screenshots reached their comparison only
+  after passing the product's overflow, brand/image and axe assertions.
+
+The two image differences were inspected against the baseline, not blindly
+accepted. PR49 deliberately retains the mobile demo CTA and increases navigation
+hit areas: header +34px on375px mobile and +23px on768px tablet. Three attempts
+produced byte-identical actual captures. After aligning that header displacement,
+only199/3,498,750 mobile and115/5,648,640 tablet body pixels differ. The hero and
+remaining page content are retained. Official Perfect Match branding is visible;
+client login remains available through the footer on narrow screens.
+
+Those two Linux reference PNGs are updated to the reviewed CI captures. No
+screenshot tolerance, accessibility assertion, overflow check, retry policy or
+security threshold changes. A fresh158-case browser run is required after this
+reference-only correction. The test result is not yet158 PASS.
+
+Artifact14297904066 SHA256
+`e5325fcc828d84466e4adf0627010fc3b3ab1e043a441e49863399f23b10cedd`
+was verified before reading the CI screenshots/manifests. Independent vendor
+artifact14296679796 likewise verifies Seaweed0/Keycloak6 for this exact head.
+CP-MERGE-DEMO-06B-20261117T035635Z seals700 source/Git entries at the published
+head; encrypted restoration/all-file SHA256 and Git bundle verification PASS.
+Raw logs, ZIPs, screenshots and credentials stay outside the tracked source.
+
+Additional real browser navigation verified Action Center→LAB-CAPA-001 and
+Action Center→LAB-WF-001 instance/history without changing their business state.
+An expired browser session first showed the generic unavailable message; normal
+OIDC sign-in restored access. Fresh authenticated API/proxy reads returned200.
+This is not counted as a backend outage or hidden as a successful expired-session
+request. More explicit expiry feedback remains a UX improvement opportunity.

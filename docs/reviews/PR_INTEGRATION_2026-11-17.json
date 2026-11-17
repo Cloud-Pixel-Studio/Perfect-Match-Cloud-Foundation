@@ -1131,5 +1131,35 @@
         }
       ]
     }
-  ]
+  ],
+  "integration_pr": 60,
+  "open_prs_including_integration": 37,
+  "combined_candidate_ci": {
+    "source_sha": "4eca4c083227f9673b3db320087b1ce392f8b1d8",
+    "quality": {
+      "run": 44013427619,
+      "result": "success"
+    },
+    "codeql": {
+      "run": 44013427623,
+      "result": "success"
+    },
+    "security": {
+      "run": 44013427661,
+      "result": "failure",
+      "runtime": "success",
+      "browser_passed": 156,
+      "browser_failed": 2,
+      "visual_reference_correction": "reviewed mobile/tablet headers; full rerun pending",
+      "high_or_critical": {
+        "api": 0,
+        "web": 0,
+        "postgres": 0,
+        "seaweedfs": 0,
+        "keycloak": 6,
+        "clamav": 0
+      },
+      "artifact": 14297904066
+    }
+  }
 }
