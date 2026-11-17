@@ -1,0 +1,47 @@
+# Isolated, synthetic demonstration only. Requires Docker Compose >= 2.24.4.
+# Use with the root compose file and a protected, external demo.env.
+name: pmqmsdemo
+
+services:
+  postgres:
+    image: pmqms-demo-postgres:${DEMO_SOURCE_SHA:?required}
+    mem_limit: 384m
+  database-bootstrap:
+    image: pmqms-demo-api:${DEMO_SOURCE_SHA:?required}
+  migrate:
+    image: pmqms-demo-api:${DEMO_SOURCE_SHA:?required}
+  identity-bootstrap:
+    image: pmqms-demo-api:${DEMO_SOURCE_SHA:?required}
+    command: ["python", "/demo/bootstrap.py"]
+    volumes:
+      - /opt/pmqms-demo/bootstrap.py:/demo/bootstrap.py:ro
+    environment:
+      # This one-shot creates only this stack's synthetic identities.
+      PMC_ENVIRONMENT: development
+      POSTGRES_DB: pmqms_demo
+      DEMO_ORIGIN: ${DEMO_ORIGIN:?required}
+      KEYCLOAK_B_OWNER_PASSWORD: ${KEYCLOAK_B_OWNER_PASSWORD:?required}
+      KEYCLOAK_B_REVIEWER_PASSWORD: ${KEYCLOAK_B_REVIEWER_PASSWORD:?required}
+  keycloak:
+    ports: !override
+      - "127.0.0.1:18080:8080"
+    environment:
+      KC_HOSTNAME: ${DEMO_ORIGIN:?required}
+      KC_PROXY_HEADERS: xforwarded
+  seaweedfs:
+    ports: !override []
+    mem_limit: 384m
+  api:
+    image: pmqms-demo-api:${DEMO_SOURCE_SHA:?required}
+    mem_limit: 384m
+    ports: !override
+      - "127.0.0.1:18000:8000"
+    environment:
+      # Demo data does not justify weakening HTTPS/session validation.
+      PMC_ENVIRONMENT: production
+      PMC_COOKIE_SECURE: "true"
+  web:
+    image: pmqms-demo-web:${DEMO_SOURCE_SHA:?required}
+    mem_limit: 384m
+    ports: !override
+      - "127.0.0.1:13000:3000"
