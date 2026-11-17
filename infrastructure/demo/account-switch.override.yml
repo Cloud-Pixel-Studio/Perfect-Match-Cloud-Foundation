@@ -1,0 +1,4 @@
+# Apply after the base compose and demo override. No schema or provider change.
+services:
+  api:
+    image: pmqms-demo-api:account-switch-20261117

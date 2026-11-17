@@ -62,6 +62,9 @@ class OIDCProvider:
                 "redirect_uri": self.settings.oidc_callback_url,
                 "response_type": "code",
                 "scope": "openid profile email",
+                # An explicit application login must not silently recreate the
+                # identity that the user just logged out of on a shared browser.
+                "prompt": "login",
                 "state": state,
                 "nonce": nonce,
                 "code_challenge": challenge,

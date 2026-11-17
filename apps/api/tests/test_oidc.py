@@ -4,6 +4,7 @@ import base64
 import json
 import time
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 import httpx
 import pytest
@@ -197,3 +198,20 @@ async def test_provider_advertising_pkce_without_s256_is_denied() -> None:
     provider = OIDCProvider(settings, httpx.AsyncClient(transport=httpx.MockTransport(handler)))
     with pytest.raises(OIDCValidationError, match="PKCE S256"):
         await provider.authorization_url(state="state", nonce="nonce", challenge="challenge")
+
+
+@pytest.mark.anyio
+async def test_explicit_login_requires_authentication_even_with_provider_session() -> None:
+    provider, _ = _provider(_claims())
+    async with provider._client:
+        url = await provider.authorization_url(
+            state="new-state", nonce="new-nonce", challenge="new-challenge"
+        )
+    query = parse_qs(urlsplit(url).query)
+    assert query["prompt"] == ["login"]
+    assert query["state"] == ["new-state"]
+    assert query["nonce"] == ["new-nonce"]
+    assert query["code_challenge"] == ["new-challenge"]
+    assert query["code_challenge_method"] == ["S256"]
+    assert query["response_type"] == ["code"]
+    assert "login_hint" not in query
