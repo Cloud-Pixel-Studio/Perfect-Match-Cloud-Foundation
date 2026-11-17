@@ -1,0 +1,1135 @@
+{
+  "as_of_utc": "2026-11-17",
+  "authorization": "User explicitly requests completion/merge of open PRs and demo testing; no security bypass or production deployment authorized.",
+  "open_prs": 36,
+  "branch": "codex/merge-demo-integration",
+  "github_merges_performed": 0,
+  "github_pr_closures_performed": 0,
+  "main_security_required": true,
+  "main_ruleset": 22409098,
+  "bypass_actors": [],
+  "prs": [
+    {
+      "number": 13,
+      "title": "Establish secure multi-tenant QMS foundation",
+      "base": "main",
+      "head": "codex/cp-audit-agent-foundation",
+      "source_sha": "8ad607a553f7c7e84cb398de78599fe1de3e69f8",
+      "draft": false,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43145336048,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43145336061,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43145336035,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "title": "Integrate merged PR #15\u2013#17 features back into QMS foundation (#13)",
+      "base": "codex/cp-audit-agent-foundation",
+      "head": "codex/branding-identity-system",
+      "source_sha": "ae8f26298b43179297974b5a5edd48d23b11a8f5",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43145721486,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43145721548,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43145721423,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "title": "chore(agents): configure bounded Codex specialists and validate manifests",
+      "base": "codex/branding-identity-system",
+      "head": "codex/pmc-agent-specialists-foundation",
+      "source_sha": "58a9f83a01e7c810b124c0fc497855d948aa33ba",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation quality",
+          "id": 43147025543,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43147025508,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43147025514,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "title": "chore(agents): UX/reliability specialists and external tooling evaluation",
+      "base": "codex/pmc-agent-specialists-foundation",
+      "head": "codex/pmc-specialists-ux-observability-20261111",
+      "source_sha": "da41f6da13716db216a5b556fc65f054e3fd95ac",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43717526568,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43717526526,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43717526463,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Vendor image candidate security evaluation",
+          "id": 43717526438,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "title": "feat(web): present the QMS product with real workflows and a demo brief",
+      "base": "codex/branding-identity-system",
+      "head": "codex/product-marketing",
+      "source_sha": "acaf7ddde631f3572ea29a674bac78f7ee915368",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43235351029,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43235351385,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43235351095,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "title": "fix(documents): recover creation references and accessible pagination",
+      "base": "codex/product-marketing",
+      "head": "codex/document-workspace-reliability",
+      "source_sha": "a0d7675ff1987feec6e887adb6325058e6ce1027",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43242951782,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43242951767,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43242952131,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "title": "fix(documents): retain drafts and safely recover denied or conflicting actions",
+      "base": "codex/document-workspace-reliability",
+      "head": "codex/document-command-feedback",
+      "source_sha": "ba884bcba9e75422218a7b1f409d6d0a7b88876e",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43245223089,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43245222809,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43245222767,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 30,
+      "title": "Connect nonconformities and risks to their corrective actions",
+      "base": "codex/document-command-feedback",
+      "head": "codex/capa-origin-workflow",
+      "source_sha": "a7b2a9ff00c51bc6bc192874d40ae2d75d6cd797",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43310332291,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43310332333,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43310332274,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 31,
+      "title": "Add internal audit programs and planning workspace",
+      "base": "codex/capa-origin-workflow",
+      "head": "codex/internal-audit-planning-ui",
+      "source_sha": "5f25342ef2423a8abf4fb1b6d10a6968a47ccc24",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43319632849,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43319632987,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43319632754,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 32,
+      "title": "Add controlled, process-linked scope to internal-audit planning",
+      "base": "codex/internal-audit-planning-ui",
+      "head": "codex/internal-audit-scope",
+      "source_sha": "8c60a5028d3852ee6492e6a6c78015ce70feea18",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43360528130,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43360528455,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43360528135,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 33,
+      "title": "Add controlled audit criteria and protect linked scope history",
+      "base": "codex/internal-audit-scope",
+      "head": "codex/internal-audit-criteria",
+      "source_sha": "4de65f0ddb6337761f8caaf7d35440e27b44d541",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43361806911,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43361806566,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43361806578,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "title": "Add versioned audit planning team without implied execution access",
+      "base": "codex/internal-audit-criteria",
+      "head": "codex/internal-audit-team",
+      "source_sha": "4d2e80f2b3ed79aa1c7b3f74b986013e4ed4ac45",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43365509645,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43365509636,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43365509662,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 35,
+      "title": "Audit agenda: UTC scheduling, participant guards and recoverable history",
+      "base": "codex/internal-audit-team",
+      "head": "codex/internal-audit-agenda",
+      "source_sha": "43df60747a160b8e155e7ab113fd70753ff309b7",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43372682175,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43372682476,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43372682289,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 36,
+      "title": "Audit independence: immutable assessments and conservative preparation checks",
+      "base": "codex/internal-audit-agenda",
+      "head": "codex/internal-audit-independence",
+      "source_sha": "d6f8dca519e081cf77afbb7f0485c8f54d1b86fd",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation quality",
+          "id": 43435850065,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43435849903,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43435849967,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 37,
+      "title": "Verify planned auditors\u2019 scoped execution access",
+      "base": "codex/internal-audit-independence",
+      "head": "codex/internal-audit-execution-authority",
+      "source_sha": "012ba4bbcaa0b3ca1fe08c2ffa8b72340bc13c6f",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43452521063,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43452520777,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43452520965,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "title": "Organize audit detail into accessible focused views",
+      "base": "codex/internal-audit-execution-authority",
+      "head": "codex/internal-audit-detail-navigation",
+      "source_sha": "fbfd69a4d694cd0e44550e2fe5174daca57b7f30",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43480739234,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43480739435,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43480739033,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "title": "Record audit-specific competence assessments with controlled evidence",
+      "base": "codex/internal-audit-detail-navigation",
+      "head": "codex/internal-audit-competence",
+      "source_sha": "f8562540773e4d7294ff09b5abc603aa80add027",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43529516875,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43529516794,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43529516805,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 40,
+      "title": "docs: audit QMS access, company setup and Odoo option parity",
+      "base": "codex/internal-audit-competence",
+      "head": "codex/product-access-parity-audit",
+      "source_sha": "32db20bd98a5aff8304f80c9faaff18ba5583c81",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43600500452,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43600500416,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43600500429,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 41,
+      "title": "fix: block suspended company access in API and PostgreSQL",
+      "base": "codex/product-access-parity-audit",
+      "head": "codex/tenant-suspension",
+      "source_sha": "8133bac47a0731c31738d942f131b17902bb6fe5",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43615015130,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43615015193,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43615015146,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 42,
+      "title": "Auditor\u00eda independiente de arquitectura, accesos y alcance SaaS",
+      "base": "codex/tenant-suspension",
+      "head": "codex/audit-architecture-access",
+      "source_sha": "577ee9b78b9e8382ed9cbd9ee0b4050883027bf2",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation quality",
+          "id": 43640882700,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43640882656,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43640882660,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 43,
+      "title": "Auditor\u00eda independiente del recorrido comercial y de calidad",
+      "base": "codex/tenant-suspension",
+      "head": "codex/audit-complete-flow",
+      "source_sha": "a9e92b690f334bbbda2797ad0676364b364910ad",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43719039563,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43719039599,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43719039545,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 44,
+      "title": "Historial completo y filtrable de responsabilidades QMS por empresa",
+      "base": "codex/tenant-suspension",
+      "head": "codex/qms-access-history",
+      "source_sha": "db302b6cc7ceec5bf6121a87e804fe8a5cab4f7b",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43664620427,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43664620459,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43664620450,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 45,
+      "title": "Auditor\u00eda de operabilidad: evidencia por m\u00f3dulo y fallo del revisor documental",
+      "base": "codex/tenant-suspension",
+      "head": "codex/audit-module-operability",
+      "source_sha": "2ca8f1e52743ef84a7811fb04854cb229795ee7a",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43664328830,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43664329035,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43664328800,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "title": "fix(web): announce QMS access history pagination accessibly",
+      "base": "codex/qms-access-history",
+      "head": "codex/frontend-access-pagination-a11y-20261115",
+      "source_sha": "47a8ef1c06ee4f3fce3ae6cfd9d83093f5a05c5b",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43672486634,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43672486719,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43672486640,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 47,
+      "title": "Corrige revisi\u00f3n documental m\u00ednima y sustituci\u00f3n at\u00f3mica de versiones",
+      "base": "codex/qms-access-history",
+      "head": "codex/document-review-locking",
+      "source_sha": "1ad8843fc74fa972d061755c14b6c25837526840",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43672588117,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43672588148,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43672588138,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 49,
+      "title": "brand: adapt existing product marketing site to BEMS Quality",
+      "base": "codex/product-marketing",
+      "head": "brand/bems-quality-product-marketing",
+      "source_sha": "021c5a471f463d1a30f0776ff57412a424d5701d",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43720972579,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43720972608,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43720972573,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 50,
+      "title": "Bind six-image security evidence and enforce production URL settings",
+      "base": "codex/document-review-locking",
+      "head": "codex/production-readiness-gates",
+      "source_sha": "9f8e9b719fa540e4c5382919e16ac8daa993bcbf",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43717633223,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43717633234,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43717633397,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 51,
+      "title": "design: BEMS Quality dashboard KPI and analytics proposal",
+      "base": "codex/product-marketing",
+      "head": "design/dashboard-kpi-proposal-20261115",
+      "source_sha": "9b2248d476df48ba40e4be0ce48ad69e698f90cf",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43720897977,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43720898079,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43720897990,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 52,
+      "title": "feat(kpi): guard ratio denominators and missing trend observations",
+      "base": "design/dashboard-kpi-proposal-20261115",
+      "head": "feat/kpi-definition-contract-20261115",
+      "source_sha": "a0801dca210dbcc6f2d296e3d6dfd5556b1ee7d7",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43720961028,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43720961062,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43720961064,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 53,
+      "title": "Evaluate pinned stable Keycloak 26.8.2 and SeaweedFS 4.53 in isolated CI",
+      "base": "codex/production-readiness-gates",
+      "head": "codex/vendor-stable-candidates-20261115",
+      "source_sha": "9b398e416d5e8c7be86a5f9d9340397a6f18223b",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43719004332,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43719004276,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43719004384,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "title": "Repair merge blockers, retire superseded PRs and preserve verified release evidence",
+      "base": "codex/vendor-stable-candidates-20261115",
+      "head": "codex/merge-readiness-audit-20261115",
+      "source_sha": "fe20e7b3d463c43c9fe3b008365f8c0486d7ba2a",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43721020271,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43721020290,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43721020297,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 55,
+      "title": "Add editable local QMS demo and fix full process-form updates",
+      "base": "codex/merge-readiness-audit-20261115",
+      "head": "codex/demo-editable-sandbox",
+      "source_sha": "820e4820fcfee16f012631eb4e3520c681f12c55",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation security",
+          "id": 43957691134,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43957691140,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43957691112,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 56,
+      "title": "Fix Action Center eligibility, CAPA lifecycle and complete queue counts",
+      "base": "codex/demo-editable-sandbox",
+      "head": "codex/action-center-eligibility",
+      "source_sha": "0aabd96424c79908b9255abc6473e098ee2f473d",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 43960367203,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 43960367180,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43960367674,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 57,
+      "title": "Validate executable workflow assignments and preserve running history",
+      "base": "codex/action-center-eligibility",
+      "head": "codex/workflow-executor-validation",
+      "source_sha": "8e31a588330bdeb9c8d82cc5d575af50b6c6e0c0",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation quality",
+          "id": 43975076042,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43975076095,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43975076032,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 58,
+      "title": "fix(audits): revalidate preparation histories and current access",
+      "base": "codex/workflow-executor-validation",
+      "head": "codex/audit-readiness-consistency",
+      "source_sha": "8a24809caa900efe2cf23bd88234a275a7c68f18",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "Foundation quality",
+          "id": 43993188442,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "CodeQL",
+          "id": 43993188323,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 43993188444,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    },
+    {
+      "number": 59,
+      "title": "feat(audits): download printable scoped audit plans and patch Next.js",
+      "base": "codex/audit-readiness-consistency",
+      "head": "codex/audit-plan-export",
+      "source_sha": "fa4032e89b89e46202804c2f91d322ae39d25d5f",
+      "draft": true,
+      "github_state": "open",
+      "github_merged": false,
+      "integrated_in_candidate": true,
+      "checks": [
+        {
+          "name": "CodeQL",
+          "id": 44005465962,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation quality",
+          "id": 44005466029,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Foundation security",
+          "id": 44005465963,
+          "status": "completed",
+          "conclusion": "failure"
+        }
+      ]
+    }
+  ]
+}

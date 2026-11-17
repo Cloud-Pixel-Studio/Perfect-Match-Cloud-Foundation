@@ -43,9 +43,9 @@ jobs:
           set -euo pipefail
           mkdir -p artifacts
           docker pull quay.io/keycloak/keycloak:26.8.2
-          docker pull chrislusf/seaweedfs:4.53
+          docker pull chrislusf/seaweedfs:4.54
           docker image inspect quay.io/keycloak/keycloak:26.8.2 --format '{{json .RepoDigests}}' > artifacts/keycloak-resolved-digests.json
-          docker image inspect chrislusf/seaweedfs:4.53 --format '{{json .RepoDigests}}' > artifacts/seaweedfs-resolved-digests.json
+          docker image inspect chrislusf/seaweedfs:4.54 --format '{{json .RepoDigests}}' > artifacts/seaweedfs-resolved-digests.json
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/keycloak-resolved-digests.json >/dev/null
           jq -e 'type == "array" and length > 0 and all(test("@sha256:[0-9a-f]{64}$"))' artifacts/seaweedfs-resolved-digests.json >/dev/null
       - name: Install pinned Trivy for PR candidate scans

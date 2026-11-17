@@ -662,7 +662,7 @@ def main():
                 "checks": checks,
                 "check_count": len(checks),
                 "run_suffix": suffix,
-                "runtime_schema": "0048_audit_competence",
+                "runtime_schema": "not inspected by this API harness; verify deployment inventory separately",
                 "writes": "only new synthetic QA records and one temporary grant revoked; no deletion",
                 "limitations": "API round trips, not all UI buttons or Odoo parity. QA records retained with history.",
             }

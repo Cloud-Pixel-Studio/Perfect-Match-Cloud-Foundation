@@ -1,57 +1,34 @@
-# Perfect Match QMS — continuidad ·16 noviembre2026
+# Perfect Match QMS — continuidad ·17 noviembre2026 UTC
 
 ## Retomar
-- Repositorio oficial: Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation. Odoo es solo referencia funcional; no introducir sus dependencias ni mezclar infraestructura.
-- Rama actual: **codex/audit-plan-export**, base PR58/8a24809. Consultar git status/HEAD/upstream y PR asociado antes de editar. Sin merge/producción; revisión humana requerida.
-- Empresa=tenant independiente; sedes/departamentos son unidades. QMS completo es base, addons=normas/ediciones ISO. Básico1empresa+3seats+1ISO es propuesta del usuario, sin precio ni enforcement implementados.
-- Stack vigente: Next/React/TypeScript/Inter/Lucide/tokens claro-oscuro; FastAPI/PostgreSQL FORCE RLS/Keycloak OIDC/storage privado/ClamAV. No reescribir lo operativo.
+- Oficial Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation; Odoo solo referencia. Rama **codex/merge-demo-integration**. Usuario pidió completar/fusionar todos los PR y probar cambios en demo. Fusión autorizada cuando pasen controles; no autorización para saltarlos ni producción.
+-36PR abiertos auditados por SHA; todos calidad/CodeQL PASS ysecurityFAIL. Todos sus commits están reconciliados en la candidata local, **0 PR fusionados en GitHub** hasta superar gates. Leer docs/reviews/PR_INTEGRATION_2026-11-17.{md,json}. Main protegido por ruleset22409098 exige security y resolución de hilos; sin bypass_actors. No modificar reglas.
+-Concepto: empresa=tenant independiente; sedes/departamentos=unidades. QMSbase completo, addons=normas/edicionesISO; básico1empresa/3seats/1ISO es propuesta comercial, no enforcement/precio vigente.
 
-## Último hito: plan de auditoría descargable
-- Leer docs/product/AUDIT_PLAN_EXPORT.md. Nuevo botón Download audit plan: HTML listo para imprimir desde registros reales, alcance/criterios/equipo/agenda, retirados+motivos, empresa/unidad/versión. Solo lectura autorizada; no informe emitido ni ready/start. Sin backend/modelos/contratos/permisos nuevos.
--19 casos nuevos→83frontend PASS; lint/typecheck/build/licencias PASS;24lecturas OIDC/API/proxy de regresión PASS. Paginación completa50/página hasta500/sección, rechazo de duplicados/ámbitos/referencias/cambios de plan-empresa-usuario y permisos; abortar descarga y HTML escapado/CSP.2E2E añadidos con capturas/axe, pendientes de ejecución CI; no afirmar PASS ni pixelbaseline.
--Descarga real navegador LAB-AUD-002/v5 PASS; fichero y capturas en artifacts/previews/2026-11-17. Documento1280 y marco375 sin overflow; claro/oscuro UI inspeccionados y restaurado claro.5pares contrasteAA medidos, no certificaciónWCAG. Ruta team incorrecta detectada en primer intento→team-members corregida y descarga repetida con éxito.0mutaciones QMS/grants/schema.
--Next/eslint-config-next actualizados16.4.3→16.4.5 por GHSA-mfr8-8qww-v76h verificado; patrón vulnerable no encontrado en fuentes. Auditpaquetes:1Moderate dev(minimatch),0HIGH/CRITICAL. Vendors/seguridad global siguen pendientes.
--Web local construido en fuente aislada PR39/f856254+export+Next16.4.5 para no activar A02 sin API. Fuente completa de esta rama también compila. Web healthy/rootfsreadonly/capdrop/no-new-privileges, versiónNext real16.4.5. Anterior pmcloud-web:before-audit-plan-export-20261117. No API/DB/otros servicios cambiados.
--CP-AUDIT-EXPORT-00-20261117T010817Z(559fuentes) y02-20261117T012025Z(562): cifrados externos/restauración SHA256/bundle PASS. Sin cambiosDB, no restoreDB/S3 nuevo. CP final/evidencias se sella tras entrega Git.
--PR58 corregido8a24809: calidad43993188442/CodeQL43993188323 PASS; seguridad43993188444 falla solo gate final. Nueva rama requiere CI/revisión independiente/humana. Sin merge/producción.
+## Integración implementada y probada
+-36heads preservados como ancestros; merges locales de13/20/22/42/43/45/46/49/50/51/52/53 más cadena hasta59. Checkpoints entrantes42/43/45 archivados en docs/recovery/CHECKPOINT_PR*.md; ningún WIP original/Studio descartado.
+-11 manifiestos agentes y leases/reconcile validados, sin agentes/automatizaciones externas iniciados. Prototipo document_control puro no es nuevo endpoint. KPI51/52 son contratos matemáticos probados, sin paneles de métricas inventadas.
+-49: assets BEMS y variante BrandMark conservados; identidad visible siguePerfectMatchQMS. Copias candidatas de sus goldens en docs/brand/candidates; referencias activas PM conservadas. Mejoras touch/reduced-motion/ARIA integradas. Es decisión de integración para preservar la marca oficial, no aprobación de rename por el usuario.
+-Dos pruebas de pins obsoletas4.51 ahora mutan el pin actual y comprueban que realmente cambió. xfail M01 retirado: revisión mínima ya debe PASS por fix47, sin ampliar grants. Añadido móduloHTTP45 al harness de suspensión. Reporte exercise-demo deja de afirmar0048 por una constante; inventario real verifica0049 aparte.
+-104HTTP/PostgreSQL +127auditorías +42historial permisos PASS en DBs desechables;273casos distintos. API99unitarias PASS/573DB omitidas sin harness;118frontend PASS,79unittest raíz PASS. Ruff/formato82/mypy82, shellcheck/build y11manifiestos PASS. Primer harness historial rechazó DB de prueba mal nombrada; corregido sin tocar guard fixture.
+-OpenGrep6reglas/117Python/0hallazgos, con1parse parcial previo(control_definitions PEP695); no afirmar cobertura completa. Gitleaks árbol0 y282commits de candidata0. CI nuevo sobre combinación exacta y revisión independiente pendientes.
 
-## Hito previo: preparación de auditorías consistente
-- Leer docs/product/AUDIT_PREPARATION_CONSISTENCY.md. API detecta evaluaciones de independencia/competencia añadidas o retiradas durante la consulta (409/refresh), revalida empresa/actor/lectura y los permisos usados para totales sensibles (403/404). Competencia recalcula la disponibilidad de evaluar tras revocación de review. Historial intacto; sin grants/esquemas/contratos nuevos.
--6 fallos reproducidos antes del fix→6 PASS;127 integración PostgreSQL0049 PASS sobre código final;6 compatibilidad0048 PASS.93 unitarias PASS/568DB omitidas sin harness. Ruff/formato79/mypy43, diff PASS; OpenGrep6reglas/2archivos0, Gitleaks árbol0. Sin nuevo browser/buildfrontend/WCAG.
-- Preview API local actualizado SOLO internal_audit_independence.py/internal_audit_competence.py; health/rootfs-readonly/cap_drop/no-new-privileges PASS.24 comprobaciones OIDC/API/proxy PASS, incluida denegación otra empresa.0mutaciones QMS/grants/schema. Lecturas puntuales; no snapshot serializable ni autoridad de ejecución. ready_for_execution sigue false.
--CP-AUDIT-READINESS-00-20261117T003532Z y02-20261117T004122Z:557 fuentes/Git restauradas SHA256/bundle PASS;2 archivos runtime previos cifrados/descifrados idénticos. Imagen anterior pmcloud-api:before-audit-readiness-20261117. Sin cambio DB; no nuevo restoreDB/S3 afirmado.
--PR58/19fafd0: CodeQL43990314033 PASS; calidad43990314141 falla en mypy tests por2 referencias no reexportadas; auditorías/otras suites/frontend PASS. Seguridad43990314009 falla solo gate final. Seguimiento corrige imports de tests sin omitir checks; mypy src tests79 PASS local. Mi validación previa cubría solo43 módulos. Nueva CI/revisión pendientes; sin merge/producción.
+## Demo actual
+- http://127.0.0.1:3000/ y /products. API8000; OIDC8080. Empresa TenantA, unidadDEMO-PRACTICA. Cuentas existentes operador pmc-user-a, revisor pmc-multi-user, owner pmc-local-owner; secretos solo ~/.config/pmcloud/dev.env, nunca imprimir.
+-API yweb ahora usan fuente completa candidata; **DB0049_tenant_suspension aplicada** tras backup/restauración aislada0048. A01 suspensión yA02 historial paginado desplegados en demo. Read-only rootfs/cap_dropALL/no-new-privileges yhealth preservados. Keycloak/Seaweed/ClamAV/PostgreSQL no recreados ni actualizados; vendors locales siguen anteriores. No atribuir los pins candidatos a esos contenedores.
+-Demo: inventario --verify PASS;47checks API de edición/ciclos/NCR-CAPA/documentos/controles/auditorías/Workflow y denegación otraempresa PASS, SOLO nuevosQA +1granttemporal revocado;8Workflow PASS,24lecturas diagnósticos/proxy PASS,8historial PASS(39grants scoped,cursor/owner/member/otraidentidad/filtros/no-store). Total87checks reales, no todos los botones ni paridad Odoo.
+-Browser: miembro ve solo sus permisos, Next permissions→Page2 con20filas/aria-live; planLAB-AUD-002/v5 descargado conbackend integrado. Capturas artifacts/previews/2026-11-17-merge. Ficheros/pruebas no implican aprobación humana de calidad.
+-PR59/fa4032: calidad44005466029 yCodeQL44005465962 PASS;security44005465963 solo gate finalFAIL.158browser PASS, incluidas2nuevasdescargas+responsive/axe que antes estaban pendientes. Ese PASS no se atribuye a esta candidata nueva.
 
-## Hito previo: ejecutores Workflow
-- Leer docs/product/WORKFLOW_EXECUTOR_VALIDATION.md y WORKFLOW_EXECUTOR_EVIDENCE.json. A05 corregido en API: cada usuario/rol/unidad asignado debe disponer de ejecutor activo owner/admin/member; auditor técnico solo lectura, unidad vacía insuficiente.
-- Publicación e inicio revalidan responsables; inicio valida pasos futuros. Transiciones a tareas/aprobaciones exigen ejecutor destino. Inicio terminal y publicación/inicio de plantilla retirada se rechazan. Instancias previas pueden terminar; versiones/historia intactas. No autogrants ni cambio de roles/modelos/migraciones/deps. A06 SQL completo y A09 editor/paginación siguen pendientes.
-- Pruebas:4RED previos corregidos;32HTTP/PostgreSQL0049 PASS y32compatibilidad0048 PASS;31Workflowlegacy y18CentroAcciones PASS. Caso cola de auditor ahora publica con admin válido y cambia a auditor después, sin omitir cobertura.
--93API unitarias PASS;562DB omitidas sin harness NO son PASS. Ruff/formato128/mypy79,ShellCheck/diff PASS.49unittest raíz PASS;Gitleaks árbol0,OpenGrep6reglas/2archivos0. QA local OIDC/API8checks PASS,0roles/grants/borrados: solo3plantillas QA retiradas, unidad archivada e instancia completada. No nueva UI/browser/buildfrontend en este hito.
+## Seguridad y recuperación
+-Artefacto14295540191 dePR59 verificado por digest:7HIGH (KC26.8.2=6,Seaweed4.53=1), app/API/web/PG/ClamAV0HIGH/CRIT; ZAP/runtimePASS. Última releaseoficial KC sigue26.8.2; pendientes Java1,SQLite4,Guava1. Sin sustituciónJAR/JDK/SQLite ni waivers.
+-Seaweed4.54 oficial verificado, x/net0.62; TrivyAMD64 remoto0HIGH/CRIT. Pin candidato4.54 fijado por digest y coherente compose/CI; NO desplegado en volumen real. Falta CI integración/runtimeS3 candidato. Keycloak6HIGH sigue bloqueando merge principal, no cambiar gate.
+-CP-MERGE-DEMO-00-20261117T031156Z:564fuentes/Git cifrados restaurados SHA256/bundle PASS. CP-MERGE-DEMO-02-20261117T032553Z:697fuentes/Git PASS. BackupDB previo CP-MERGE-DEMO-DB-00-20261117T033000Z identifica0048/57tablas; restore aisladoPASS antes migración, fuenteAPI real anterior cifrada/decryptidéntica. Respaldo post CP-MERGE-DEMO-DB-06-20261117T034050Z:0049/57tablas restorePASS. IDs son referencias; manifest privado conserva el tiempo real de captura. DBbackup no sustituye backupS3/Keycloak.
+-Imágenes anteriores pmcloud-api:before-merge-demo-20261117, pmcloud-web:before-merge-demo-20261117 ypmcloud-migrate:before-merge-demo-20261117. Rollback apps con esos tags; no downgradeDB/destruirQA sin autorización. Backups y claves fuera deGit.
+-Wrapper /Users/Gerdel_Garcia/Documents/ChatGPT/SaaS QMS PerfectMatchSystems/scripts/with-local-tools.sh. Python apps/api/.venv/bin/python. No reset/clean/force-push ni pull/rebase sobre trabajo local.
 
-## Demo y runtime real
-- http://127.0.0.1:3000/ y /products. Tenant A; unidad **DEMO-PRACTICA · DEMO · Laboratorio de práctica**. Operador pmc-user-a; revisor pmc-multi-user; owner pmc-local-owner configura. Contraseñas en fichero privado, nunca Git.
-- Leer docs/product/DEMO_SANDBOX.md. Ejemplos LAB-* persistentes: procesos/documentos-PDF/controles-tareas-evidencia/riesgos/NCR/CAPA/planificación auditoría/Workflow. LAB-QA/LAB-WFX son pruebas con historia. Retirar/cancelar/archivar según dominio, no borrar historia ni resetear datos.
-- scripts/seed-demo-sandbox.py --verify solo lee; --apply añade sin sobrescribir ni restaurar grants revocados. scripts/exercise-demo-sandbox.py --apply tiene47checks; runtime-workflow-executors-e2e.py --apply crea SOLO QA local y requiere checkpoint DB verificado. Sin --apply no escriben negocio.
-- Runtime sigue **DB0048/PR39** con capas API locales: processes.py fix formulario, action_center.py/action_center_queries.py, workflow_service.py y dependencia existente tenant_access.py y los2 módulos de preparación de auditorías del último hito. tenant_access.py comprueba empresa/actor activos en API Workflow. No se desplegó toda suspensión legacy/RLS0049 ni A02; no atribuirlos al runtime.
-- API conserva capas previas; web ahora tiene el export/Next16.4.5 aislado descrito arriba, rootfs read-only/cap_drop/no-new-privileges conservados. Imagen anterior: pmcloud-api:before-workflow-executors-20261116. Otros servicios/datos previos intactos; no vendors nuevos ni producción.
-
-## Entregas y seguridad
-- PR55 demo: fix formulario procesos campos+site_ids,3regresiones→202PG PASS;10loader unitarias/47API y browser crear-editar-archivar-restaurar PASS. CI820e482 calidad43957691112/CodeQL43957691140 PASS; fallo global-python/httpx corregido sin instalar deps ni omitir tests.
-- PR56 CentroAcciones/0aabd96: elegibilidad antes del límite, resumen completo/misma sentencia, CAPA in_progress/padres operables; filtro unidad excluye Workflow sin scope.18HTTP/PG,31Workflow,10lecturas y browser poblado/deeplink PASS. Ver docs/product/ACTION_CENTER_INTEGRITY.md.
-- PR56 calidad43960367180 y CodeQL43960367203 PASS; security43960367674 falla SOLO Enforce final release gates. No inventar CVE actuales sin artefacto verificado. Última evidencia vendor verificada de PR53 tenía7HIGH; no extrapolar al runtime.
-- PM **NO GO** comercial. Ningún scanner acredita certificación ISO27001/NIST/WCAG ni toda la funcionalidad. CI/revisión independiente del head de la rama nueva siguen requeridos.
-
-## Recuperación y protección
-- CP-WORKFLOW-EXECUTORS-00-20261116T223317Z:551fuentes/Git;02-20261116T224107Z:553;02B-20261116T224744Z:554. Cifrados externos, restauración SHA256/bundle PASS. Respaldo final se sella aparte.
-- CP-WORKFLOW-EXECUTORS-DB-00-20261116T224106Z:0048/57tablas restauradas en DB aislada tmpfs antes de QA. Servicio runtime original cifrado/descifrado idéntico; nunca restore sobre DB real. Imagen previa permite revertir solo API. DBbackup no sustituye S3backup; esta QA no cambia archivos.
-- Original Documents/SaaS QMS PerfectMatchSystems y Design Studio conservan WIP separado, incluido0041 inválido/lifecycle incompleto: no activar ni sobrescribir. Nunca reset/clean/force-push ni pull/rebase sobre trabajo sin preservar.
-- Wrapper de herramientas: /Users/Gerdel_Garcia/Documents/ChatGPT/SaaS QMS PerfectMatchSystems/scripts/with-local-tools.sh. Backend .venv en apps/api. Entorno privado ~/.config/pmcloud/dev.env; no imprimir valores. Puerto3100 no es callback OIDC autorizado.
-
-## Pendientes de producto
-- Auditorías: planificación/alcance/criterios/equipo/agenda/independencia/competencia existen; faltan ready/start, ejecución/evidencia/hallazgos→NCR/CAPA, informe/cierre. Nunca activar borrador sin backend/pruebas.
-- Alta comercial/invitaciones/autoridad inicial; tenant/seats/ISO entitlements y billing. Catálogos owner aún limitados a100; minimización por unidad/rol, lectura de bitácora y Workflow SQL completo pendientes.
-- KPI/objetivos reales, revisión de dirección, formación general, calibración, calidad cliente/proveedor, costos, importación y packs ISO. No hay paridad Odoo completa.
-- Staging/operación/TLS-MFA/recuperación integral/S3/aceptación y resolución vendors antes de producción. Sin merge ni despliegue automático.
-
-## Historia preservada
-Leer docs/recovery/CHECKPOINT_HISTORY_2026-11-16_WORKFLOW_EXECUTORS.md para checkpoints/pruebas anteriores. Los informes de cada hito son la fuente para sus límites; no reutilizar conteos o PASS históricos como corridas actuales.
+## Pendiente de producto y promoción
+-Auditorías: scope/criterios/equipo/agenda/independencia/competencia yplanHTML existen; ready/start,ejecución/evidencia/hallazgos→NCR/CAPA,informe/cierre pendientes. ready_for_execution siguefalse.
+-Comercial onboarding/invitaciones/autoridad inicial/seats/ISOentitlements/billing; KPIreales/revisión dirección/formación/calibración/calidadcliente-proveedor/COPQ/importación/packsISO yWorkflowSQLA06 pendientes. No afirmar paridadOdoo ni certificaciónISO/NIST/WCAG.
+-Producción PMNO-GO:6HIGH candidataKC, revisión/CI exacta,staging/TLS-MFA/secretos/operación/recuperación integral/S3 yaceptación. Usuario autorizó fusionar cambios validados, no publicar producción ni debilitar reglas.
+-Historia anterior íntegra: docs/recovery/CHECKPOINT_BEFORE_MERGE_DEMO_2026-11-17.md yCHECKPOINT_HISTORY_2026-11-16_WORKFLOW_EXECUTORS.md.

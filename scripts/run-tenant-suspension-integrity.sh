@@ -30,5 +30,5 @@ done
     uv run --no-sync alembic downgrade 0048_audit_competence
     uv run --no-sync alembic upgrade head
   fi
-  uv run --no-sync pytest -m tenant_suspension_integrity tests/test_tenant_suspension_integrity.py "$@"
+  uv run --no-sync pytest -m tenant_suspension_integrity tests/test_tenant_suspension_integrity.py tests/test_module_operability_http_integrity.py "$@"
 )

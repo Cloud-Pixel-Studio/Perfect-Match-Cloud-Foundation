@@ -156,7 +156,7 @@ jobs:
         id: third-party-images
         run: |
           trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json pmcloud-postgres:local
-          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.53@sha256:ccad23e18639c8b98cee17e7100b95830a06077b56d8e5b006d6dcf8ec5e94a0
+          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.54@sha256:4b42c212543a0acd4c0e675215ecdcaf62a186ef98def76c7e12701871222d15
           trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
           trivy image --format json --scanners vuln --output artifacts/trivy-clamav-image.json clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
           for report in artifacts/trivy-postgres-image.json artifacts/trivy-seaweedfs-image.json artifacts/trivy-keycloak-image.json artifacts/trivy-clamav-image.json; do

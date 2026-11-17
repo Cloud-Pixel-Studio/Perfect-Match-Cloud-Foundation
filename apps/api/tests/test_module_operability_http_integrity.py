@@ -432,14 +432,6 @@ class MinimalReviewerParentLockFailure(AssertionError):
 
 
 @pytest.mark.parametrize("action", ["reject", "approve"])
-@pytest.mark.xfail(
-    strict=True,
-    raises=MinimalReviewerParentLockFailure,
-    reason=(
-        "M01: parent SELECT FOR UPDATE hides document for review/approve "
-        "without author/release/obsolete"
-    ),
-)
 def test_document_http_minimal_reviewer_can_decide_without_parent_write_grants(
     boundary: Boundary, monkeypatch: pytest.MonkeyPatch, action: str
 ) -> None:
