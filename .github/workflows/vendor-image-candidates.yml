@@ -72,7 +72,12 @@ jobs:
           for report in artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json; do
             jq -e '
               ((.Results | type == "array") and (.Results | length > 0)) and
-              all(.Results[]; (type == "object") and ((.Vulnerabilities? // []) | type == "array"))
+              all(.Results[]; (type == "object") and
+                (if .Vulnerabilities == null then true
+                 elif (.Vulnerabilities | type) == "array" then
+                   all(.Vulnerabilities[]; (type == "object") and
+                     (.Severity | IN("UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL")))
+                 else false end))
             ' "$report" >/dev/null
           done
           jq -n \
@@ -128,7 +133,12 @@ jobs:
           for report in artifacts/keycloak-candidate.json artifacts/seaweedfs-candidate.json; do
             jq -e '
               ((.Results | type == "array") and (.Results | length > 0)) and
-              all(.Results[]; (type == "object") and ((.Vulnerabilities? // []) | type == "array"))
+              all(.Results[]; (type == "object") and
+                (if .Vulnerabilities == null then true
+                 elif (.Vulnerabilities | type) == "array" then
+                   all(.Vulnerabilities[]; (type == "object") and
+                     (.Severity | IN("UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL")))
+                 else false end))
             ' "$report" >/dev/null
           done
           jq -n \
@@ -147,4 +157,10 @@ jobs:
           retention-days: 30
       - name: Fail closed on high or critical vulnerabilities
         if: github.event_name == 'workflow_dispatch'
-        run: jq -e '.high_or_critical | to_entries | all(.value == 0)' artifacts/candidate-gate.json >/dev/null
+        run: |
+          set -euo pipefail
+          jq -e '
+            (.high_or_critical | type == "object") and
+            ((.high_or_critical.keycloak | type) == "number" and .high_or_critical.keycloak == 0) and
+            ((.high_or_critical.seaweedfs | type) == "number" and .high_or_critical.seaweedfs == 0)
+          ' artifacts/candidate-gate.json >/dev/null

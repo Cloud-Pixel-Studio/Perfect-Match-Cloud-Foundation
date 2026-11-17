@@ -1,10 +1,9 @@
-"""Validate the candidate scanner workflow's safety properties using parsed YAML.
-
-Unlike searching for words in its own source, these checks ensure the scanner
-steps are actually guarded and the release gate is executable.
-"""
+"""Check workflow guards and execute its actual jq report validators."""
+import json
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +42,8 @@ class CandidateWorkflowTests(unittest.TestCase):
         self.assertIn('select(.Severity == "CRITICAL" or .Severity == "HIGH")', scan)
         gate = self._step("Fail closed on high or critical vulnerabilities")
         self.assertIn("jq -e", gate)
-        self.assertIn("all(.value == 0)", gate)
+        self.assertIn(".high_or_critical.keycloak == 0", gate)
+        self.assertIn(".high_or_critical.seaweedfs == 0", gate)
         self.assertIn("artifacts/candidate-gate.json", gate)
         upload = self._step("Preserve immutable scanner evidence")
         self.assertIn("if: always() && github.event_name == 'workflow_dispatch'", upload)
@@ -60,8 +60,68 @@ class CandidateWorkflowTests(unittest.TestCase):
         scan = self._step("Scan resolved candidate digests and record gate on PR")
         self.assertIn('(.Results | type == "array")', scan)
         self.assertIn('all(.Results[];', scan)
-        self.assertIn('(.Vulnerabilities? // []) | type == "array"', scan)
         self.assertIn('artifacts/keycloak-pr-candidate.json artifacts/seaweedfs-pr-candidate.json', scan)
+
+    def test_actual_report_filters_accept_clean_results_and_known_severities(self):
+        rows = [{}, {"Vulnerabilities": None}, {"Vulnerabilities": []}]
+        rows.extend(
+            {"Vulnerabilities": [{"Severity": severity}]}
+            for severity in ("UNKNOWN", "LOW", "MEDIUM", "HIGH", "CRITICAL")
+        )
+        for step in self._report_steps():
+            for row in rows:
+                with self.subTest(step=step, row=row):
+                    self.assertEqual(self._validate_report(step, {"Results": [row]}).returncode, 0)
+
+    def test_actual_report_filters_reject_malformed_vulnerability_sections(self):
+        reports = [{"Results": [{"Vulnerabilities": value}]} for value in (False, True, 0, "", {})]
+        reports.extend([{}, None, [], {"Results": []}, {"Results": False}, {"Results": [False]}])
+        for step in self._report_steps():
+            for report in reports:
+                with self.subTest(step=step, report=report):
+                    self.assertNotEqual(self._validate_report(step, report).returncode, 0)
+
+    def test_actual_report_filters_reject_unrecognized_or_missing_severity(self):
+        entries = [None, False, "HIGH", {}, {"Severity": None}, {"Severity": False},
+                   {"Severity": 0}, {"Severity": ""}, {"Severity": "high"}, {"Severity": "OTHER"}]
+        for step in self._report_steps():
+            for entry in entries:
+                with self.subTest(step=step, entry=entry):
+                    report = {"Results": [{"Vulnerabilities": [entry]}]}
+                    self.assertNotEqual(self._validate_report(step, report).returncode, 0)
+
+    def test_actual_final_gates_require_both_numeric_zero_counts(self):
+        clean = {"high_or_critical": {"keycloak": 0, "seaweedfs": 0}}
+        rejected = [{}, None, {"high_or_critical": {}},
+                    {"high_or_critical": {"keycloak": 0}},
+                    {"high_or_critical": {"keycloak": False, "seaweedfs": 0}},
+                    {"high_or_critical": {"keycloak": "0", "seaweedfs": 0}},
+                    {"high_or_critical": {"keycloak": 1, "seaweedfs": 0}},
+                    {"high_or_critical": {"keycloak": 0, "seaweedfs": 1}}]
+        for step in ("Fail closed on PR candidate high or critical findings",
+                     "Fail closed on high or critical vulnerabilities"):
+            programs = re.findall(r"jq -e\s+'([^']+)'", self._step(step))
+            self.assertEqual(len(programs), 1)
+            self.assertEqual(self._execute_program(programs[0], clean).returncode, 0)
+            for report in rejected:
+                with self.subTest(step=step, report=report):
+                    self.assertNotEqual(self._execute_program(programs[0], report).returncode, 0)
+
+    @staticmethod
+    def _report_steps():
+        return ("Scan resolved candidate digests and record gate on PR",
+                "Scan candidate images (do not deploy)")
+
+    def _validate_report(self, step, report):
+        programs = re.findall(r"jq -e\s+'([^']+)'\s+\"\$report\"", self._step(step))
+        self.assertEqual(len(programs), 1, "Expected exactly one executable report-schema filter")
+        return self._execute_program(programs[0], report)
+
+    def _execute_program(self, program, report):
+        jq = shutil.which("jq")
+        self.assertIsNotNone(jq, "jq is required to test the candidate scanner's real filters")
+        return subprocess.run([jq, "-e", program], input=json.dumps(report),
+                              text=True, capture_output=True, check=False)
 
     def test_pr_candidate_scan_is_fail_closed_after_evidence_upload(self):
         scan = self._step("Scan resolved candidate digests and record gate on PR")
