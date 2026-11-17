@@ -98,8 +98,10 @@ for (const theme of ["light", "dark"]) for (const viewport of [{ name: "desktop"
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const table = panel.getByRole("table");
     await expect(table.getByRole("row")).toHaveCount(21);
+    await expect(panel.getByText("Page 1 · 20 permissions shown", { exact: true })).toHaveAttribute("aria-live", "polite");
     await panel.getByRole("button", { name: "Next permissions", exact: true }).click();
     await expect(table.getByRole("row")).toHaveCount(5);
+    await expect(panel.getByText("Page 2 · 4 permissions shown", { exact: true })).toBeVisible();
     expect(state.reads.some((url) => url.searchParams.get("cursor") === "page-20")).toBe(true);
     await panel.getByRole("button", { name: "Previous permissions", exact: true }).click();
     await expect(table.getByRole("row")).toHaveCount(21);
