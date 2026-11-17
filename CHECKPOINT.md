@@ -2,11 +2,20 @@
 
 ## Retomar
 - Repositorio oficial: Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation. Odoo es solo referencia funcional; no introducir sus dependencias ni mezclar infraestructura.
-- Rama actual: **codex/audit-readiness-consistency**, base PR57/8e31a58. Consultar git status/HEAD/upstream y PR asociado antes de editar. Sin merge/producción; revisión humana requerida.
+- Rama actual: **codex/audit-plan-export**, base PR58/8a24809. Consultar git status/HEAD/upstream y PR asociado antes de editar. Sin merge/producción; revisión humana requerida.
 - Empresa=tenant independiente; sedes/departamentos son unidades. QMS completo es base, addons=normas/ediciones ISO. Básico1empresa+3seats+1ISO es propuesta del usuario, sin precio ni enforcement implementados.
 - Stack vigente: Next/React/TypeScript/Inter/Lucide/tokens claro-oscuro; FastAPI/PostgreSQL FORCE RLS/Keycloak OIDC/storage privado/ClamAV. No reescribir lo operativo.
 
-## Último hito: preparación de auditorías consistente
+## Último hito: plan de auditoría descargable
+- Leer docs/product/AUDIT_PLAN_EXPORT.md. Nuevo botón Download audit plan: HTML listo para imprimir desde registros reales, alcance/criterios/equipo/agenda, retirados+motivos, empresa/unidad/versión. Solo lectura autorizada; no informe emitido ni ready/start. Sin backend/modelos/contratos/permisos nuevos.
+-19 casos nuevos→83frontend PASS; lint/typecheck/build/licencias PASS;24lecturas OIDC/API/proxy de regresión PASS. Paginación completa50/página hasta500/sección, rechazo de duplicados/ámbitos/referencias/cambios de plan-empresa-usuario y permisos; abortar descarga y HTML escapado/CSP.2E2E añadidos con capturas/axe, pendientes de ejecución CI; no afirmar PASS ni pixelbaseline.
+-Descarga real navegador LAB-AUD-002/v5 PASS; fichero y capturas en artifacts/previews/2026-11-17. Documento1280 y marco375 sin overflow; claro/oscuro UI inspeccionados y restaurado claro.5pares contrasteAA medidos, no certificaciónWCAG. Ruta team incorrecta detectada en primer intento→team-members corregida y descarga repetida con éxito.0mutaciones QMS/grants/schema.
+-Next/eslint-config-next actualizados16.4.3→16.4.5 por GHSA-mfr8-8qww-v76h verificado; patrón vulnerable no encontrado en fuentes. Auditpaquetes:1Moderate dev(minimatch),0HIGH/CRITICAL. Vendors/seguridad global siguen pendientes.
+-Web local construido en fuente aislada PR39/f856254+export+Next16.4.5 para no activar A02 sin API. Fuente completa de esta rama también compila. Web healthy/rootfsreadonly/capdrop/no-new-privileges, versiónNext real16.4.5. Anterior pmcloud-web:before-audit-plan-export-20261117. No API/DB/otros servicios cambiados.
+-CP-AUDIT-EXPORT-00-20261117T010817Z(559fuentes) y02-20261117T012025Z(562): cifrados externos/restauración SHA256/bundle PASS. Sin cambiosDB, no restoreDB/S3 nuevo. CP final/evidencias se sella tras entrega Git.
+-PR58 corregido8a24809: calidad43993188442/CodeQL43993188323 PASS; seguridad43993188444 falla solo gate final. Nueva rama requiere CI/revisión independiente/humana. Sin merge/producción.
+
+## Hito previo: preparación de auditorías consistente
 - Leer docs/product/AUDIT_PREPARATION_CONSISTENCY.md. API detecta evaluaciones de independencia/competencia añadidas o retiradas durante la consulta (409/refresh), revalida empresa/actor/lectura y los permisos usados para totales sensibles (403/404). Competencia recalcula la disponibilidad de evaluar tras revocación de review. Historial intacto; sin grants/esquemas/contratos nuevos.
 -6 fallos reproducidos antes del fix→6 PASS;127 integración PostgreSQL0049 PASS sobre código final;6 compatibilidad0048 PASS.93 unitarias PASS/568DB omitidas sin harness. Ruff/formato79/mypy43, diff PASS; OpenGrep6reglas/2archivos0, Gitleaks árbol0. Sin nuevo browser/buildfrontend/WCAG.
 - Preview API local actualizado SOLO internal_audit_independence.py/internal_audit_competence.py; health/rootfs-readonly/cap_drop/no-new-privileges PASS.24 comprobaciones OIDC/API/proxy PASS, incluida denegación otra empresa.0mutaciones QMS/grants/schema. Lecturas puntuales; no snapshot serializable ni autoridad de ejecución. ready_for_execution sigue false.
@@ -24,7 +33,7 @@
 - Leer docs/product/DEMO_SANDBOX.md. Ejemplos LAB-* persistentes: procesos/documentos-PDF/controles-tareas-evidencia/riesgos/NCR/CAPA/planificación auditoría/Workflow. LAB-QA/LAB-WFX son pruebas con historia. Retirar/cancelar/archivar según dominio, no borrar historia ni resetear datos.
 - scripts/seed-demo-sandbox.py --verify solo lee; --apply añade sin sobrescribir ni restaurar grants revocados. scripts/exercise-demo-sandbox.py --apply tiene47checks; runtime-workflow-executors-e2e.py --apply crea SOLO QA local y requiere checkpoint DB verificado. Sin --apply no escriben negocio.
 - Runtime sigue **DB0048/PR39** con capas API locales: processes.py fix formulario, action_center.py/action_center_queries.py, workflow_service.py y dependencia existente tenant_access.py y los2 módulos de preparación de auditorías del último hito. tenant_access.py comprueba empresa/actor activos en API Workflow. No se desplegó toda suspensión legacy/RLS0049 ni A02; no atribuirlos al runtime.
-- Solo API recreada, rootfs read-only/cap_drop/no-new-privileges conservados. Imagen anterior: pmcloud-api:before-workflow-executors-20261116. Otros servicios/datos previos intactos; no vendors nuevos ni producción.
+- API conserva capas previas; web ahora tiene el export/Next16.4.5 aislado descrito arriba, rootfs read-only/cap_drop/no-new-privileges conservados. Imagen anterior: pmcloud-api:before-workflow-executors-20261116. Otros servicios/datos previos intactos; no vendors nuevos ni producción.
 
 ## Entregas y seguridad
 - PR55 demo: fix formulario procesos campos+site_ids,3regresiones→202PG PASS;10loader unitarias/47API y browser crear-editar-archivar-restaurar PASS. CI820e482 calidad43957691112/CodeQL43957691140 PASS; fallo global-python/httpx corregido sin instalar deps ni omitir tests.

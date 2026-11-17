@@ -1,0 +1,9 @@
+{
+  "id": "CP-AUDIT-EXPORT-00-20261117T010817Z",
+  "branch": "codex/audit-plan-export",
+  "baseCommit": "8a24809caa900efe2cf23bd88234a275a7c68f18",
+  "sourceEntries": 559,
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { authenticateWithKeycloak } from "./support/auth";
@@ -1427,4 +1428,62 @@ test.describe("audit competence (mocked review commands)",()=>{
 
 test("live audit competence reads scoped records without creating an assessment",async({page},testInfo)=>{
  test.skip(!password,"Synthetic development credential required");await authenticateWithKeycloak(page,{username:"pmc-user-a",password:String(password)});const writes:string[]=[];page.on("request",request=>{if(request.url().includes("/internal-audits/")&&request.method()!=="GET")writes.push(request.method())});await page.goto("/#internal-audits-heading",{waitUntil:"networkidle"});const panel=page.locator('section[aria-labelledby="internal-audits-heading"]');const unit=panel.getByRole("combobox",{name:"Organization scope",exact:true});await unit.selectOption(String(await unit.locator("option").filter({hasText:"DEV-ACCESS-UI"}).getAttribute("value")));await expect(panel).toContainText("DEMO-AP-001");const read=page.waitForResponse(response=>response.request().method()==="GET"&&new URL(response.url()).pathname.endsWith("/competence")&&response.status()===200);await tab(panel,"Scheduled audits");const response=await read;expect(response.headers()["cache-control"]).toContain("no-store");const data=await response.json() as {audit_version:number;planned_auditors:number;current_assessments:number;review_version:number;can_review:boolean;auditors:Array<{assessment_status:string;latest_review:unknown}>};expect(data.planned_auditors).toBeGreaterThan(0);expect(data.current_assessments).toBe(0);expect(data.review_version).toBe(0);expect(data.auditors.every(row=>row.latest_review===null)).toBe(true);await detailSection(panel,"Readiness");await expect(panel.getByRole("heading",{name:"Auditor competence assessments",exact:true})).toBeVisible();await expect(panel.getByText("Not assessed",{exact:true})).toBeVisible();await expect(panel.getByRole("button",{name:/Start audit|Mark as ready/})).toHaveCount(0);expect(writes).toEqual([]);await page.evaluate(()=>window.scrollTo({top:0,behavior:"instant"}));const screenshot=testInfo.outputPath("live-audit-competence.png");await page.screenshot({path:screenshot,fullPage:true});await testInfo.attach("live-audit-competence",{path:screenshot,contentType:"image/png"});
+});
+
+
+test.describe("audit planning downloads", () => {
+  test.beforeEach(() => test.skip(!password, "Synthetic development credential required"));
+  test("read-only responsibility downloads a planning copy without QMS writes", async ({ page }) => {
+    const { state, panel } = await fixture(page, ["audits.read"]);
+    const me = await page.request.get("/api/identity/auth/me");
+    expect(me.status()).toBe(200);
+    state.audits[0].tenant_id = (await me.json()).current_tenant_id;
+    state.audits[0].conclusion = "PRIVATE-EXECUTION-RESULT-NOT-FOR-PLAN";
+    await tab(panel, "Scheduled audits");
+    const downloading = page.waitForEvent("download");
+    await panel.getByRole("button", { name: "Download audit plan", exact: true }).click();
+    const download = await downloading;
+    const path = await download.path(); expect(path).not.toBeNull();
+    const html = await readFile(path!, "utf8");
+    expect(download.suggestedFilename()).toMatch(/^PerfectMatch-plan-.*-v\d+\.html$/);
+    expect(html).toContain("Planning copy · Not an issued audit report");
+    expect(html).toContain(String(state.audits[0].name));
+    expect(html).not.toContain("PRIVATE-EXECUTION-RESULT-NOT-FOR-PLAN");
+    expect(html).not.toContain("<script"); expect(state.writes).toEqual([]);
+    await expect(panel.getByRole("status")).toContainText("Plan downloaded");
+  });
+  test("real local API and proxy produce a printable scoped planning copy", async ({ page }, testInfo) => {
+    await authenticateWithKeycloak(page, { username: "pmc-user-a", password: String(password) });
+    const writes: string[] = [];
+    page.on("request", request => { if (request.url().includes("/internal-audits/") && request.method() !== "GET") writes.push(request.method()); });
+    await page.goto("/#internal-audits-heading", { waitUntil: "networkidle" });
+    const panel = page.locator('section[aria-labelledby="internal-audits-heading"]');
+    const unit = panel.getByRole("combobox", { name: "Organization scope", exact: true });
+    const option = unit.locator("option").filter({ hasText: "DEV-ACCESS-UI" });
+    await unit.selectOption(String(await option.getAttribute("value")));
+    await tab(panel, "Scheduled audits");
+    const downloading = page.waitForEvent("download");
+    await panel.getByRole("button", { name: "Download audit plan", exact: true }).click();
+    const download = await downloading; const path = await download.path(); expect(path).not.toBeNull();
+    const html = await readFile(path!, "utf8");
+    expect(html).toContain("Planning copy · Not an issued audit report");
+    expect(html).toContain("DEV-ACCESS-UI"); expect(html).toContain("Audit criteria");
+    expect(html).toContain("Agenda (UTC)"); expect(html).toContain("default-src 'none'");
+    expect(writes).toEqual([]);
+    await expect(panel.getByRole("status")).toContainText("Plan downloaded");
+    const screenshot = testInfo.outputPath("audit-plan-download.png");
+    await page.screenshot({ path: screenshot, fullPage: true });
+    await testInfo.attach("audit-plan-download", { path: screenshot, contentType: "image/png" });
+    await page.goto("data:text/html;charset=utf-8," + encodeURIComponent(html));
+    for (const width of [375, 1280]) {
+      await page.setViewportSize({ width, height: 812 });
+      await expect(page.getByRole("heading", { name: /Objective & scope/ })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+      const result = await new AxeBuilder({ page }).include("main").withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
+      expect(result.violations).toEqual([]);
+      const image = testInfo.outputPath(`audit-plan-document-${width}.png`);
+      await page.screenshot({ path: image, fullPage: true });
+      await testInfo.attach(`audit-plan-document-${width}`, { path: image, contentType: "image/png" });
+    }
+  });
 });
