@@ -1,0 +1,20 @@
+{
+  "id": "CP-FLOW-RECOVERED-06B-20261114T210402Z",
+  "branch": "codex/audit-complete-flow",
+  "baseCommit": "c25e39e6480b0b1af097c740d72c20e911d7b5c4",
+  "sourceEntries": 551,
+  "artifacts": {
+    "source.tar.gz.enc": "28203c9c52ffbd88d0f526bd85a377b7f1339fd6f533a1c72bfe220f4d3cd9ee",
+    "repository.bundle.enc": "2896f5a0b67a5a472d0d052c93da8351dc412f30dfc65fa32b887dac2f6b5dc7"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed",
+  "sharedGateEvidence": {
+    "encrypted_sha256": "d2709ced556dcc9709b61c5aead507c6e45f167863b0eb7e54a625c7f8f9c5e2",
+    "entries": 2,
+    "verification": "PASS decrypt/all entry SHA256 match;9 inventory+4 checkpoint controls;tree and all refs0leaks"
+  },
+  "priorEvidenceCheckpoint": "CP-FLOW-RECOVERED-06-20261114T210112Z",
+  "snapshotNote": "Source snapshot before final9+4 explanatory wording; exact final local commit/tree preserved in encrypted delivered bundle"
+}

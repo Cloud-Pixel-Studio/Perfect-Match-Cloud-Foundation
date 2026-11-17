@@ -1,0 +1,100 @@
+{
+  "startedAt": "2026-11-14T20:44:06.300Z",
+  "base": "http://127.0.0.1:3103",
+  "api": "http://127.0.0.1:8000",
+  "qmsWritesForwarded": 0,
+  "cases": [
+    {
+      "name": "marketing: product tour, demo intent and download",
+      "evidence": "real frontend; no message sent",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0,
+        "contact": "Demo@invperfectmatch.com",
+        "transmission": "not tested; mail client intentionally not opened",
+        "onboarding": "not available"
+      }
+    },
+    {
+      "name": "marketing: 320px keyboard FAQ and navigation",
+      "evidence": "real frontend",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "anonymous entry reaches the approved login boundary",
+      "evidence": "real frontend; no authentication yet",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "real OIDC and business GET navigation",
+      "evidence": "actual health endpoint",
+      "result": "BLOCKED",
+      "detail": "Database unavailable; no credential submitted and no business request attempted."
+    },
+    {
+      "name": "synthetic auditor: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Documents",
+          "Internal audits",
+          "Organization",
+          "Permissions",
+          "Audit trail"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "synthetic member: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Permissions"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    }
+  ],
+  "roles": [],
+  "runtimeHealth": {
+    "checkedAt": "2026-11-14T20:44:06.585Z",
+    "status": 503,
+    "body": {
+      "status": "degraded",
+      "version": "0.5.0",
+      "dependencies": {
+        "database": "unavailable",
+        "object_storage": "ok",
+        "malware_scanner": "ok"
+      }
+    }
+  },
+  "finishedAt": "2026-11-14T20:44:20.093Z",
+  "summary": {
+    "pass": 5,
+    "fail": 0,
+    "blocked": 1
+  }
+}

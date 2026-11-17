@@ -1,3 +1,9 @@
+## Suspensión empresarial · 14 noviembre 2026
+
+CP-TENANT-SUSPENSION-00-20261114T154913Z:497fuentes/Git cifrados y restaurados por SHA256 antes de editar; rama codex/tenant-suspension sobre PR40. CP-TENANT-SUSPENSION-PRESERVE-00-20261114T154650Z protege504fuentes/Git de Design Studio con WIP0049 de lifecycle; sus hashes permanecen intactos. Claves 0600 y backups fuera del árbol.
+
+CP-TENANT-SUSPENSION-DB-00-20261114T155635Z respalda la DB local 0048: restauración aislada PASS,57 tablas/50 forced RLS, sin cambios de esquema/datos fuente. Docker agotó almacenamiento durante QA; los nuevos harness usan tmpfs 512m. No se borraron imágenes/volúmenes ajenos ni se migró la DB local. Las migraciones de prueba son desechables; no afirmar restauración pos 0049 de la DB local.
+
 # Recovery checkpoints
 
 External encrypted checkpoints are stored under the local PerfectMatchQMS recovery
@@ -17,6 +23,22 @@ pmcloud configuration directory.
 | `CP-05-20261104T003517Z` | Premium operational-module visual milestone | Source/Git/18 visual PNGs verified; DB restored successfully |
 | `CP-BRAND-00-20261104T015019Z` | Branding work initial baseline | Source/Git/local diff encrypted; decryption and bundle verified |
 | `CP-BRAND-06-20261104T020606Z` | Aligned Evidence pre-integration boundary | Source/Git/diff/DB encrypted; isolated DB restore passed on 0039 and 48 tables |
+| `CP-VISUAL-00-20261109T182914Z` | Before visual completion work | Source and complete Git bundle encrypted; decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-05-20261110T214408Z` | Persona navigation, workflow dialog and audit workspace | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-06-20261110T215335Z` | Post-review visual/security integration boundary | 565-entry source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-07-20261110T221055Z` | Reviewed Linux visual baseline correction | 346 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-08-20261110T222519Z` | Deterministic pinned Linux visual runtime | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-09-20261111T022612Z` | Stable authenticated visual fixture and serialized CI | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-10-20261111T023554Z` | Visual artifact ownership handoff | 347 tracked-source entries and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-VISUAL-11-20261111T025137Z` | Deterministic authenticated-session readiness | Tracked source and complete Git bundle encrypted; stream decryption, archive listing and bundle verification passed |
+| `CP-AUDIT-00-20261111T030311Z` | Internal-audit initial baseline | 348-entry source, complete Git bundle and database encrypted; isolated restore passed on 0039 and 48 tables |
+| `CP-AUDIT-01-20261111T125152Z` | Internal-audit planning slice before commit | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline re-encrypted and matched to CP-AUDIT-00 |
+| `CP-AUDIT-02-20261111T133146Z` | Internal-audit planning slice with CI gate | 353-entry source and Git bundle encrypted/verified; unchanged 0039 database baseline digest matched and catalog read passed |
+| `CP-DESIGN-STUDIO-01-20261111T181713Z` | AI Design Studio visual foundation | 373-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
+| `CP-DESIGN-STUDIO-02-20261111T182451Z` | Verified AI Design Studio pre-commit boundary | 378-entry source and complete Git bundle encrypted; archive listing and bundle verification passed; database unchanged |
+| `CP-DESIGN-STUDIO-03-20261111T183407Z` | Final Design Studio pre-integration boundary | Includes reviewed Darwin/Linux baselines and supersedes CP-DESIGN-STUDIO-02; encrypted hashes and restoration evidence recorded below |
+| `CP-DESIGN-STUDIO-04-20261112T014909Z` | Before visual polish and cross-chat handoff | Encrypted source archive listed and complete Git bundle verified; separate key mode0600; database unchanged |
+| `CP-DESIGN-STUDIO-05-20261112T023324Z` | Final visual polish and cross-chat handoff | 385-entry encrypted source listed, complete Git bundle verified, separate key0600;43 unit tests and final Linux16/16 repeated without snapshot updates |
 | `CP-06-20261102T202506Z` | Final pre-GitHub integration state | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261102T204905Z` | Authorized integration boundary | Source/Git/visuals verified; DB restored successfully |
 | `CP-06-20261103T032216Z` | Post-PR CI and recovery verification | Source/Git/12 visuals verified; DB restored successfully |
@@ -56,6 +78,124 @@ list correctly. The database restore was independently verified at Alembic 0039,
 48 public tables and 28 CAPA rows. Nine local Playwright/axe scenarios pass;
 fresh Linux runtime and human acceptance remain pending.
 
+CP-VISUAL-05 `20261110T214408Z` preserves the verified local visual-completion
+tree before Git integration. It includes the persona-aware navigation, native
+workflow editor dialog, audit evidence workspace, Darwin workspace baselines and
+the read-only active-capability summary. It does not include environment files,
+runtime artifacts or database content; no schema or customer data changed. The
+key remains separate with mode 0600.
+
+CP-VISUAL-06 `20261110T215335Z` supersedes CP-VISUAL-05 as the pre-Git boundary.
+It also preserves the independent-review correction that couples evidence-review
+actions to the control context required to open and complete them, and requires
+the explicit `evidence.review` capability at the review endpoint. It contains no
+database or environment material; its separate key has mode 0600.
+
+CP-VISUAL-07 `20261110T221055Z` preserves the two reviewed Linux workspace
+baselines regenerated after PR #15 correctly rejected their stale predecessors.
+The official Playwright 1.64.1 Linux container passes all 13 scenarios against
+these files. The encrypted archive is restricted to Git-tracked source, and its
+complete Git bundle verifies; no database, environment value or customer data is
+included. Its separate key has mode 0600.
+
+CP-VISUAL-08 `20261110T222519Z` supersedes CP-VISUAL-07 for visual CI
+reproducibility. CI demonstrated that all six screenshot comparisons drifted on
+the mutable GitHub runner even when four untouched product baselines were used.
+The regression now runs in the official Playwright 1.64.1 Noble image pinned by
+manifest digest and receives only synthetic test credentials. ShellCheck,
+workflow YAML parsing, license policy and all 13 scenarios pass locally in that
+exact runtime. The encrypted tracked-source archive and complete Git bundle were
+verified; no database, environment value or customer data is included.
+
+CP-VISUAL-09 `20261111T022612Z` adds deterministic authenticated screenshot
+content and serializes CI browser workers after the pinned runtime proved that
+the remaining variation came from database-specific action counts and concurrent
+owner/member logins. Only the two screenshot scenarios use the fixed compact
+action fixture; real-API deep-link and exact-record tests remain unchanged.
+Darwin and Linux mobile baselines were reviewed, and Linux lint, typecheck and
+all 13 Playwright/axe scenarios pass. Source and Git recovery artifacts were
+encrypted and verified with a separate mode-0600 key.
+
+CP-VISUAL-10 `20261111T023554Z` preserves the ownership handoff added after the
+official PR run passed the pinned Linux visual/axe gate but exposed root-owned
+Playwright reports blocking the later ZAP step. The container now restores those
+files to the runner UID/GID while preserving Playwright's exit status. ShellCheck
+and all 13 scenarios pass locally, and report/result ownership was verified.
+Source and Git recovery artifacts were encrypted and verified with a separate
+mode-0600 key.
+
+CP-VISUAL-11 `20261111T025137Z` preserves the authenticated browser-test
+readiness correction after the next PR run exposed a real OIDC callback race.
+The shared helper now waits for the final web redirect, a successful `/auth/me`
+response and the initial workspace before following a requested deep link.
+ESLint, TypeScript and two consecutive runs of all 13 scenarios pass without
+retries in the pinned Linux image. The encrypted tracked-source archive and
+complete Git bundle were verified; no database, environment value or customer
+data is included, and the separate key has mode 0600.
+
+CP-AUDIT-00 `20261111T030311Z` is the clean baseline before internal-audit
+schema work. Its encrypted source lists 348 entries, the complete Git bundle
+verifies, and the encrypted PostgreSQL dump restores independently at Alembic
+`0039_capa_trace_links` with 48 public tables. The separate key has mode 0600;
+no environment file or plaintext database dump is stored in the repository.
+
+CP-AUDIT-01 `20261111T125152Z` preserves the verified first internal-audit
+vertical before commit:
+programs, audit planning, four explicit scoped capabilities, forced RLS,
+controlled transitions, immutable technical events and its disposable database
+test harness. The unchanged live database snapshot is re-encrypted from the
+restored CP-AUDIT-00 baseline and its decrypted digest must match. The source,
+complete Git bundle and database remain outside the working tree with a separate
+mode-0600 key. The final timestamp and verification counts are recorded after
+checkpoint creation.
+The source, Git bundle and database ciphertext SHA-256 values are respectively
+`16f9344a0c2600eb2b1dfad5381374688ae197a23dcb501d30e22e738f432067`,
+`97153b50462eba07f81c4f54c29b8a06ba4b2401fa1f0e51ebecea1b91318ee2`
+and `b31649c11b6d516c3c8af446c02c6ffb73cd43fe522faa646f73374c40c8b1fe`.
+
+CP-AUDIT-02 `20261111T133146Z` supersedes CP-AUDIT-01 as the verified
+pre-commit boundary. It adds the independent `internal-audit-integrity` quality
+job, includes the suite in `scripts/checkpoint.sh`, validates the expected
+downgrade failure reason without noisy traceback output, and preserves the
+Ruff/mypy corrections required by the exact CI commands. Its encrypted source,
+Git bundle and unchanged database snapshot hashes are respectively
+`8c8cba07f7e71419f994333ba43bdc61f033e4999ca3a3f8854cfa36d57d36fd`,
+`6a734e9dceaf1c9a37f4b4ab72fcb4e6da67e61bea66638389059a854566eb5a`
+and `f55561250188cea898cad8f2f2dc8bde767ed8c8e4c331bc2964ed101785ecb6`.
+The separate key is mode 0600; the decrypted database digest matches the
+restored CP-AUDIT-00 baseline and `pg_restore` reads its catalog.
+
+CP-DESIGN-STUDIO-01 `20261111T181713Z` preserves the isolated Design Studio
+implementation before commit. Its source archive includes the Brand Kit, five
+agent contracts, two generated source visuals, one synthetic product capture,
+six deterministic PNG exports, gallery, renderer, policies, tests and documents.
+The encrypted source and Git bundle hashes are respectively
+`6588ea9b61138c20a12c1b29b7377a2ac75535d7bb373d63f4b824c755497397`
+and `f4873b571711d886710c81d6d1ee282e1134003e770ebea1b1d319a0db105d98`.
+Both recovery checks passed; the key is separate with mode 0600. No database,
+environment file, provider credential or customer data is included.
+
+CP-DESIGN-STUDIO-02 `20261111T182451Z` supersedes CP-DESIGN-STUDIO-01 as the
+verified pre-commit boundary. It adds the six exact PNG exports, asset/hash and
+dimension tests, responsive Playwright/axe baselines, CSP-safe logo rendering,
+tool evaluation and implementation report. The encrypted source and Git bundle
+hashes are respectively
+`00e4fba1f11642cf57821524de0917a8bb8d0c43071edaaa6337519ac9505625`
+and `53a1c2a3853239e4abc8b4f2632cab5f7f32c0cdd05cbd0c2887a16921cf9f8d`.
+Both recovery checks passed; the key is separate with mode 0600. The database,
+runtime services and production remain unchanged.
+
+CP-DESIGN-STUDIO-03 `20261111T183407Z` supersedes CP-DESIGN-STUDIO-02 before
+GitHub integration. Its additional evidence is the independently rendered and visually
+inspected Linux mobile/desktop baseline pair, followed by a second unchanged
+2/2 Playwright/axe run in the official image pinned by digest. It preserves 380
+source entries and a complete Git bundle. The encrypted source and Git bundle
+hashes are respectively
+`4f3f5cca66b9f3dd8e32678c89d5b700c1fc465df87b192eb1139c55be52baf2`
+and `0b58532309cb1e5e74341240890a5cde62f35d3b48a16e920ad0b0091e7f9541`.
+Archive listing and Git bundle verification passed; the separate key is mode
+0600. Database, runtime services and production remain unchanged.
+
 CP-06 preserves the remediated independent-review state: fresh Keycloak evidence,
 deferred fail-closed CI image gates, SHA-pinned CodeQL, controlled agent intake and
 185 passing process-integrity tests. Its isolated restore reproduces Alembic
@@ -77,3 +217,237 @@ images retain five and one High findings respectively.
 
 This document contains identifiers and outcomes only. It intentionally excludes
 keys, secrets, environment values, database content and customer data.
+
+CP-DESIGN-STUDIO-04 preserves remote-synchronized commit `4ad33be` before
+the logo, theme and download follow-up. The encrypted source and bundle SHA-256
+are `5efa97a05eada1c2e44ff81d2b62628660624aaaf2153c776b85f3c522b1d68c`
+and `8864024bbb059db6077b51ec3ce790f6f50ae58235c0d20c1e4db9930202f72e`.
+Source listing and bundle verification passed; no database mutation is part of
+the visual change. The date suffix is UTC (11 November in America/New_York).
+
+CP-DESIGN-STUDIO-05 preserves the final visual follow-up and cross-chat guide
+before integration. Its encrypted source and bundle SHA-256 are
+`54285f2fc8f22d02929d19cef89f28f4de4ff879fce7275195c6c019ebd1781d`
+and `825d4ba26b51766dc7532c8e06ed3668226e91798edefc87818d3b4d3165040b`.
+The archive contains385 entries; stream decryption/listing and bundle verification
+passed. The key is stored separately with mode0600. No database, customer data
+or environment file was included. The snapshot is based on4ad33be and includes
+the uncommitted visual delta; the audit0041 draft remains in its separate branch.
+
+
+CP-MARKETING-00 `20261112T024646Z` preserves91b26b5 before the public-product
+marketing change. Source768 entries and complete Git bundle are encrypted outside
+the worktree; stream decryption/listing and bundle verification passed again on
+12 November. Cipher hashes are
+`dd6dea0483b9c9bfea64e9ebb6b8bfba2b541653c9ae373fc0e451367868d60f`
+and `0bcd20a3f0e61230ef308d5d3744123b5923942b061c49633566ebc6c4771f67`.
+No environment file, database or customer data was included.
+
+CP-MARKETING-06 `20261112T140941Z` is the preintegration boundary for the
+product tour, synthetic UI captures, contact/brief flow, visual references and
+external-branch reconciliation. Encrypted source and Git history, per-file
+hashes and restoration verification live in protected external storage with
+a separate0600 key. No schema/data mutation: no new DB restore claimed.
+The final verification includes59 unit tests, lint/types/build, Darwin19 and
+Linux19 repeated without snapshot updates/retries; release remains blocked.
+
+
+CP-DOCUMENTS-00 `20261112T143052Z` preservesacaf7dd before document workspace
+reliability changes. Encrypted source402 entries and complete Git bundle were
+verified by stream decryption, every file hash and git bundle verify.
+
+CP-DOCUMENTS-06-20261112T144338Z preserves the final reliability change and regression suite before
+GitHub integration. Encrypted source/Git and separate0600 keys remain outside
+the working tree; the public manifest records cipher hashes and verification.
+No QMS data or database schema changed. Tests:59 unit,26 Darwin and26 Linux
+browser scenarios; existing snapshots unchanged, no retries. No release approval.
+
+
+CP-DOC-FEEDBACK-00 `20261112T144935Z` preserves23b9abf and406 source files
+before command/upload feedback changes. Encrypted source restore matched every
+file hash and the Git bundle verified.
+
+CP-DOC-FEEDBACK-06-20261112T150700Z preserves the verified command-feedback source and Git history.
+Encrypted artifacts and separate0600 keys remain outside Git; the public
+manifest records source count, cipher hashes and isolated restore verification.
+No QMS data/schema change.59 unit,36 Darwin and36 Linux browser cases passed;
+no screenshot updates/retries. Mock writes do not claim backend integration.
+
+
+## CAPA origin workflow · 12 November2026
+
+CP-CAPA-ORIGIN-00-20261112T154919Z preserves ba884bc and410 source files before
+origin-filter API and related-CAPA UI changes. Encrypted source restoration
+matched every hash; Git bundle verification passed.
+
+CP-CAPA-ORIGIN-06-20261112T212240Z preserves the final verified source before GitHub integration.
+See its public manifest for cipher hashes, isolated restoration and Git bundle
+verification. Keys0600 and actual backups stay outside the working tree. Visual
+evidence is stored separately encrypted and checked against its PNG SHA256.
+No QMS runtime data/schema mutation or database restoration claimed. Final
+checks:199 disposable PostgreSQL,59 web unit,50 Darwin and50 Linux browser cases;
+no snapshot updates or retries. Mock writes do not establish backend persistence.
+
+
+## Internal audit planning UI · 12 November2026
+
+CP-AUDIT-UI-00-20261112T214141Z restores416 source files and Git before UI work.
+CP-AUDIT-UI-DB-00-20261112T215516Z-r12 restores48 tables at0039, every row/content
+hash, role/credential attributes, RLS and sequences in a network-isolated tmpfs
+container. Canonicalization exceptions (constant array casts and built-in role
+bootstrap grantor names) are explicit in the public manifest. Application grants
+and all Boolean operators/grouping were preserved. Earlier failed attempts remain
+retained; no migration was applied until r12 passed. Encrypted dump/globals,
+verified inventory and helper live in the protected external checkpoint directory;
+separate0600 key, AES-PBKDF2 plus HMAC. No dump, credential or key is committed.
+The runtime then upgraded only existing0040 and seeded synthetic planning records;
+0041 remains excluded. Restoring the older0039 backup would discard later local
+changes and requires an explicit recovery decision; never auto-downgrade history.
+
+
+## Structured audit scope ·12November2026
+
+- CP-AUDIT-SCOPE-00-20261112T230734Z: baseline422 source entries and Git bundle,
+  encrypted outside working tree; isolated source SHA256 and bundle verify PASS.
+- CP-AUDIT-SCOPE-DB-00-20261112T231842Z: separate pre-migration0040 database,
+  globals and inventory encrypted/HMAC-authenticated; isolated tmpfs/network-none
+  restoration PASS across50 tables,44 forcedRLS tables, content/schema/ACL/roles.
+  Source image unavailable: executable SHA256 verified against fallback image.
+  Strict deparser/built-in grantor normalization is documented in
+  `../product/INTERNAL_AUDIT_SCOPE.md`; not byte-identical images or raw DDL.
+- Local schema advanced explicitly0040→0042 only after recovery proof. Original
+  unvalidated0041 remains in its original checkout and remote recovery branch.
+  Synthetic demo scope added via API; no destructive rollback. Prior local API/web
+  images tagged before-audit-scope-20261112. Database/image rollback is a separate
+  reviewed recovery operation, never an automatic downgrade with history.
+
+- CP-AUDIT-SCOPE-DB-06-20261112T233026Z: post-migration0042 snapshot restored in isolation,51tables/45forcedRLS, all row/schema/role checks PASS.
+- CP-AUDIT-SCOPE-06-20261112T233207Z: final source/Git and separate visual evidence; consult public manifest for verified hashes.
+
+
+## Audit criteria ·12November2026
+
+- CP-AUDIT-CRITERIA-00-20261112T233726Z:431source entries+Git encrypted,
+  isolated restoration/file hashes/bundle verification PASS.
+- CP-AUDIT-CRITERIA-02-20261112T234627Z:437WIP entries+Git verified before
+  integration; includes the small PR32 process-cleanup follow-up.
+- CP-AUDIT-CRITERIA-DB-00-20261112T233748Z: separate pre0043 database recovery
+  from0042,51tables/45forcedRLS; complete row/schema/ACL/role comparison PASS.
+- Source and database changes are separate checkpoints. Local0043 was applied
+  only after pre0043 recovery PASS; only synthetic demo criterion was added by API.
+  Keys and encrypted backup artifacts remain protected outside Git. No destructive
+  rollback is allowed with operational history; previous local images retained.
+
+- CP-AUDIT-CRITERIA-DB-06-20261113T034349Z: post0043 database restored52tables/46forcedRLS, complete content/schema/roles verification PASS.
+- CP-AUDIT-CRITERIA-06-20261113T034926Z: source/Git and actual synthetic visual evidence; public manifest records verified hashes, actual backups outside Git.
+
+
+## Planning team0044 ·13November2026 UTC
+
+- CP-AUDIT-TEAM-00-20261113T040405Z:441 source files+Git encrypted outside repo;
+  isolated source restoration/all hashes and bundle verification PASS.
+- CP-AUDIT-TEAM-DB-00-20261113T040417Z: pre0044 snapshot0043 restored52 tables/
+  46 forcedRLS, complete data/schema/ACL/roles/sequences comparison PASS.
+- CP-AUDIT-TEAM-DB-06-20261113T041446Z: post0044 snapshot restored53 tables/
+  47 forcedRLS, all comparisons PASS, includes one synthetic planned assignment.
+- No source-image assumption: fallback executables matched PostgreSQL source
+  SHA256; strict deparser/built-in grantor normalization documented in product
+  team handoff. Actual dumps/keys/helper outside Git, keys0600 separate.
+- Local0043→0044 applied after pre-restore PASS. No production migration;
+  previous API/web images tagged before-audit-team-20261112. No automatic
+  downgrade/image rollback with operational history. Original0041 preserved.
+
+- CP-AUDIT-TEAM-06-20261113T042304Z: final source/Git and real synthetic screenshots/quality logs; public manifest records restored hashes.
+
+
+## Agenda0045 ·13November2026 UTC
+
+- CP-AUDIT-AGENDA-00-20261113T044030Z:450 fuente/Git cifrados fuera del repo;
+  restauración aislada/todos los SHA256 y bundle verify PASS, antes de editar.
+- CP-AUDIT-AGENDA-DB-00-20261113T044043Z:pre0045 desde0044,53 tablas/47forcedRLS,
+  todas las filas/esquema/ACLs/roles/secuencias restauradas y comparadas PASS.
+- CP-AUDIT-AGENDA-DB-06-20261113T051030Z:post0045,54 tablas/48forcedRLS, mismos
+  controles PASS, incluye actividad demo sintética. Helpers privados preservados.
+- No se presume misma imagen: fallback endurecido con ejecutables PostgreSQL
+  idénticos por SHA256. Normalización limitada de deparser/grantor bootstrap
+  documentada en INTERNAL_AUDIT_AGENDA.md. Dumps/claves0600 separados fuera de Git.
+- Local0044→0045 solo tras restore previo PASS. Imágenes anteriores API/web
+  before-audit-agenda-20261112 conservadas; sin rollback destructivo/producción.
+  WIP0041 original continúa separado, intacto y fuera de la cadena Alembic.
+
+- CP-AUDIT-AGENDA-06-20261113T052019Z:fuente/Git mas5 PNG/11 logs+audit JSON cifrados;
+  restauracion/SHA256 y bundle verify en manifiesto publico. Bundle de entrega
+  final se verifica por descifrado/mirror/fsck/commit y arbol exactos.
+
+- CP-AUDIT-AGENDA-06B-20261113T052727Z:supersede al06 de458 fuentes tras falso positivo de checksum;
+  conserva06 sin sobrescribir e incorpora excepcion exacta comprobada con4
+  controles de deteccion. Datos/DB/imagenes no cambiaron por esta correccion.
+
+- CP-AUDIT-AGENDA-06B-20261113T052727Z:460 fuentes/Git restaurables, snapshot WIP previo a
+  corregir Ruff S101/S603/S607 del control nuevo. No es calidad final aceptada.
+- CP-AUDIT-AGENDA-06C-20261113T052847Z:fuente final tras Ruff y4 controles de deteccion PASS;
+  fuente/Git/evidencia cifrados y restaurados, sin cambiar DB ni frontend probado.
+
+
+## Independence assessments0046 -13November2026
+
+- CP-AUDIT-INDEPENDENCE-00-20261113T124751Z:461 fuentes/Git cifrados fuera del
+  arbol; restauracion de todos los SHA256 y bundle verify PASS antes de editar.
+- CP-AUDIT-INDEPENDENCE-DB-00-20261113T124853Z:pre0046 desde0045,54 tablas/48forcedRLS.
+- CP-AUDIT-INDEPENDENCE-DB-06-20261113T130947Z:post0046,55 tablas/49forcedRLS.
+  Ambos restores aislados sin red/puertos, tmpfs, contenido/esquema/ACL/roles/
+  secuencias verificados. Helpers privados preservados; claves0600 separadas.
+- Fallback endurecido con ejecutables PostgreSQL identicos por SHA256; solo
+  normalizacion limitada documentada en INTERNAL_AUDIT_INDEPENDENCE.md. No dumps
+  ni secretos en Git. Local0046 tras restore previo y75PASS; imagenes anteriores
+  before-audit-independence-20261113 conservadas. El demo no tiene firma ficticia.
+- El refinamiento final de hashes del ledger solo cambia codigo. No downgrade
+  poblado, cambio de produccion ni mezcla del WIP0041 original.
+
+- CP-AUDIT-INDEPENDENCE-06-20261113T133559Z:fuente/Git y5 PNG/11 logs+audit JSON cifrados y
+  restaurados por SHA256; ver manifiesto publico. Bundle de entrega se vuelve
+  a verificar por decrypt/mirror/fsck/exact commit-tree tras sincronizacion.
+
+## Execution-authority diagnostic0047 —13November2026
+
+- CP-AUDIT-AUTHORITY-00-20261113T144345Z:470 fuentes/Git cifrados/restaurados por SHA256 antes de editar.
+- CP-AUDIT-AUTHORITY-DB-00-20261113T144349Z:pre0046/55tablas/49forcedRLS.
+- CP-AUDIT-AUTHORITY-DB-06-20261113T151525Z:post0047/56tablas/49forcedRLS.
+  Restauraciones aisladas tmpfs/sin red/puertos PASS; datos/esquema/roles/ACL/secuencias
+  comparados. Nueva proyeccion privada RLS sin politicas y sin FORCE es intencional;
+  getter del propietario devuelve solo conteos con read+review por unidad.
+  Fallback binarios identicos, normalizacion limitada de casts/grantor documentada
+  en AUDIT_EXECUTION_AUTHORITY.md. Claves/backups0600 separados fuera de Git.
+- Imagenes before-audit-authority-20261113 retenidas. DB local0047 tras restore
+  previo y91 integraciones; roundtrip poblado solo DB descartable. Sin produccion.
+
+- CP-AUDIT-AUTHORITY-06-20261113T152132Z:fuente/Git+5 PNG/logs/audit JSON cifrados, restauracion por SHA256 y bundle verify; manifiesto publico tras verificacion. Bundle final se verifica contra entrega exacta despues de sincronizar.
+
+## Audit detail navigation —13November2026
+
+- CP-AUDIT-DETAIL-00-20261113T153013Z:477 fuentes/Git cifrados antes de editar,
+  restauracion/SHA256/bundle verify PASS. Base PR37/012ba4b local/remoto0/0.
+- Solo frontend y presentacion; sin migraciones ni cambios de datos QMS. Sesiones de prueba normales; API y
+  DB0047 intactas, no nuevo restore DB afirmado. Restore0047 del hito authority
+  sigue disponible. Imagen before-audit-detail-20261113 retenida antes de sustituir
+  exclusivamente web local. Backups/claves0600 fuera de Git; sin produccion.
+
+- CP-AUDIT-DETAIL-06-20261113T154320Z:fuente/Git+15PNG/9logs/3JSON cifrados, restore/SHA256/bundle verify antes de commit; manifiesto publico tras verificacion. Bundle final se valida contra head/arbol entregados.
+
+## Audit competence0048 —13November2026
+
+- CP-AUDIT-COMPETENCE-00-20261113T182432Z:481 fuentes/Git cifrados antes de editar,
+  restauracion/SHA256/bundle verify PASS. Base PR38/fbfd69a limpia0/0 remoto.
+- CP-AUDIT-COMPETENCE-DB-00-20261113T182548Z:pre0047/56tablas/49forcedRLS.
+- CP-AUDIT-COMPETENCE-DB-06-20261113T184515Z:post0048/57tablas/50forcedRLS.
+  Ambosrestoreaislados tmpfs/sin red/puertos PASS: filas/esquema/customACL/roles/
+  secuencias comparadas. Fallback imagen distinta/binarios PG igualesSHA256;
+  normalizacion limitada de casts/grantor documentada en AUDIT_COMPETENCE.md.
+  Claves0600/dumps fuera de Git; helpers privados preservados.
+- API/web before-audit-competence-20261113 retenidos. Local0048 solo tras restore
+  previo y121integracionesPASS; ningun downgrade localpoblado, ni produccion.
+  Historiaguarda downgrade incluso si solo queda evento.0041 original separado.
+
+- CP-AUDIT-COMPETENCE-06-20261113T185820Z:fuente/Git+5PNG/15logs/2JSON cifrados/restaurados SHA256/bundleverify antescommit; manifiestopublicotrasverificacion. Bundlefinal sevalidacontrahead/arbolentregados.
+
+- CP-AUDIT-COMPETENCE-06B-20261113T190132Z: supersedeCP-AUDIT-COMPETENCE-06-20261113T185820Z solo tras mejorar legibilidad de CHECKPOINT. Código/DB/pruebas sin cambios; fuente/Git/evidencia se vuelven a cifrar y restaurar. Se conserva el anterior.

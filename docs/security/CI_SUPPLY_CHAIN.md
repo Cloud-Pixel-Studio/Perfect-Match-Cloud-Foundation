@@ -39,6 +39,18 @@ published SHA-256 digest directly. Gitleaks publishes a checksum manifest; CI
 pins that manifest's canonical digest and then validates the selected archive
 against it. In both cases, replacement bytes at the versioned URL fail closed.
 
+## Visual regression runtime
+
+Linux screenshot and accessibility regression runs inside the official
+Playwright 1.64.1 Noble image pinned to manifest digest
+`sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f`.
+The container receives only the two synthetic Keycloak test passwords and local
+loopback URLs. Pinning the browser, operating-system libraries and fonts avoids
+accepting visual drift caused solely by GitHub-hosted runner image updates. The
+test runtime is not a production dependency or distributed application image.
+The root-run browser container returns ownership of its generated report files to
+the invoking runner user before later ZAP and artifact steps execute.
+
 ## Version upgrades
 
 Tool and action upgrades require separate approval. The maintainer must review

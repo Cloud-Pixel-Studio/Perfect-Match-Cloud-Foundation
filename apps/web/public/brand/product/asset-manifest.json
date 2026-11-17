@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-11-12T14:03:11.339Z",
+  "source": "Existing local SaaS runtime; isolated Playwright browser; pmc-user-a Synthetic; Tenant A",
+  "classification": "synthetic-demo-only",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "deviceScaleFactor": 1,
+  "browserPlatform": "darwin",
+  "policy": "Loopback origins only; no QMS record mutations, external requests, DOM replacement, or CSS overrides.",
+  "assets": [
+    {
+      "path": "overview.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "71eb166a4935a828454ed86ed9dae2f04d7286acfb637cd11b743eddcf0390f2",
+      "sourceURL": "http://127.0.0.1:3000/#overview-heading",
+      "selectedRecordCode": null,
+      "crop": null,
+      "disclosure": "Real local Perfect Match QMS interface with synthetic demonstration data."
+    },
+    {
+      "path": "documents.png",
+      "width": 1192,
+      "height": 762,
+      "sha256": "efb011fb3ff14a205566920f84cb37fa0d19b23b1b71147d8e240a0c3f4a3b06",
+      "sourceURL": "http://127.0.0.1:3000/#documents-heading",
+      "selectedRecordCode": "DEMO-DOC-001",
+      "crop": {
+        "x": 248,
+        "y": 168,
+        "width": 1192,
+        "height": 762
+      },
+      "disclosure": "Real local Perfect Match QMS interface with synthetic demonstration data."
+    },
+    {
+      "path": "risks.png",
+      "width": 1192,
+      "height": 800,
+      "sha256": "eca402f1bf81c717329403c4f9100c2d83234810d710a3b3db1822e38b03793a",
+      "sourceURL": "http://127.0.0.1:3000/#risks-heading",
+      "selectedRecordCode": "DEMO-RSK-001",
+      "crop": {
+        "x": 248,
+        "y": 168,
+        "width": 1192,
+        "height": 800
+      },
+      "disclosure": "Real local Perfect Match QMS interface with synthetic demonstration data."
+    },
+    {
+      "path": "capa.png",
+      "width": 1192,
+      "height": 800,
+      "sha256": "05b041280bc74f2f6a08430dfe63afa30a09bb600225402cef0a54e016caa3cb",
+      "sourceURL": "http://127.0.0.1:3000/#capa-heading",
+      "selectedRecordCode": "DEMO-CAPA-001",
+      "crop": {
+        "x": 248,
+        "y": 168,
+        "width": 1192,
+        "height": 800
+      },
+      "disclosure": "Real local Perfect Match QMS interface with synthetic demonstration data."
+    }
+  ]
+}

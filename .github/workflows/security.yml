@@ -35,8 +35,10 @@ jobs:
         run: ./scripts/install-ci-security-tools.sh
       - name: OpenGrep rule fixtures
         run: ./security/opengrep/test-rules.sh
+      - name: OpenGrep gate regressions
+        run: python3 -m unittest discover -s security/tests -p 'test_sast_gate.py'
       - name: OpenGrep SAST
-        run: opengrep scan --sarif --config security/opengrep/rules.yml --exclude security/tests/fixtures --output artifacts/opengrep.sarif .
+        run: opengrep scan --error --strict --sarif --config security/opengrep/rules.yml --exclude security/tests/fixtures --output artifacts/opengrep.sarif .
       - name: Trivy filesystem
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -53,6 +55,10 @@ jobs:
         run: |
           gitleaks dir --config .gitleaks.toml --redact --no-banner .
           gitleaks git --config .gitleaks.toml --redact --no-banner .
+      - name: Verify checkpoint checksum exception remains narrow
+        run: |
+          python3 security/tests/test_checkpoint_secret_allowlist.py
+          python3 security/tests/test_architecture_checksum_allowlist.py
       - name: Dependency audits
         run: |
           cd apps/api && uvx --from pip-audit==2.10.1 pip-audit -r requirements-runtime.txt
@@ -119,15 +125,12 @@ jobs:
           docker compose --env-file "${RUNNER_TEMP}/pmcloud/dev.env" logs --no-color \
             postgres database-bootstrap migrate keycloak identity-bootstrap seaweedfs \
             clamav-database-bootstrap clamav api web || true
-      - name: Install visual QA browser
-        if: steps.runtime.outcome == 'success'
-        run: pnpm --filter @perfect-match/web exec playwright install --with-deps chromium
       - name: Seed synthetic visual QMS records
         if: steps.runtime.outcome == 'success'
         run: cd apps/api && uv run python ../../scripts/seed-demo-qms.py "${RUNNER_TEMP}/pmcloud/dev.env"
-      - name: Responsive visual and accessibility regression
+      - name: Responsive visual and accessibility regression in pinned runtime
         if: steps.runtime.outcome == 'success'
-        run: ./scripts/run-web-visual-qa.sh "${RUNNER_TEMP}/pmcloud/dev.env"
+        run: ./scripts/run-web-visual-qa-linux.sh "${RUNNER_TEMP}/pmcloud/dev.env"
       - name: Reclaim ephemeral build cache for security analysis
         if: always()
         run: |
@@ -139,19 +142,24 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          date -u +%Y-%m-%dT%H:%M:%SZ > artifacts/image-scan-started-at.txt
+          rm -f artifacts/release-image-evidence.json
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-api-image.json "pmcloud-api:${IMAGE_TAG}"
           trivy image --format json --scanners vuln,secret --output artifacts/trivy-web-image.json "pmcloud-web:${IMAGE_TAG}"
           jq -n \
             --argjson api "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-api-image.json)" \
             --argjson web "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-web-image.json)" \
             '{api: $api, web: $web}' > artifacts/application-image-gate.json
+      - name: Verify third-party image digest parity before scanning
+        if: always()
+        run: python3 scripts/check-third-party-image-pins.py
       - name: Third-party image scans
         if: always()
         id: third-party-images
         run: |
           trivy image --format json --scanners vuln --output artifacts/trivy-postgres-image.json pmcloud-postgres:local
-          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.51@sha256:f7a49e3f3972ebed5be2ed4befa4a0c68eb7bdddba6e692d42729ceb545134b8
-          trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
+          trivy image --format json --scanners vuln --output artifacts/trivy-seaweedfs-image.json chrislusf/seaweedfs:4.54@sha256:4b42c212543a0acd4c0e675215ecdcaf62a186ef98def76c7e12701871222d15
+          trivy image --format json --scanners vuln --output artifacts/trivy-keycloak-image.json quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
           trivy image --format json --scanners vuln --output artifacts/trivy-clamav-image.json clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
           for report in artifacts/trivy-postgres-image.json artifacts/trivy-seaweedfs-image.json artifacts/trivy-keycloak-image.json artifacts/trivy-clamav-image.json; do
             jq -e '.Results | type == "array"' "$report" >/dev/null
@@ -163,6 +171,11 @@ jobs:
             --argjson clamav "$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL" or .Severity == "HIGH")] | length' artifacts/trivy-clamav-image.json)" \
             '{postgres: $postgres, seaweedfs: $seaweedfs, keycloak: $keycloak, clamav: $clamav}' \
             > artifacts/third-party-image-gate.json
+      - name: Bind scanner evidence to all six actual images
+        if: always()
+        env:
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: ./scripts/collect-release-image-evidence.sh "${RUNNER_TEMP}/pmcloud/dev.env" "$IMAGE_TAG" "${{ github.run_id }}"
       - name: Generate and validate CycloneDX SBOMs
         if: always()
         env:
@@ -171,7 +184,7 @@ jobs:
           trivy fs --format cyclonedx --output artifacts/sbom-repository.json .
           trivy image --format cyclonedx --output artifacts/sbom-api.json "pmcloud-api:${IMAGE_TAG}"
           trivy image --format cyclonedx --output artifacts/sbom-web.json "pmcloud-web:${IMAGE_TAG}"
-          trivy image --format cyclonedx --output artifacts/sbom-keycloak.json quay.io/keycloak/keycloak:26.8.1@sha256:a78d6b79572168cb25886b80a8b5b8d4ed4390743e3eecb810538683e209dd6b
+          trivy image --format cyclonedx --output artifacts/sbom-keycloak.json quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
           trivy image --format cyclonedx --output artifacts/sbom-clamav.json clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d
           for sbom in artifacts/sbom-*.json; do
             jq -e '.bomFormat == "CycloneDX" and (.metadata | type == "object") and (.components | length > 0)' "$sbom" >/dev/null
@@ -222,9 +235,12 @@ jobs:
         if: always()
         env:
           RUNTIME_OUTCOME: ${{ steps.runtime.outcome }}
+          IMAGE_TAG: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           test "$RUNTIME_OUTCOME" = success
           test -f artifacts/release-evidence-manifest.json
+          jq -e --arg sha "$IMAGE_TAG" --arg run "$RUN_ID" '.source_sha == $sha and .workflow_run_id == $run and .integrity_verified == true and .production_authorized == false and (.images | length) == 6 and .high_or_critical_count == 0 and .secret_high_or_critical_count == 0' artifacts/release-image-evidence.json >/dev/null
           jq -e 'to_entries | all(.value == 0)' artifacts/application-image-gate.json >/dev/null
           jq -e 'to_entries | all(.value == 0)' artifacts/third-party-image-gate.json >/dev/null
           jq -e '.sboms.count == 5 and ([.sboms.repository_components,.sboms.api_components,.sboms.web_components,.sboms.keycloak_components,.sboms.clamav_components] | all(. > 0))' artifacts/release-evidence-manifest.json >/dev/null

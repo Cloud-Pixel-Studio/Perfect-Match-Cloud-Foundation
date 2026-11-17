@@ -1,0 +1,43 @@
+{
+  "id": "CP-AUDIT-AGENDA-06-20261113T052019Z",
+  "branch": "codex/internal-audit-agenda",
+  "baseCommit": "4d2e80f2b3ed79aa1c7b3f74b986013e4ed4ac45",
+  "sourceEntries": 458,
+  "artifacts": {
+    "source.tar.gz.enc": "3995f78c6c6dabd9adda432981fda7b537305ca585c88a79322caa62dcc63703",
+    "repository.bundle.enc": "17ac3a69a5173417779b9539a7f473bcb3464dc5531a1340fc04de3ace40b002"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0044 to0045 plus synthetic demo activity; separate pre/post DB restores PASS, no production migration",
+  "databaseCheckpoints": [
+    "CP-AUDIT-AGENDA-DB-00-20261113T044043Z",
+    "CP-AUDIT-AGENDA-DB-06-20261113T051030Z"
+  ],
+  "visualEvidence": {
+    "png": 5,
+    "qualityLogs": 11,
+    "dependencyJson": 1,
+    "encrypted_sha256": "f32c8f0fda3ae349f841d9d17534d9a20b63bb89dec8b1d2058c14fe393aa7bd",
+    "fileHashes": {
+      "screenshots/agenda-1440-dark.png": "2a1194465daf35027d56a54862973b31de0aaa442a9206cfd6580dfc97f9ef01",
+      "screenshots/agenda-1440-light.png": "f6eca15de12d8fc61c403b521be3ec13251ff66f8a1b8186c2d308cea1bb5e08",
+      "screenshots/agenda-375-dark.png": "e2987dc379923b346701c0b00737d39b8518492ad4a20b8bead7ea92c8812d7c",
+      "screenshots/agenda-375-light.png": "6977571fbfd3f40099fdd7e3dfafdf492c8ccc313fbc0a1b8458b56fe2a7ce45",
+      "screenshots/live-audit-planning.png": "89c99547789934ed8482de49371d70aae65ecb15caaa9a2249fa0782728ce865",
+      "reports/pmqms-agenda-api-final.log": "812dbea698402f5a6adb9e203424c78db296da8ed4f770ad3f80a9d2319fab0f",
+      "reports/pmqms-agenda-web-verified-final.log": "b8c025c4d20ca9a209014ca4fc098c909a0ce689f641ae597387cc03c9ef9b7b",
+      "reports/pmqms-agenda-db-tests-history.log": "702c2bceaaa74bf2b747bd0fe16898c59921cc3bd4ba8af3e9381e133ec43be5",
+      "reports/pmqms-agenda-process.log": "30f46727fc5b211ceb256537d65b6c9daa473102e87836813f1d4eb06077fc97",
+      "reports/pmqms-agenda-linux-full.log": "22820985b70e1a4f5a658a3baa96b026a36c394bf2e2c80287983f0697c41ff6",
+      "reports/pmqms-agenda-darwin-final.log": "608d3c10908a8557aa89530060c48494e3f8bcc61f3bb6c5771d2d11b1bb4ab7",
+      "reports/pmqms-agenda-gates-final.log": "7118d94265538ce50db49b9c465267e05b74eef14e47bc14500d82d9429b0aaf",
+      "reports/pmqms-agenda-health-final.log": "de7f89d08e082557172e0415355c88ccb12f2a0ed9fa45eea2ebc010b1a7cbfd",
+      "reports/pmqms-agenda-demo-check.log": "17ab1a01f6367120953ab4cbf7fc914c400531b35f16ec559ddff2d89d5c17ba",
+      "reports/pmqms-agenda-history-red.log": "6f2604167ce7094bb2094b454087acf0b07aa95980d1da83d9579b0b587be26c",
+      "reports/pmqms-agenda-history-quality.log": "8fb5d5daa1b92e0bea780a8d874f8b9fabb5c2da7149d554cca1ead94c76646e",
+      "reports/pmqms-agenda-dependencies.json": "b968a50d6f086e3b8d290b18980054fbfbc4075829eda31d44a9ea9dd6e403c2"
+    },
+    "verification": "PASS: encrypted archive decrypted; all17 entries matched SHA256"
+  }
+}

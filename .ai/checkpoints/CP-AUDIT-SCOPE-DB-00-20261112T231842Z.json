@@ -1,0 +1,52 @@
+{
+  "id": "CP-AUDIT-SCOPE-DB-00-20261112T231842Z",
+  "purpose": "Recovery proof before optional local migration0042 from0040; helper applied no migration",
+  "created_utc": "2026-11-12T23:18:42.880773+00:00",
+  "source_mutations": "none: read-only SQL, exported snapshot and pg_dump only",
+  "backup_location": "protected external checkpoint directory; never inside repository",
+  "encryption": "AES-256-CBC / PBKDF2-HMAC-SHA256,250000 iterations; independent domain-separated HMAC-SHA256 ciphertext authentication",
+  "artifacts": {
+    "database.dump.enc": {
+      "sha256": "67c5cb64f980ee838d9d2f7d9743cdb47974ac42a87172adef23d4f0a044ba27",
+      "hmac_sha256": "9cfead40f6fd9ddddf3ec439a2faa56d8c82571be66a5c3c4ad45fdbfec6117e",
+      "size_bytes": 1376640
+    },
+    "globals.sql.enc": {
+      "sha256": "0c33d4209cdd5b1bcba664dc75b1225398c81d883f3c4b2556ad2c7c7447646d",
+      "hmac_sha256": "a2022076aa6b924a2cdeef9307ee353abd92d537746c90a0d9ac157071595870",
+      "size_bytes": 1264
+    },
+    "verified-inventory.json.enc": {
+      "sha256": "0ac6c09367e70963d134c9b32c6253eb6bdde4756e1865b56077d95897773d5a",
+      "hmac_sha256": "d971cc1f16cccfc5f2e4300ce7ed442b70fc21455cdf0acc6304bc9720c3a20d",
+      "size_bytes": 25296
+    }
+  },
+  "verification": "PASS",
+  "source_image_id": "sha256:19c689a5743c5b9d97ee2af333affedbfc2f61264a83a34fe89011f573d76142",
+  "postgresql_major": 18,
+  "source_container": "pmcloud-postgres-1",
+  "database_name": "pmcloud_dev",
+  "restore_isolation": "unique bootstrap role/database; network=none; no published ports; tmpfs-only storage; fallback hardened image with identical PostgreSQL executables",
+  "restore_image_id": "sha256:8da28a1e38f51b5633f5df2f5a6a55a9771dea034a003354c822a4e3608f9c95",
+  "restore_binary_comparison": "postgres, pg_dump and pg_restore SHA256 match source; source image no longer available locally",
+  "schema_version": [
+    "0040_internal_audit_foundation"
+  ],
+  "user_table_count": 50,
+  "forced_rls_table_count": 44,
+  "source_inventory_sha256": "7313a1615264941a24e25d90eb615629a2f53ba45673f0c13f36fc8d57ded23e",
+  "restored_inventory_sha256": "7313a1615264941a24e25d90eb615629a2f53ba45673f0c13f36fc8d57ded23e",
+  "checks": {
+    "row_counts_and_content_sha256": "PASS",
+    "normalized_schema_owners_acls_policies": "PASS",
+    "schema_version": "PASS",
+    "role_attributes_and_credential_fingerprints": "PASS",
+    "unscoped_runtime_capa_read_zero": "PASS",
+    "sequence_state_inside_dump_window": "PASS",
+    "encrypted_inventory_authentication_and_decryption": "PASS"
+  },
+  "migration_applied": false,
+  "restore_container_removed": true,
+  "normalization": "Only equivalent varchar-array constant deparser casts and built-in pg_* grantor bootstrap names; custom role grants and row contents compared without relaxation"
+}

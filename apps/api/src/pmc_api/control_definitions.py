@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, TypeVar
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -19,6 +19,10 @@ from pmc_api.database import get_db
 from pmc_api.models import QMSControl, QMSControlActivity, QMSControlEvidenceRequirement
 from pmc_api.organization_service import OrganizationActor
 from pmc_api.qms_access import actor_context, require_capability
+
+# The pinned SAST parser cannot analyze PEP 695 function type parameters.
+# Keep private helpers generic until scanner support is verified.
+_DefinitionT = TypeVar("_DefinitionT", bound=QMSControlActivity | QMSControlEvidenceRequirement)
 
 router = APIRouter(tags=["control-definitions"])
 DBSession = Annotated[Session, Depends(get_db)]
@@ -220,14 +224,14 @@ def _record_audit(
     )
 
 
-def _persist[T: QMSControlActivity | QMSControlEvidenceRequirement](
+def _persist(  # noqa: UP047 - pinned SAST parser compatibility
     db: Session,
-    row: T,
+    row: _DefinitionT,
     actor: OrganizationActor,
     request_id: UUID,
     action: str,
     old: dict[str, object] | None,
-) -> T:
+) -> _DefinitionT:
     try:
         db.add(row)
         db.flush()
@@ -268,14 +272,14 @@ def _new_values(
     }
 
 
-def _update_definition[T: QMSControlActivity | QMSControlEvidenceRequirement](
+def _update_definition(  # noqa: UP047 - pinned SAST parser compatibility
     db: Session,
     actor: OrganizationActor,
     request_id: UUID,
-    row: T | None,
+    row: _DefinitionT | None,
     body: ActivityPatch | EvidenceRequirementPatch,
     resource: str,
-) -> T:
+) -> _DefinitionT:
     if row is None:
         raise HTTPException(404, "definition not found")
     require_capability(db, "controls.manage", row.unit_id)

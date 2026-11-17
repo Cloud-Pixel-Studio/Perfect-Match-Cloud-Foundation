@@ -1,0 +1,25 @@
+{
+  "id": "CP-AUDIT-AUTHORITY-06-20261113T152132Z",
+  "branch": "codex/internal-audit-execution-authority",
+  "baseCommit": "d6f8dca519e081cf77afbb7f0485c8f54d1b86fd",
+  "sourceEntries": 476,
+  "artifacts": {
+    "source.tar.gz.enc": "46393bcd7c8229514099f81c53bdc10cfad13181d68ddcc79002c1fa72578ac0",
+    "repository.bundle.enc": "f2fb922241be5eb590b03ec5d5fde4c31978a54069e46870961550dcad8fdc08"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0046 to0047; derived access projection only; actual demo unreviewed, separate pre/post restores PASS; no production migration",
+  "databaseCheckpoints": [
+    "CP-AUDIT-AUTHORITY-DB-00-20261113T144349Z",
+    "CP-AUDIT-AUTHORITY-DB-06-20261113T151525Z"
+  ],
+  "visualEvidence": {
+    "png": 5,
+    "qualityLogs": 16,
+    "dependencyJson": 1,
+    "encrypted_sha256": "ffc8376d6c8def976928cb1b03b5c36279004c78c3df144f2dce2c768697d55d",
+    "verification": "PASS: encrypted archive decrypted; all22 entries matched SHA256",
+    "scope": "Includes accepted final results and preserved failed initial attempts, distinguished in product report"
+  }
+}

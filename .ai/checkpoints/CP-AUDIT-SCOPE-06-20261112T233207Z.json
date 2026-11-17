@@ -1,0 +1,15 @@
+{
+  "id": "CP-AUDIT-SCOPE-06-20261112T233207Z",
+  "branch": "codex/internal-audit-scope",
+  "baseCommit": "5f25342ef2423a8abf4fb1b6d10a6968a47ccc24",
+  "sourceEntries": 430,
+  "artifacts": {
+    "source.tar.gz.enc": "e7e5d04d546666845c1d6c6928e0f8512a2d10bc12e8bab997dac28a1a63560c",
+    "repository.bundle.enc": "bc4e08a95d19efa5cbdd07c6518d1229e18ea615efb9617af5198c2a1c7cf4a6",
+    "visual-evidence.tar.gz.enc": "0120646019168a886faca86fc168a63e96013bda9cb046192553c43dc28835d8"
+  },
+  "verification": "PASS: isolated encrypted source restoration with all file SHA256 matched; git bundle verify; five PNG hashes matched after decryption",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local preview explicitly0040\u21920042 and synthetic demo scope added; separate pre/post database backups restored in isolation, see DB checkpoint manifests",
+  "visuals": "5 actual synthetic screenshots encrypted, decrypted and PNG hashes verified; four final-theme/form shots and one live read"
+}

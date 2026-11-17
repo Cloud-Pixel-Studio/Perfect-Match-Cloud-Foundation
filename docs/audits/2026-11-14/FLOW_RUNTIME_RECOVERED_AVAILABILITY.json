@@ -1,0 +1,48 @@
+{
+  "checked_at": "2026-11-14T20:55:49.516813+00:00",
+  "runtime_schema": "0048 as reported by infrastructure recovery; no DB query/migration by this browser audit",
+  "routes": [
+    {
+      "name": "api_health",
+      "url": "http://127.0.0.1:8000/health",
+      "status": 200,
+      "body": {
+        "status": "ok",
+        "version": "0.5.0",
+        "dependencies": {
+          "database": "ok",
+          "object_storage": "ok",
+          "malware_scanner": "ok"
+        }
+      }
+    },
+    {
+      "name": "api_openapi",
+      "url": "http://127.0.0.1:8000/openapi.json",
+      "status": 200,
+      "business_path_count": 131,
+      "execution_paths": [
+        "/capas/{capa_id}/analysis/start",
+        "/capas/{capa_id}/plan/start",
+        "/capas/{capa_id}/implementation/start",
+        "/capas/{capa_id}/effectiveness-review/start"
+      ],
+      "commercial_paths": []
+    },
+    {
+      "name": "frontend_onboarding",
+      "url": "http://127.0.0.1:3103/onboarding",
+      "status": 404
+    },
+    {
+      "name": "frontend_billing",
+      "url": "http://127.0.0.1:3103/billing",
+      "status": 404
+    },
+    {
+      "name": "api_billing",
+      "url": "http://127.0.0.1:8000/billing",
+      "status": 404
+    }
+  ]
+}

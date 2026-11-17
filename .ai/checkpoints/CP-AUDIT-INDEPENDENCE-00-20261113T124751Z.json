@@ -1,0 +1,13 @@
+{
+  "id": "CP-AUDIT-INDEPENDENCE-00-20261113T124751Z",
+  "branch": "codex/internal-audit-agenda",
+  "baseCommit": "43df60747a160b8e155e7ab113fd70753ff309b7",
+  "sourceEntries": 461,
+  "artifacts": {
+    "source.tar.gz.enc": "83e125d816eb24de3b818aa079d50914e66f7e4d52c029024e79b1246c7b4fd5",
+    "repository.bundle.enc": "0ac0d4f6cde259655169b3dab94c58389ebdc78548c4bf062e5b82e23f418516"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

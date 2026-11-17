@@ -1,0 +1,13 @@
+{
+  "id": "CP-TENANT-SUSPENSION-00-20261114T154913Z",
+  "branch": "codex/tenant-suspension",
+  "baseCommit": "32db20bd98a5aff8304f80c9faaff18ba5583c81",
+  "sourceEntries": 497,
+  "artifacts": {
+    "source.tar.gz.enc": "81f2399976ed9b5f93943ec03b2c486b9086ffe7648ccc19e048173135673768",
+    "repository.bundle.enc": "37b60c62a1e1b15b6c7fc7a0878d2fe7d99af28d6499b8d9361c57ee1abd6e65"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

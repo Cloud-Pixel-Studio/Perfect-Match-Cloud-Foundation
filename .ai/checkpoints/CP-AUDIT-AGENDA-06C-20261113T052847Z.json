@@ -1,0 +1,24 @@
+{
+  "id": "CP-AUDIT-AGENDA-06C-20261113T052847Z",
+  "branch": "codex/internal-audit-agenda",
+  "baseCommit": "ace591946054d106a66cbf0601bc96665d6545c5",
+  "sourceEntries": 460,
+  "artifacts": {
+    "source.tar.gz.enc": "b9a0494f409fd12b0cd643501edf4ffe385e016e964f8f4f88e4a700df9f1baa",
+    "repository.bundle.enc": "b7939e4a820ca79abc3b651495290ce0688c10862f36c94529f4318aaf78156a"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0044 to0045 plus synthetic demo activity; separate pre/post DB restores PASS, no production migration",
+  "databaseCheckpoints": [
+    "CP-AUDIT-AGENDA-DB-00-20261113T044043Z",
+    "CP-AUDIT-AGENDA-DB-06-20261113T051030Z"
+  ],
+  "visualEvidence": {
+    "png": 5,
+    "qualityLogs": 11,
+    "dependencyJson": 1,
+    "encrypted_sha256": "ccf4981927efe24ad3b210d6d43f4aac76d89f3b3fe6c42413de69608cf623e4",
+    "verification": "PASS: encrypted archive decrypted; all17 entries matched SHA256"
+  }
+}

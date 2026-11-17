@@ -1,0 +1,21 @@
+{
+  "id": "CP-DOC-FEEDBACK-06-20261112T150700Z",
+  "branch": "codex/document-command-feedback",
+  "baseCommit": "23b9abfc30a5f3bc676c4d4a4aaa7b8a21d92c50",
+  "sourceEntries": 408,
+  "artifacts": {
+    "source.tar.gz.enc": "6cb96365d426978f63f72965342c519e3a8f8c24c2228e3d282e3ea907ae91b1",
+    "repository.bundle.enc": "4a46744add2297b7fc34ffbc4802092d0dc3f4d42aa3adbab76f6aa506908b51"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed",
+  "tests": {
+    "unit": 59,
+    "darwin": 36,
+    "linux": 36,
+    "snapshotUpdates": false,
+    "retries": 0,
+    "lintTypesBuildSecretsLicenses": "PASS"
+  }
+}

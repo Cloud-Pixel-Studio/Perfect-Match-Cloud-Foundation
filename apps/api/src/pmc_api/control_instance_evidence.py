@@ -314,6 +314,7 @@ def review_evidence(
 ) -> QMSControlInstanceEvidence:
     actor = actor_context(db, authenticated)
     row = load_for_manage(db, actor, evidence_id)
+    require_capability(db, "evidence.review", row.unit_id)
     if row.status != "submitted":
         raise HTTPException(409, "only submitted evidence can be reviewed")
     if row.row_version != body.expected_version:

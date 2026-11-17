@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "base_commit": "8133bac47a0731c31738d942f131b17902bb6fe5",
+  "branch": "codex/audit-architecture-access",
+  "verdict": "SaaS foundation with meaningful controls and explicit residual debt; not full security, production approval or Odoo parity.",
+  "runtime_local": "Documented0048; no new runtime DB observation or schema mutation in this audit.",
+  "roles": {
+    "owner": {
+      "organization_read": true,
+      "organization_write": true,
+      "grants_read": "all_in_tenant",
+      "grants_write": "others_only_no_self_grant",
+      "audit_trail_read": "all_in_tenant",
+      "workflow_configure": true,
+      "workflow_transition": "only_if_assigned",
+      "qms": "explicit_exact_unit_capabilities"
+    },
+    "admin": {
+      "organization_read": true,
+      "organization_write": true,
+      "grants_read": "self_only",
+      "grants_write": false,
+      "audit_trail_read": "all_in_tenant",
+      "workflow_configure": true,
+      "workflow_transition": "only_if_assigned",
+      "qms": "explicit_exact_unit_capabilities"
+    },
+    "member": {
+      "organization_read": true,
+      "organization_write": false,
+      "grants_read": "self_only",
+      "grants_write": false,
+      "audit_trail_read": false,
+      "workflow_configure": false,
+      "workflow_transition": "only_if_assigned",
+      "qms": "explicit_exact_unit_capabilities"
+    },
+    "auditor": {
+      "organization_read": true,
+      "organization_write": false,
+      "grants_read": "self_only",
+      "grants_write": false,
+      "audit_trail_read": "all_in_tenant",
+      "workflow_configure": false,
+      "workflow_transition": false,
+      "qms": "read_capabilities_and_audits.execute_exception_without_execution_feature"
+    }
+  },
+  "capabilities": {
+    "count": 28,
+    "scope": "exact_unit",
+    "inheritance": false,
+    "seat_grants_authority": false,
+    "platform_admin_implemented": false
+  },
+  "configuration": {
+    "tenant": [
+      "organization_units",
+      "assignments_existing_members",
+      "qms_grants_owner_only",
+      "workflow_definitions_versions",
+      "authorized_qms_business_commands"
+    ],
+    "platform": [
+      "tenant_provision_suspend",
+      "identity_db_roles_secrets_oidc",
+      "backups_deployment_observability",
+      "future_global_plans_prices_iso_catalog"
+    ],
+    "missing": [
+      "commercial_company_profile",
+      "invites_membership_admin",
+      "initial_second_authorizer",
+      "subscriptions_seats_iso_enforcement",
+      "billing_renewals",
+      "guided_implementation_import"
+    ]
+  },
+  "findings": [
+    {
+      "id": "A01",
+      "severity": "P2",
+      "status": "implemented_previously_tested_not_local_runtime",
+      "source": "tenant_access.py; migration0049",
+      "verdict": "Suspensión empresarial: fuente PR41 y evidencia previa aislada; runtime local documentado0048."
+    },
+    {
+      "id": "A11",
+      "severity": "P3",
+      "status": "implemented_previously_tested_not_local_runtime",
+      "source": "audit.py:105",
+      "verdict": "Bitácora private,no-store puntual; no política global."
+    },
+    {
+      "id": "A02",
+      "severity": "P2",
+      "status": "open_in_audited_base_separate_wip_not_functional",
+      "source": "qms_access.py:222; qms-access-workspace.tsx:57",
+      "verdict": "limit100 impide gestión completa de grants."
+    },
+    {
+      "id": "A03",
+      "severity": "P2",
+      "status": "policy_decision_open",
+      "source": "organization.py:287; migration0049:32",
+      "verdict": "Directorio y estructura amplios intratenant."
+    },
+    {
+      "id": "A04",
+      "severity": "P2",
+      "status": "policy_decision_open",
+      "source": "audit.py:78; migration0003",
+      "verdict": "Auditor técnico lee bitácora empresarial sin capability de unidad."
+    },
+    {
+      "id": "A05",
+      "severity": "P2",
+      "status": "open_static_and_prior_reproduction",
+      "source": "workflow_service.py:459,666",
+      "verdict": "Publicación permite único auditor que ejecución rechaza."
+    },
+    {
+      "id": "A06",
+      "severity": "P2",
+      "status": "open_sql_defense_depth",
+      "source": "0005_workflow_engine.py:319;0049_tenant_suspension.py",
+      "verdict": "UPDATE SQL no reproduce asignación/transición/versionado/evento; no bypass HTTP demostrado."
+    },
+    {
+      "id": "A07",
+      "severity": "P2",
+      "status": "commercial_onboarding_missing",
+      "source": "qms_access.py:156;local_identity_bootstrap.py:208",
+      "verdict": "Sin alta/membresías/segundo autorizador; no quitar self-grant."
+    },
+    {
+      "id": "A08",
+      "severity": "P3",
+      "status": "open_ui_scope_not_new_browser_test",
+      "source": "workspace-navigation.ts",
+      "verdict": "Mis accesos/configuración/operación requieren navegación clara."
+    },
+    {
+      "id": "A09",
+      "severity": "P3",
+      "status": "open_ui_scope_not_new_browser_test",
+      "source": "workflow_service.py;workflow-workspace.tsx",
+      "verdict": "Listas limitadas y reconciliación incierta."
+    },
+    {
+      "id": "A10",
+      "severity": "P3",
+      "status": "partial_ui_not_new_browser_test",
+      "source": "controls-workspace.tsx",
+      "verdict": "Caminos API de no aplicabilidad/evidencia requerida incompletos en UI."
+    },
+    {
+      "id": "B01",
+      "severity": "P3",
+      "status": "new_synthetic_http_and_static",
+      "source": "auth.py:me;web proxy route.ts;web proxy.ts",
+      "verdict": "/auth/me sintético200 sin Cache-Control; no almacenamiento/fuga observada."
+    },
+    {
+      "id": "B02",
+      "severity": "informational",
+      "status": "new_http_probe_no_database",
+      "source": "main.py:55",
+      "verdict": "/openapi.json anónimo200; no datos de cliente ni bypass de permisos."
+    },
+    {
+      "id": "B03",
+      "severity": "release_blocker_not_new_exploit",
+      "status": "operational_evidence_missing",
+      "source": "config.py;CHECKPOINT.md;.github/workflows/security.yml",
+      "verdict": "Sin afirmación producción segura: TLS/MFA/secretos/ACL/restauración/gates pendientes."
+    }
+  ],
+  "missing_verticals": [
+    "audit_ready_start_execution_evidence_findings_reporting_closure",
+    "kpi_objectives",
+    "management_review",
+    "people_training",
+    "equipment_calibration",
+    "customer_supplier_quality_8d_scar",
+    "quality_costs",
+    "general_import",
+    "iso_packs_editions",
+    "commercial_license"
+  ],
+  "not_claimed": [
+    "Odoo_runtime_executed",
+    "all_routes_e2e_tested",
+    "no_cross_tenant_vulnerabilities",
+    "full_dependency_vulnerability_audit",
+    "production_security_certification"
+  ],
+  "evidence_files": [
+    "ARCHITECTURE_ACCESS_INVENTORY.json",
+    "ARCHITECTURE_ACCESS_VALIDATION.json",
+    "ARCHITECTURE_ACCESS_AUDIT.md"
+  ]
+}

@@ -54,3 +54,13 @@ real integrity suite. The required check is added to the protected ruleset only 
 successful PMC-04 pull request run. The UI is a keyboard-accessible, responsive builder
 with explicit forms and read-only views for auditors and members. PMC-04 does not start
 PMC-05 or create releases/tags.
+
+## Executor readiness ·16 November2026
+Publication validates current executable users/roles/units. Technical auditors and
+empty units cannot be the only configured executors. Start revalidates all steps;
+transitions validate actionable destinations. Retired definitions cannot publish
+or start new work; existing work/history remains. Terminal start steps are rejected.
+No role/grant/migration changes or automatic history repair. See
+[executor validation](../product/WORKFLOW_EXECUTOR_VALIDATION.md) for32 HTTP/PG
+cases on0049 and0048,31 legacy regressions,18 Action Center regressions and runtime
+limits. This does not close the separate complete SQL-command enforcement gap.

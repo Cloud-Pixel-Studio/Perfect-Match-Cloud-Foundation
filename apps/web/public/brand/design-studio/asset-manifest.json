@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-11T15:00:00Z",
+  "renderer": "Next.js 16.4.3 + Playwright 1.64.1",
+  "approvalState": "draft_requires_human_review",
+  "sources": [
+    {
+      "path": "source/governed-quality-landscape.png",
+      "origin": "OpenAI built-in image generation",
+      "classification": "public-brand-visual",
+      "sha256": "6fca98ef214e76ac78ccf6552bedada08a09d2a7c8c768ccad3be78cabd3f92e"
+    },
+    {
+      "path": "source/continuous-improvement-square.png",
+      "origin": "OpenAI built-in image generation",
+      "classification": "public-brand-visual",
+      "sha256": "f6d13ee9708dea30401b2e83f25f351a46cc6edd44e401ffb2127f5190dc568a"
+    },
+    {
+      "path": "source/workspace-real-synthetic.png",
+      "origin": "Verified local visual regression baseline",
+      "classification": "synthetic-demo-only",
+      "sha256": "6950504013da9a01a4040343d5b846aedd35be1984cd102b4d2d0405e6f7666a"
+    }
+  ],
+  "assets": [
+    { "path": "demo/platform-hero.png", "width": 1600, "height": 900, "sha256": "aa2ba5e8cf4525884451be2581908ff79dd006d24dd0fe7277dcbf93b53d6644" },
+    { "path": "demo/saas-product-overview.png", "width": 1600, "height": 900, "sha256": "61df2386a3297dfb1683aba452cd663de4f3554a014ceba74a9ac80f4ee0f830" },
+    { "path": "demo/dashboard-mockup.png", "width": 1600, "height": 1000, "sha256": "18d06f4f133f4adc23cc1a7a25dadc9968927e8f1e24748fb3cbdc32e2dccc4b" },
+    { "path": "demo/quality-linkedin.png", "width": 1200, "height": 1200, "sha256": "72bc8ddbfbc37097e296f724926c00e9e7866aab6c344a0c4c3c5c8fdcd1dbbe" },
+    { "path": "demo/audit-readiness.png", "width": 1200, "height": 628, "sha256": "7568493eea962e1a907018e990ab57a1a68892943918a44c079fdac875f285c8" },
+    { "path": "demo/qms-capabilities.png", "width": 1200, "height": 1200, "sha256": "4d4b0a5f535ba8da6da71ef9f042cb69fe6bae524fcaf17846b3ba36f58ed97b" }
+  ]
+}
+

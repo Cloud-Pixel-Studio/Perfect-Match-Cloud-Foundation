@@ -1,0 +1,13 @@
+{
+  "id": "CP-AUDIT-COMPETENCE-00-20261113T182432Z",
+  "branch": "codex/internal-audit-detail-navigation",
+  "baseCommit": "fbfd69a4d694cd0e44550e2fe5174daca57b7f30",
+  "sourceEntries": 481,
+  "artifacts": {
+    "source.tar.gz.enc": "587b356c0bb23b313dced2a5934f03c3631a48a40d7bcce87776bcae991c86c4",
+    "repository.bundle.enc": "aff213ae34deff0f3701c1783347b3607e408a5dd0fe09357e77b484e174fb25"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

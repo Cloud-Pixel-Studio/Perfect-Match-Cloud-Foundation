@@ -18,8 +18,8 @@ const api = "/api/identity";
 const csrf = () => decodeURIComponent(document.cookie.split("; ").find((item) => item.startsWith("pm_csrf="))?.slice(8) ?? "");
 
 export function ControlInstanceEvidence({
-  instanceId, unitId, processId, canManage, canReadDocuments, targetEvidenceId,
-}: { instanceId: string; unitId: string; processId: string; canManage: boolean; canReadDocuments: boolean; targetEvidenceId?: string }) {
+  instanceId, unitId, processId, canManage, canReview, canReadDocuments, targetEvidenceId,
+}: { instanceId: string; unitId: string; processId: string; canManage: boolean; canReview: boolean; canReadDocuments: boolean; targetEvidenceId?: string }) {
   const [items, setItems] = useState<Evidence[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [revisions, setRevisions] = useState<Record<string, Revision[]>>({});
@@ -136,7 +136,7 @@ export function ControlInstanceEvidence({
           <button className="secondary-action compact-action" type="button" disabled={busy || evidenceChanged || (!(summaries[item.id] ?? item.evidence_summary).trim() && !chosenRevision)}
             onClick={() => void mutate(`/control-instance-evidence/${item.id}/submit`, { expected_version: item.row_version })}>Submit for review</button>
         </div>}
-        {reviewAllowed && canManage && <div className="control-instance-evidence-editor">
+        {reviewAllowed && canReview && <div className="control-instance-evidence-editor">
           <label>Reviewer decision<textarea rows={2} maxLength={1000} value={decisions[item.id] ?? ""}
             disabled={busy} onChange={(event) => setDecisions((current) => ({ ...current, [item.id]: event.target.value }))} /></label>
           <button className="secondary-action compact-action" type="button" disabled={busy || !(decisions[item.id] ?? "").trim()}

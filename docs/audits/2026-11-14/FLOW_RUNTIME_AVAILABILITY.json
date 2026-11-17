@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-11-14T20:38:24.757203+00:00",
+  "runtime_schema": "0048 according to preserved checkpoint; no database query or migration in this audit",
+  "routes": [
+    {
+      "name": "api_health",
+      "url": "http://127.0.0.1:8000/health",
+      "status": 503,
+      "body": {
+        "status": "degraded",
+        "version": "0.5.0",
+        "dependencies": {
+          "database": "unavailable",
+          "object_storage": "ok",
+          "malware_scanner": "ok"
+        }
+      }
+    },
+    {
+      "name": "api_openapi",
+      "url": "http://127.0.0.1:8000/openapi.json",
+      "status": 200,
+      "business_path_count": 131,
+      "execution_paths": [],
+      "commercial_paths": []
+    },
+    {
+      "name": "frontend_onboarding",
+      "url": "http://127.0.0.1:3103/onboarding",
+      "status": 404
+    },
+    {
+      "name": "frontend_billing",
+      "url": "http://127.0.0.1:3103/billing",
+      "status": 404
+    },
+    {
+      "name": "api_billing",
+      "url": "http://127.0.0.1:8000/billing",
+      "status": 404
+    }
+  ]
+}

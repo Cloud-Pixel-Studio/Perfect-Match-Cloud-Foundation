@@ -1,0 +1,15 @@
+{
+  "id": "CP-MARKETING-00-20261112T024646Z",
+  "branch": "codex/product-marketing",
+  "baseCommit": "91b26b55166f043e53a44328fd12524a29d744ed",
+  "sourceEntries": 768,
+  "encryption": "AES-256-CBC, PBKDF2; separate0600 key",
+  "artifacts": {
+    "source.tar.gz.enc": "dd6dea0483b9c9bfea64e9ebb6b8bfba2b541653c9ae373fc0e451367868d60f",
+    "repository.bundle.enc": "0bcd20a3f0e61230ef308d5d3744123b5923942b061c49633566ebc6c4771f67"
+  },
+  "verification": "stream decryption/listing and git bundle verify PASS",
+  "database": "not captured; no schema/data changes in marketing task",
+  "exclusions": "ignored dependencies, build artifacts, environment secrets, customer data",
+  "baseline": "43 unit tests and16 browser scenarios from prior verified hito; new marketing not yet implemented at this boundary"
+}

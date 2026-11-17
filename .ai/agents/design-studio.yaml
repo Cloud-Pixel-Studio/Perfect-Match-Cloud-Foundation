@@ -1,0 +1,46 @@
+version: 1
+name: perfect-match-design-studio
+status: controlled-foundation
+execution:
+  autonomous_publish: false
+  production_access: false
+  customer_data_external_processing: false
+  human_approval_required: true
+  provider_credentials_in_agent_sandbox: false
+roles:
+  brand_identity_agent:
+    reads: [apps/web/public/brand, packages/design-system, docs/branding]
+    writes: [workspace/design-drafts]
+    owns: [brand-token-selection, logo-usage, typography, composition-rules]
+    denies: [brand-replacement, claims-of-certification]
+  product_visualization_agent:
+    reads: [approved-synthetic-screenshots, approved-brand-kit]
+    writes: [workspace/design-drafts]
+    owns: [product-mockups, screenshot-masking, feature-visuals]
+    denies: [production-screenshots, invented-ui, customer-evidence]
+  marketing_creative_agent:
+    reads: [approved-brand-kit, approved-product-facts]
+    writes: [workspace/design-drafts]
+    owns: [campaign-variants, channel-formats, exact-copy-placement]
+    denies: [publication, invented-metrics, invented-customers]
+  visual_quality_assurance_agent:
+    reads: [workspace/design-drafts, approved-brand-kit, asset-manifest]
+    writes: [workspace/quality-reports]
+    owns: [legibility, contrast, dimensions, logo-integrity, disclosure-checks]
+    must_not_approve_own_generation: true
+  asset_management_agent:
+    reads: [workspace/design-drafts, workspace/quality-reports]
+    writes: [approved-asset-registry]
+    owns: [versioning, sha256, provenance, retention, approval-state]
+    denies: [external-publication, destructive-version-replacement]
+workflow:
+  - brief-validation
+  - classification-and-redaction
+  - brand-context-resolution
+  - draft-generation
+  - deterministic-composition
+  - visual-qa
+  - human-approval
+  - approved-registry
+  - separately-authorized-publication
+

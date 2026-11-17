@@ -1,0 +1,88 @@
+{
+  "base": "1ad8843fc74fa972d061755c14b6c25837526840",
+  "inherited_sources": [
+    {
+      "pr": 21,
+      "sha": "a66476cacf09137067949af2e1a93d2fc7d11c38"
+    },
+    {
+      "pr": 29,
+      "sha": "53474e2ed17f52b7f3471cf6d8e19bd124243fbc"
+    }
+  ],
+  "kind": "local tests and independent static review; candidate CI must be evaluated separately",
+  "logs": [
+    {
+      "path": "pmqms-production-evidence-tests-final.log",
+      "sha256": "10a2085575619faff59716490e8cf0f1eaca1809f6145224f93b710120873470"
+    },
+    {
+      "path": "pmqms-production-gates-alias-red.log",
+      "sha256": "dd3689398dd0f48594ec451b08f026a884cb84b6915f75554f2aad2d66e36caa"
+    },
+    {
+      "path": "pmqms-production-gates-api-final.log",
+      "sha256": "756d5eaed9199aa1105459c7089ade2f2c8245e33baf1605c6537379dadefa1d"
+    },
+    {
+      "path": "pmqms-production-gates-api-quality.log",
+      "sha256": "516cef8b69f7e01daa0a5ec1f30a4b0f859b4817e552075dc0157129b1f15e7a"
+    },
+    {
+      "path": "pmqms-production-gates-api-verified.log",
+      "sha256": "c9a5899521a6cb20dccb610ba6f126d84fead3b9dec5ee5836ec3904180562ea"
+    },
+    {
+      "path": "pmqms-production-gates-cp00.log",
+      "sha256": "7783ec1902877dd6db47ce02592eecc572b9313a28adbba5a29daf4dc83c6044"
+    },
+    {
+      "path": "pmqms-production-gates-document-regression.log",
+      "sha256": "96953f494e6684d923378536fc8abb5ba86b54fbedf6a2f1070edff2c554fd48"
+    },
+    {
+      "path": "pmqms-production-gates-security.log",
+      "sha256": "322ec92dfcc77bf74b88164cd0b2d1b4a20ddbd00457aa153bc261ee0849881f"
+    },
+    {
+      "path": "pmqms-production-gates-shellcheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "pmqms-production-gates-tools-final.log",
+      "sha256": "f0ef0f45a7403b3659e96d5421187961a8af7e396a59b6b1ec438bdde96925e4"
+    },
+    {
+      "path": "pmqms-production-gates-tools-verified.log",
+      "sha256": "0e6cfcf37b68110c4ff79a23acc65a0e86457e2044b864de7be778a3fd91dab8"
+    },
+    {
+      "path": "pmqms-production-inventory-inherited.log",
+      "sha256": "86aeca5528b8405bfd9961e38a4cf99dddfe4e0118d91d0bbb90cf4b59312a01"
+    },
+    {
+      "path": "pmqms-production-key-red.log",
+      "sha256": "528621634e67912dbae2f93026dd4065e37e59477c9e90c4dc816874802b3096"
+    },
+    {
+      "path": "pmqms-production-tool-lint.log",
+      "sha256": "2cd4dcac8dff013d8f78ef9510a21aa962548dc57bf2ad9b60c635e1e0a2ed4b"
+    },
+    {
+      "path": "pmqms-production-urls-final.log",
+      "sha256": "70538b82f386aac6e97b76e2654d8147dad5ef446463f04b4730945df58777b9"
+    },
+    {
+      "path": "pmqms-production-urls-inherited.log",
+      "sha256": "ac7ee2c43368e57d190c6ac089b2190a1f05864eabdfdc3e6d564b749e85fcc3"
+    },
+    {
+      "path": "pmqms-production-gates-security-verified.log",
+      "sha256": "c992f27f4f66796d962701dd017d98a61d967a8a2319bcc1f67d5e0c423d5d26"
+    },
+    {
+      "path": "pmqms-production-gates-cp06.log",
+      "sha256": "e44d2bf8290f3903f081ea37aa2da011ae2269f22e3227544cdfa4ef27d1a1e2"
+    }
+  ]
+}

@@ -22,6 +22,13 @@ from pmc_api.control_instance_evidence import router as control_instance_evidenc
 from pmc_api.controls import router as controls_router
 from pmc_api.database import database_is_ready
 from pmc_api.documents import router as documents_router
+from pmc_api.internal_audit_agenda import router as internal_audit_agenda_router
+from pmc_api.internal_audit_competence import router as internal_audit_competence_router
+from pmc_api.internal_audit_criteria import router as internal_audit_criteria_router
+from pmc_api.internal_audit_independence import router as internal_audit_independence_router
+from pmc_api.internal_audit_scope import router as internal_audit_scope_router
+from pmc_api.internal_audit_team import router as internal_audit_team_router
+from pmc_api.internal_audits import router as internal_audits_router
 from pmc_api.ncr_links import router as ncr_links_router
 from pmc_api.nonconformities import router as nonconformities_router
 from pmc_api.organization import router as organization_router
@@ -84,6 +91,13 @@ app.include_router(control_definitions_router)
 app.include_router(control_instance_activities_router)
 app.include_router(control_instance_evidence_router)
 app.include_router(documents_router)
+app.include_router(internal_audits_router)
+app.include_router(internal_audit_scope_router)
+app.include_router(internal_audit_team_router)
+app.include_router(internal_audit_agenda_router)
+app.include_router(internal_audit_independence_router)
+app.include_router(internal_audit_competence_router)
+app.include_router(internal_audit_criteria_router)
 app.include_router(nonconformities_router)
 app.include_router(capa_router)
 app.include_router(capa_links_router)

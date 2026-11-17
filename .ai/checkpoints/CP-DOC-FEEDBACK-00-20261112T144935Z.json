@@ -1,0 +1,13 @@
+{
+  "id": "CP-DOC-FEEDBACK-00-20261112T144935Z",
+  "branch": "codex/document-workspace-reliability",
+  "baseCommit": "23b9abfc30a5f3bc676c4d4a4aaa7b8a21d92c50",
+  "sourceEntries": 406,
+  "artifacts": {
+    "source.tar.gz.enc": "140ea03af8d2ab6f9e2d766538efddb066ad963d2e814018a46519f239bee033",
+    "repository.bundle.enc": "e20a2958748487f6479497521ff3c2b1d897dcb47c309aa1aabcf8d7bb5b22ed"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

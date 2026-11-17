@@ -4,6 +4,7 @@ import { CheckCircle2, GitBranch, ListChecks, Plus, Rocket, Workflow } from "luc
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
+import { ModalDialog } from "./modal-dialog";
 import type { WorkspaceTarget } from "../lib/workspace-navigation";
 
 type Props = { role: string; target?: WorkspaceTarget | null };
@@ -16,6 +17,10 @@ type Member = { id: string; display_name: string; role: string };
 type Instance = { id: string; workflow_version_id: string; title: string; status: string; current_step_id: string; row_version: number };
 type Action = { id: string; transition_key: string; label: string; to_step_id: string };
 type Event = { id: string; event_type: string; occurred_at: string; actor_user_id: string; reason: string | null };
+type WorkflowEditor =
+  | { kind: "step"; item: Step; value: string }
+  | { kind: "transition"; item: Transition; value: string }
+  | { kind: "assignment"; item: Assignment; value: string };
 const api = "/api/identity";
 
 function csrf(): string {
@@ -56,6 +61,9 @@ export function WorkflowWorkspace({ role, target }: Props) {
   const [newInstance, setNewInstance] = useState({ workflow_version_id: "", title: "", reference: "" });
   const [cancelReason, setCancelReason] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
+  const [editor, setEditor] = useState<WorkflowEditor | null>(null);
+  const [editorError, setEditorError] = useState("");
+  const [editorBusy, setEditorBusy] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -123,28 +131,54 @@ export function WorkflowWorkspace({ role, target }: Props) {
     if (response.ok) { setNewAssignment({ step_id: "", target_type: "application_role", target_user_id: "", target_application_role: "member" }); await chooseVersion(version); } else setMessage(await detail(response, "The assignment could not be saved."));
   }
 
-  async function editStep(item: Step) {
-    if (!version) return;
-    const name = window.prompt("Step name", item.name)?.trim();
-    if (!name) return;
-    const response = await call(`/workflows/versions/${version.id}/steps/${item.id}`, { method: "PATCH", body: JSON.stringify({ step_key: item.step_key, name, description: null, step_type: item.step_type, is_start: item.is_start, position: item.position }) });
-    setMessage(response.ok ? "Step updated." : await detail(response, "The step could not be updated.")); if (response.ok) await chooseVersion(version);
+  function openEditor(next: WorkflowEditor) {
+    setEditorError("");
+    setEditor(next);
   }
 
-  async function editTransition(item: Transition) {
-    if (!version) return;
-    const label = window.prompt("Transition label", item.label)?.trim();
-    if (!label) return;
-    const response = await call(`/workflows/versions/${version.id}/transitions/${item.id}`, { method: "PATCH", body: JSON.stringify({ from_step_id: item.from_step_id, to_step_id: item.to_step_id, transition_key: item.transition_key, label }) });
-    setMessage(response.ok ? "Transition updated." : await detail(response, "The transition could not be updated.")); if (response.ok) await chooseVersion(version);
-  }
-
-  async function editAssignment(item: Assignment) {
-    if (!version) return;
-    const roleTarget = item.target_type === "application_role" ? window.prompt("Application role", item.target_application_role ?? "member")?.trim() : item.target_application_role;
-    if (item.target_type === "application_role" && !roleTarget) return;
-    const response = await call(`/workflows/versions/${version.id}/assignments/${item.id}`, { method: "PATCH", body: JSON.stringify({ step_id: item.step_id, target_type: item.target_type, target_user_id: item.target_user_id, target_organization_unit_id: item.target_organization_unit_id, target_application_role: roleTarget }) });
-    setMessage(response.ok ? "Assignment updated." : await detail(response, "The assignment could not be updated.")); if (response.ok) await chooseVersion(version);
+  async function saveEditor(event: FormEvent) {
+    event.preventDefault();
+    if (!version || !editor || !editor.value.trim() || editorBusy) return;
+    setEditorBusy(true);
+    setEditorError("");
+    try {
+      let response: Response;
+      let successMessage: string;
+      let failureMessage: string;
+      if (editor.kind === "step") {
+        const item = editor.item;
+        response = await call(`/workflows/versions/${version.id}/steps/${item.id}`, { method: "PATCH", body: JSON.stringify({ step_key: item.step_key, name: editor.value.trim(), description: null, step_type: item.step_type, is_start: item.is_start, position: item.position }) });
+        successMessage = "Step updated.";
+        failureMessage = "The step could not be updated.";
+      } else if (editor.kind === "transition") {
+        const item = editor.item;
+        response = await call(`/workflows/versions/${version.id}/transitions/${item.id}`, { method: "PATCH", body: JSON.stringify({ from_step_id: item.from_step_id, to_step_id: item.to_step_id, transition_key: item.transition_key, label: editor.value.trim() }) });
+        successMessage = "Transition updated.";
+        failureMessage = "The transition could not be updated.";
+      } else {
+        const item = editor.item;
+        response = await call(`/workflows/versions/${version.id}/assignments/${item.id}`, { method: "PATCH", body: JSON.stringify({
+          step_id: item.step_id,
+          target_type: item.target_type,
+          target_user_id: item.target_type === "user" ? editor.value : null,
+          target_organization_unit_id: item.target_organization_unit_id,
+          target_application_role: item.target_type === "application_role" ? editor.value : null,
+        }) });
+        successMessage = "Assignment updated.";
+        failureMessage = "The assignment could not be updated.";
+      }
+      if (response.ok) {
+        setMessage(successMessage);
+        setEditor(null);
+        await chooseVersion(version);
+      } else {
+        setEditorError(await detail(response, failureMessage));
+      }
+    } catch {
+      setEditorError("The workflow service could not be reached. No change was saved.");
+    } finally {
+      setEditorBusy(false);
+    }
   }
 
   async function publish() {
@@ -182,12 +216,30 @@ export function WorkflowWorkspace({ role, target }: Props) {
           {canWrite && <form className="workflow-form" onSubmit={(event) => void submitDefinition(event)}><h4>New definition</h4><label>Code<input required maxLength={40} value={newDefinition.code} onChange={(event) => setNewDefinition({ ...newDefinition, code: event.target.value })} /></label><label>Name<input required maxLength={160} value={newDefinition.name} onChange={(event) => setNewDefinition({ ...newDefinition, name: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Plus aria-hidden="true" size={17} /> Create definition</button></form>}
           {version && canWrite && version.status === "draft" && <><form className="workflow-form" onSubmit={(event) => void addStep(event)}><h4>Add step</h4><label>Key<input required maxLength={40} value={newStep.step_key} onChange={(event) => setNewStep({ ...newStep, step_key: event.target.value })} /></label><label>Name<input required maxLength={160} value={newStep.name} onChange={(event) => setNewStep({ ...newStep, name: event.target.value })} /></label><label>Type<select value={newStep.step_type} onChange={(event) => setNewStep({ ...newStep, step_type: event.target.value })}><option value="task">Task</option><option value="approval">Approval</option><option value="end">End</option></select></label><label className="check-label"><input type="checkbox" checked={newStep.is_start} onChange={(event) => setNewStep({ ...newStep, is_start: event.target.checked })} /> Start step</label><button className="secondary-action compact-action" type="submit"><Plus aria-hidden="true" size={16} /> Add step</button></form><form className="workflow-form" onSubmit={(event) => void addTransition(event)}><h4>Add transition</h4><label>From<select required value={newTransition.from_step_id} onChange={(event) => setNewTransition({ ...newTransition, from_step_id: event.target.value })}><option value="">Select step</option>{steps.map((step) => <option key={step.id} value={step.id}>{step.name}</option>)}</select></label><label>To<select required value={newTransition.to_step_id} onChange={(event) => setNewTransition({ ...newTransition, to_step_id: event.target.value })}><option value="">Select step</option>{steps.map((step) => <option key={step.id} value={step.id}>{step.name}</option>)}</select></label><label>Key<input required maxLength={40} value={newTransition.transition_key} onChange={(event) => setNewTransition({ ...newTransition, transition_key: event.target.value })} /></label><label>Label<input required maxLength={160} value={newTransition.label} onChange={(event) => setNewTransition({ ...newTransition, label: event.target.value })} /></label><button className="secondary-action compact-action" type="submit"><Plus aria-hidden="true" size={16} /> Add transition</button></form></>}
         </div>
-        <div className="workflow-detail">{!selected ? <div className="empty-state"><GitBranch aria-hidden="true" size={20} /><span>Select a definition to inspect its versions.</span></div> : <><div className="detail-heading"><div><h3>{selected.name}</h3><p>{selected.code} · {selected.status}</p></div>{canWrite && <button className="secondary-action compact-action" type="button" onClick={() => void createVersion()}><Plus aria-hidden="true" size={16} /> Draft version</button>}</div><div className="version-tabs" role="tablist" aria-label="Workflow versions">{versions.map((item) => <button key={item.id} className={version?.id === item.id ? "selected" : ""} type="button" role="tab" aria-selected={version?.id === item.id} onClick={() => void chooseVersion(item)}>v{item.version_number} · {item.status}</button>)}</div>{version && <><div className="builder-heading"><h4>Version {version.version_number}</h4>{canWrite && version.status === "draft" && <button className="primary-action compact-action" type="button" onClick={() => void publish()}><Rocket aria-hidden="true" size={16} /> Publish</button>}</div><ol className="step-list">{steps.map((step) => <li key={step.id}><strong>{step.name}</strong><small>{step.step_key} · {step.step_type}{step.is_start ? " · start" : ""}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editStep(step)}>Edit step</button>}</li>)}</ol><ul className="step-list">{transitions.map((item) => <li key={item.id}><strong>{item.label}</strong><small>{item.transition_key} · {item.from_step_id.slice(0, 8)} to {item.to_step_id.slice(0, 8)}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editTransition(item)}>Edit transition</button>}</li>)}</ul><h4>Assignments</h4><ul className="step-list">{assignments.map((item) => <li key={item.id}><strong>{steps.find((step) => step.id === item.step_id)?.name ?? item.step_id.slice(0, 8)}</strong><small>{item.target_type} · {item.target_user_id?.slice(0, 8) ?? item.target_application_role ?? item.target_organization_unit_id?.slice(0, 8)}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => void editAssignment(item)}>Edit assignment</button>}</li>)}</ul>{canWrite && version.status === "draft" && <form className="workflow-form" onSubmit={(event) => void addAssignment(event)}><h4>Add assignment</h4><label>Step<select required value={newAssignment.step_id} onChange={(event) => setNewAssignment({ ...newAssignment, step_id: event.target.value })}><option value="">Select step</option>{steps.filter((step) => step.step_type !== "end").map((step) => <option key={step.id} value={step.id}>{step.name}</option>)}</select></label><label>Target type<select value={newAssignment.target_type} onChange={(event) => setNewAssignment({ ...newAssignment, target_type: event.target.value })}><option value="application_role">Application role</option><option value="user">Member</option></select></label>{newAssignment.target_type === "user" ? <label>Member<select required value={newAssignment.target_user_id} onChange={(event) => setNewAssignment({ ...newAssignment, target_user_id: event.target.value })}><option value="">Select member</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label> : <label>Role<select value={newAssignment.target_application_role} onChange={(event) => setNewAssignment({ ...newAssignment, target_application_role: event.target.value })}><option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option></select></label>}<button className="secondary-action compact-action" type="submit"><Plus aria-hidden="true" size={16} /> Add assignment</button></form>}</>}</>}</div>
+        <div className="workflow-detail">{!selected ? <div className="empty-state"><GitBranch aria-hidden="true" size={20} /><span>Select a definition to inspect its versions.</span></div> : <><div className="detail-heading"><div><h3>{selected.name}</h3><p>{selected.code} · {selected.status}</p></div>{canWrite && <button className="secondary-action compact-action" type="button" onClick={() => void createVersion()}><Plus aria-hidden="true" size={16} /> Draft version</button>}</div><div className="version-tabs" role="tablist" aria-label="Workflow versions">{versions.map((item) => <button key={item.id} className={version?.id === item.id ? "selected" : ""} type="button" role="tab" aria-selected={version?.id === item.id} onClick={() => void chooseVersion(item)}>v{item.version_number} · {item.status}</button>)}</div>{version && <><div className="builder-heading"><h4>Version {version.version_number}</h4>{canWrite && version.status === "draft" && <button className="primary-action compact-action" type="button" onClick={() => void publish()}><Rocket aria-hidden="true" size={16} /> Publish</button>}</div><ol className="step-list">{steps.map((step) => <li key={step.id}><strong>{step.name}</strong><small>{step.step_key} · {step.step_type}{step.is_start ? " · start" : ""}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => openEditor({ kind: "step", item: step, value: step.name })}>Edit step</button>}</li>)}</ol><ul className="step-list">{transitions.map((item) => <li key={item.id}><strong>{item.label}</strong><small>{item.transition_key} · {item.from_step_id.slice(0, 8)} to {item.to_step_id.slice(0, 8)}</small>{canWrite && version.status === "draft" && <button className="secondary-action compact-action" type="button" onClick={() => openEditor({ kind: "transition", item, value: item.label })}>Edit transition</button>}</li>)}</ul><h4>Assignments</h4><ul className="step-list">{assignments.map((item) => <li key={item.id}><strong>{steps.find((step) => step.id === item.step_id)?.name ?? item.step_id.slice(0, 8)}</strong><small>{item.target_type} · {item.target_user_id?.slice(0, 8) ?? item.target_application_role ?? item.target_organization_unit_id?.slice(0, 8)}</small>{canWrite && version.status === "draft" && item.target_type !== "organization_unit" && <button className="secondary-action compact-action" type="button" onClick={() => openEditor({ kind: "assignment", item, value: item.target_user_id ?? item.target_application_role ?? "" })}>Edit assignment</button>}</li>)}</ul>{canWrite && version.status === "draft" && <form className="workflow-form" onSubmit={(event) => void addAssignment(event)}><h4>Add assignment</h4><label>Step<select required value={newAssignment.step_id} onChange={(event) => setNewAssignment({ ...newAssignment, step_id: event.target.value })}><option value="">Select step</option>{steps.filter((step) => step.step_type !== "end").map((step) => <option key={step.id} value={step.id}>{step.name}</option>)}</select></label><label>Target type<select value={newAssignment.target_type} onChange={(event) => setNewAssignment({ ...newAssignment, target_type: event.target.value })}><option value="application_role">Application role</option><option value="user">Member</option></select></label>{newAssignment.target_type === "user" ? <label>Member<select required value={newAssignment.target_user_id} onChange={(event) => setNewAssignment({ ...newAssignment, target_user_id: event.target.value })}><option value="">Select member</option>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label> : <label>Role<select value={newAssignment.target_application_role} onChange={(event) => setNewAssignment({ ...newAssignment, target_application_role: event.target.value })}><option value="member">Member</option><option value="admin">Admin</option><option value="owner">Owner</option></select></label>}<button className="secondary-action compact-action" type="submit"><Plus aria-hidden="true" size={16} /> Add assignment</button></form>}</>}</>}</div>
       </div>
       {canWrite && <form className="workflow-form" onSubmit={(event) => void startInstance(event)}><h3>Start instance</h3><label>Published version<select required value={newInstance.workflow_version_id} onChange={(event) => setNewInstance({ ...newInstance, workflow_version_id: event.target.value })}><option value="">Select published version</option>{versions.filter((item) => item.status === "published").map((item) => <option key={item.id} value={item.id}>v{item.version_number}</option>)}</select></label><label>Title<input required maxLength={200} value={newInstance.title} onChange={(event) => setNewInstance({ ...newInstance, title: event.target.value })} /></label><label>Reference<input maxLength={200} value={newInstance.reference} onChange={(event) => setNewInstance({ ...newInstance, reference: event.target.value })} /></label><button className="primary-action compact-action" type="submit"><Rocket aria-hidden="true" size={16} /> Start instance</button></form>}
       <div className="workflow-instances"><div className="assignment-heading"><h3>Instances</h3><span>{instances.length} visible</span></div>{instances.length === 0 ? <p className="empty-state">No active or completed instances.</p> : <ul className="step-list">{instances.map((item) => <li id={`workflow-instance-${item.id}`} className={selectedInstance?.id === item.id ? "action-target-record" : undefined} key={item.id}><button type="button" className="secondary-action compact-action" onClick={() => void inspectInstance(item)}>Inspect</button><strong>{item.title}</strong><small>{item.status} · step {item.current_step_id.slice(0, 8)} · version {item.row_version}</small>{item.status === "active" && role !== "auditor" && <div className="instance-actions">{(actionsByInstance[item.id] ?? []).map((action) => <button key={action.id} className="secondary-action compact-action" type="button" onClick={() => void transitionInstance(item, action)}><GitBranch aria-hidden="true" size={16} /> {action.label}</button>)}</div>}</li>)}</ul>}</div>
       {selectedInstance && <div className="workflow-instances"><div className="detail-heading"><div><h3>{selectedInstance.title}</h3><p>{selectedInstance.status} · version {selectedInstance.workflow_version_id.slice(0, 8)}</p></div></div><h4>History</h4><ul className="step-list">{history.map((event) => <li key={event.id}><strong>{event.event_type}</strong><small>{new Date(event.occurred_at).toLocaleString()}{event.reason ? ` · ${event.reason}` : ""}</small></li>)}</ul>{canWrite && selectedInstance.status === "active" && <div className="instance-actions"><input aria-label="Cancellation reason" required maxLength={500} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="Cancellation reason" /><button className="secondary-action compact-action" type="button" onClick={() => void cancelSelected()}>Cancel instance</button></div>}</div>}
       </>}
+      {editor && <ModalDialog
+        description="Review the value before saving. The workflow version remains in draft until it is published."
+        onClose={() => { if (!editorBusy) setEditor(null); }}
+        open
+        title={editor.kind === "step" ? "Edit workflow step" : editor.kind === "transition" ? "Edit transition" : "Edit assignment"}
+      >
+        <form className="modal-dialog-form" onSubmit={(event) => void saveEditor(event)}>
+          {editor.kind === "step" && <label>Step name<input autoFocus required maxLength={160} value={editor.value} onChange={(event) => setEditor({ ...editor, value: event.target.value })} /></label>}
+          {editor.kind === "transition" && <label>Transition label<input autoFocus required maxLength={160} value={editor.value} onChange={(event) => setEditor({ ...editor, value: event.target.value })} /></label>}
+          {editor.kind === "assignment" && editor.item.target_type === "application_role" && <label>Application role<select autoFocus required value={editor.value} onChange={(event) => setEditor({ ...editor, value: event.target.value })}><option value="member">Member</option><option value="admin">Administrator</option><option value="owner">Owner</option></select></label>}
+          {editor.kind === "assignment" && editor.item.target_type === "user" && <label>Assigned member<select autoFocus required value={editor.value} onChange={(event) => setEditor({ ...editor, value: event.target.value })}>{members.map((member) => <option key={member.id} value={member.id}>{member.display_name} · {member.role}</option>)}</select></label>}
+          {editorError && <p className="denied-state" role="alert">{editorError}</p>}
+          <footer>
+            <button className="secondary-action" disabled={editorBusy} onClick={() => setEditor(null)} type="button">Cancel</button>
+            <button className="primary-action" disabled={editorBusy || !editor.value.trim()} type="submit">{editorBusy ? "Saving…" : "Save change"}</button>
+          </footer>
+        </form>
+      </ModalDialog>}
     </section>
   );
 }

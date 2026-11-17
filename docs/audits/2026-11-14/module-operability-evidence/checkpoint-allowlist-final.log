@@ -1,0 +1,4 @@
+PASS: without exception checksum is detected
+PASS: verified checksum is allowed at exact path
+PASS: different value at same path is detected
+PASS: same value elsewhere is detected

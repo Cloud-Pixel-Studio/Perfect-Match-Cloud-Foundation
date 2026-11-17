@@ -1,0 +1,23 @@
+{
+  "id": "CP-AUDIT-DETAIL-06-20261113T154320Z",
+  "branch": "codex/internal-audit-detail-navigation",
+  "baseCommit": "012ba4bbcaa0b3ca1fe08c2ffa8b72340bc13c6f",
+  "sourceEntries": 480,
+  "artifacts": {
+    "source.tar.gz.enc": "fee176a835da9887655db9199f3a077c89a6484beafc42004c139a2a11a5d7cb",
+    "repository.bundle.enc": "0bb0e5fb6d4f5184767e705b6e841a5d147f265d5fefda071205d6ae5217a43f"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "No schema or QMS data changes; no new DB restore claimed. Existing verified authority0047 restore remains separate; normal test login sessions only.",
+  "visualEvidence": {
+    "png": 15,
+    "afterPng": 13,
+    "beforePng": 2,
+    "qualityLogs": 9,
+    "jsonReports": 3,
+    "encrypted_sha256": "678b8b24be235caaa80b79590898ffdc1d0c44685f29925890439b14b6061d14",
+    "verification": "PASS: encrypted archive decrypted; all27 entries matched SHA256",
+    "scope": "Accepted final runs plus preserved initial parser/lint failure, explicit baseline-head CI and scoped full-page screenshot metrics"
+  }
+}

@@ -1,0 +1,62 @@
+import { describe, expect, it } from "vitest";
+import { calculateKpiRatio, completeMonthlySeries } from "./kpi-calculations";
+
+describe("KPI calculation contracts", () => {
+  it("calculates exact 0 and 100 percent when there are observations", () => {
+    expect(calculateKpiRatio(0, 10)).toEqual({ numerator: 0, denominator: 10, percentage: 0 });
+    expect(calculateKpiRatio(10, 10).percentage).toBe(100);
+  });
+
+  it("does not invent a rate for an empty population", () => {
+    expect(calculateKpiRatio(0, 0).percentage).toBeNull();
+  });
+
+  it("rounds to one decimal place", () => {
+    expect(calculateKpiRatio(2, 3).percentage).toBe(66.7);
+  });
+
+  it.each([[1, 0], [-1, 3], [1.5, 2], [Infinity, 2], [1, NaN], [Number.MAX_SAFE_INTEGER + 1, 3]])(
+    "rejects invalid count pair %s/%s",
+    (numerator, denominator) => {
+      expect(() => calculateKpiRatio(numerator, denominator)).toThrow(RangeError);
+    },
+  );
+
+  it("preserves explicit zero activity while distinguishing missing observations", () => {
+    expect(completeMonthlySeries(["2026-09", "2026-10"], { "2026-09": 0, "2026-10": 4 }))
+      .toEqual([{ month: "2026-09", count: 0 }, { month: "2026-10", count: 4 }]);
+    expect(completeMonthlySeries(["2026-09", "2026-10"], { "2026-09": 0 })).toBeNull();
+  });
+
+  it.each(Array.from({ length: 12 }, (_, month) => `2026-${String(month + 1).padStart(2, "0")}`))(
+    "accepts every valid calendar month %s without inventing observations",
+    (month) => {
+      expect(completeMonthlySeries([month], { [month]: 0 })).toEqual([{ month, count: 0 }]);
+      expect(completeMonthlySeries([month], {})).toBeNull();
+    },
+  );
+
+  it.each(["2026-01\n", "2026-01\r\n", " 2026-01", "2026-01 ", "\\d{4}-01"])(
+    "rejects decorated or nonnumeric period %j",
+    (month) => {
+      expect(() => completeMonthlySeries([month], { [month]: 0 })).toThrow(RangeError);
+    },
+  );
+
+  it("rejects malformed, non-calendar and unordered monthly periods", () => {
+    for (const month of ["2026-00", "2026-13", "2026-1", "2026/01", "2026-01-extra"]) {
+      expect(() => completeMonthlySeries([month], { [month]: 1 })).toThrow(RangeError);
+    }
+    expect(() => completeMonthlySeries(["2026-10", "2026-09"], { "2026-10": 1, "2026-09": 2 }))
+      .toThrow(RangeError);
+    expect(completeMonthlySeries([], {})).toEqual([]);
+  });
+
+  it("rejects duplicate periods and malformed counts", () => {
+    expect(() => completeMonthlySeries(["2026-09", "2026-09"], { "2026-09": 1 })).toThrow(RangeError);
+    for (const invalidCount of [-2, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+      expect(() => completeMonthlySeries(["2026-09"], { "2026-09": invalidCount })).toThrow(RangeError);
+    }
+    expect(completeMonthlySeries(["2026-09"], Object.create({ "2026-09": 0 }) as Record<string, number>)).toBeNull();
+  });
+});

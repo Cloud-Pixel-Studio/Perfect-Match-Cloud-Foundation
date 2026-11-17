@@ -25,6 +25,12 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy src tests
       - run: uv run pytest
+      - name: Security evidence tool regression
+        working-directory: .
+        run: |
+          uv run --project apps/api --no-sync ruff check --config apps/api/pyproject.toml --target-version py39 --ignore E501,S101 scripts/release_image_evidence.py scripts/trivy_cve_inventory.py tests/test_release_image_evidence.py tests/test_trivy_cve_inventory.py
+          uv run --project apps/api --no-sync python -m unittest discover -s tests -p 'test_*.py'
+
 
   frontend:
     runs-on: ubuntu-24.04
@@ -52,6 +58,11 @@ jobs:
           node-version-file: .nvmrc
       - run: shellcheck scripts/*.sh security/opengrep/test-rules.sh
       - run: node scripts/test-agent-intake-policy.mjs
+      - run: python3 scripts/check-codex-agents.py
+      - run: python3 -m unittest discover -s tests -p 'test_codex_agent_manifest_validator.py'
+      - run: python3 -m unittest discover -s tests -p 'test_agent_runner_lease.py'
+      - run: python3 -m unittest discover -s tests -p 'test_agent_runner_reconcile.py'
+      - run: python3 -m unittest discover -s tests -p 'test_third_party_image_pins.py'
 
   tenant-isolation:
     runs-on: ubuntu-24.04
@@ -63,6 +74,17 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-tenant-isolation.sh
+
+  tenant-suspension-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: cd apps/api && uv sync --frozen
+      - run: ./scripts/run-tenant-suspension-integrity.sh
 
   audit-integrity:
     runs-on: ubuntu-24.04
@@ -96,6 +118,7 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-workflow-integrity.sh
+      - run: ./scripts/run-workflow-executor-integrity.sh
 
   qms-access-integrity:
     runs-on: ubuntu-24.04
@@ -107,6 +130,18 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-qms-access-integrity.sh
+      - run: ./scripts/run-qms-access-history-integrity.sh
+
+  internal-audit-integrity:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          version: "0.12.10"
+          enable-cache: true
+      - run: cd apps/api && uv sync --frozen
+      - run: ./scripts/run-internal-audit-integrity.sh
 
   process-integrity:
     runs-on: ubuntu-24.04
@@ -118,3 +153,5 @@ jobs:
           enable-cache: true
       - run: cd apps/api && uv sync --frozen
       - run: ./scripts/run-process-integrity.sh
+      - run: ./scripts/run-document-review-integrity.sh
+      - run: ./scripts/run-action-center-integrity.sh

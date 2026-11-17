@@ -1,0 +1,811 @@
+{
+  "startedAt": "2026-11-14T20:58:46.420Z",
+  "base": "http://127.0.0.1:3103",
+  "api": "http://127.0.0.1:8000",
+  "qmsWritesForwarded": 0,
+  "cases": [
+    {
+      "name": "marketing: product tour, demo intent and download",
+      "evidence": "real frontend; no message sent",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0,
+        "contact": "Demo@invperfectmatch.com",
+        "transmission": "not tested; mail client intentionally not opened",
+        "onboarding": "not available"
+      }
+    },
+    {
+      "name": "marketing: 320px keyboard FAQ and navigation",
+      "evidence": "real frontend",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "anonymous entry reaches the approved login boundary",
+      "evidence": "real frontend; no authentication yet",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: actual OIDC authentication and company selection display",
+      "evidence": "real OIDC development session and GET APIs",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Processes",
+          "Documents",
+          "Controls & evidence",
+          "Internal audits",
+          "Risks & opportunities",
+          "Nonconformities",
+          "Corrective actions",
+          "Permissions"
+        ],
+        "organizations": [
+          "Select organization",
+          "Tenant A · member"
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: overview reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "Work with clarity.Improve with evidence.",
+          "What needs attention"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: actions reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "Action center"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/action-center",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: workflows reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          " Workflow Engine",
+          " Definitions",
+          "Instances"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/workflows",
+            "status": 200
+          },
+          {
+            "path": "/workflow-instances",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: processes reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "DEV-ACCESS-UI · Development access review"
+        },
+        "headings": [
+          " Process register",
+          "Processes",
+          "New process"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/processes/scopes",
+            "status": 200
+          },
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/processes",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: documents reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "Development access review · DEV-ACCESS-UI"
+        },
+        "headings": [
+          " Document control",
+          "Register 24",
+          "Procedimiento de recepción e inspección de materiales",
+          "Revision history"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/documents",
+            "status": 200
+          },
+          {
+            "path": "/documents/57c91838-64df-416f-ac8c-465198d9097c/revisions",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/documents/processes",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: controls reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "no available scope"
+        },
+        "headings": [
+          " Controls & implementation"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/processes",
+            "status": 200
+          },
+          {
+            "path": "/controls",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/control-instances",
+            "status": 200
+          },
+          {
+            "path": "/processes",
+            "status": 200
+          },
+          {
+            "path": "/controls",
+            "status": 200
+          },
+          {
+            "path": "/control-instances",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: internal-audits reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "FAIL",
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'Independence & preparation', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('heading', { name: 'Independence & preparation', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: 'Independence & preparation', exact: true })\n"
+    },
+    {
+      "name": "member: risks reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "DEV-ACCESS-UI · Development access review"
+        },
+        "headings": [
+          " Risks & opportunities",
+          "Register 6",
+          "Recepción de material no conforme",
+          "Corrective actions from this record",
+          " Related controls & evidence",
+          "Control implementations",
+          "Controlled document revisions",
+          "Review and workflow"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/risks",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/risks/25094117-80b4-4e51-9dcb-1066b1cd8008/control-links",
+            "status": 200
+          },
+          {
+            "path": "/processes/647e4570-7e89-4413-bad7-14d2e5dd721c",
+            "status": 200
+          },
+          {
+            "path": "/capas",
+            "status": 200
+          },
+          {
+            "path": "/risks/25094117-80b4-4e51-9dcb-1066b1cd8008/document-links",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: ncr reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "no available scope"
+        },
+        "headings": [
+          " Nonconformities"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/nonconformities",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: capa reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "DEV-ACCESS-UI · Development access review"
+        },
+        "headings": [
+          " Corrective actions",
+          "Register 28",
+          "Receiving process correction",
+          "5why analysis",
+          "Start action planning",
+          " CAPA controls and evidence",
+          "Control implementations",
+          "Accepted evidence",
+          " Controlled documents"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/effective",
+            "status": 200
+          },
+          {
+            "path": "/capas",
+            "status": 200
+          },
+          {
+            "path": "/capas/3d66c4e2-26f7-4629-a199-ddd800a895cd/control-links",
+            "status": 200
+          },
+          {
+            "path": "/capas/3d66c4e2-26f7-4629-a199-ddd800a895cd/effectiveness-reviews",
+            "status": 200
+          },
+          {
+            "path": "/capas/3d66c4e2-26f7-4629-a199-ddd800a895cd/actions",
+            "status": 200
+          },
+          {
+            "path": "/capas/3d66c4e2-26f7-4629-a199-ddd800a895cd/evidence-links",
+            "status": 200
+          },
+          {
+            "path": "/capas/3d66c4e2-26f7-4629-a199-ddd800a895cd/document-links",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: permissions reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "My QMS permissions"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/grants",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: mobile375 dark module navigation",
+      "evidence": "real runtime0048 GET APIs",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "member: 503 action-center read error",
+      "evidence": "HTTP response mocked in browser memory; QMS backend unchanged",
+      "result": "PASS",
+      "detail": {
+        "alert": "The action center is temporarily unavailable.",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: actual OIDC authentication and company selection display",
+      "evidence": "real OIDC development session and GET APIs",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Organization",
+          "Permissions",
+          "Audit trail"
+        ],
+        "organizations": [
+          "Select organization",
+          "Tenant A · owner"
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: overview reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "Work with clarity.Improve with evidence.",
+          "What needs attention"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: actions reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "Action center"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/action-center",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: workflows reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          " Workflow Engine",
+          " Definitions",
+          "New definition",
+          "Start instance",
+          "Instances"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/workflows",
+            "status": 200
+          },
+          {
+            "path": "/workflow-instances",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: organization reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "Organization",
+          "Development access review",
+          "People"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/organization/assignments",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: permissions reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          "QMS permissions",
+          " Grant a responsibility"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/organization/units",
+            "status": 200
+          },
+          {
+            "path": "/organization/members",
+            "status": 200
+          },
+          {
+            "path": "/qms-access/grants",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: audit-trail reads and accessible desktop layout",
+      "evidence": "real runtime0048 GET APIs; source PR43 frontend (PR41 inherited)",
+      "result": "PASS",
+      "detail": {
+        "readOutcome": "GET_SCREEN_INSPECTED",
+        "denials": [],
+        "unitSelection": {
+          "selection": "not required"
+        },
+        "headings": [
+          " Audit trail"
+        ],
+        "alerts": [],
+        "statuses": [],
+        "responses": [
+          {
+            "path": "/audit/events",
+            "status": 200
+          }
+        ],
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: mobile375 dark module navigation",
+      "evidence": "real runtime0048 GET APIs",
+      "result": "PASS",
+      "detail": {
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "owner: 503 action-center read error",
+      "evidence": "HTTP response mocked in browser memory; QMS backend unchanged",
+      "result": "PASS",
+      "detail": {
+        "alert": "The action center is temporarily unavailable.",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "synthetic auditor: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Documents",
+          "Internal audits",
+          "Organization",
+          "Permissions",
+          "Audit trail"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    },
+    {
+      "name": "synthetic member: capability-segregated navigation",
+      "evidence": "in-memory identity/capabilities; not a server authorization test",
+      "result": "PASS",
+      "detail": {
+        "navigation": [
+          "Overview",
+          "Action center",
+          "Workflows",
+          "Permissions"
+        ],
+        "directLink": "unauthorized module falls back to overview",
+        "overflow": 0,
+        "axeViolations": 0
+      }
+    }
+  ],
+  "roles": [
+    {
+      "role": "member",
+      "navigation": [
+        "Overview",
+        "Action center",
+        "Workflows",
+        "Processes",
+        "Documents",
+        "Controls & evidence",
+        "Internal audits",
+        "Risks & opportunities",
+        "Nonconformities",
+        "Corrective actions",
+        "Permissions"
+      ],
+      "organizations": [
+        "Select organization",
+        "Tenant A · member"
+      ]
+    },
+    {
+      "role": "owner",
+      "navigation": [
+        "Overview",
+        "Action center",
+        "Workflows",
+        "Organization",
+        "Permissions",
+        "Audit trail"
+      ],
+      "organizations": [
+        "Select organization",
+        "Tenant A · owner"
+      ]
+    }
+  ],
+  "runtimeHealth": {
+    "checkedAt": "2026-11-14T20:58:46.477Z",
+    "status": 200,
+    "body": {
+      "status": "ok",
+      "version": "0.5.0",
+      "dependencies": {
+        "database": "ok",
+        "object_storage": "ok",
+        "malware_scanner": "ok"
+      }
+    }
+  },
+  "finishedAt": "2026-11-14T20:59:16.521Z",
+  "summary": {
+    "pass": 27,
+    "fail": 1,
+    "blocked": 0,
+    "expectedDenial": 0
+  }
+}

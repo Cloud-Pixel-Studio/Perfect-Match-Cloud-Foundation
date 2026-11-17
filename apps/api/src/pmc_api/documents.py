@@ -456,6 +456,19 @@ def transition_revision(
     request: Request,
 ) -> QMSDocumentRevision:
     actor = actor_context(db, auth)
+    # Review commands change only the revision and use the parent's immutable
+    # scope. Locking the parent FOR UPDATE would also require author/release/
+    # obsolete authority through its RLS policy, which reviewers need not have.
+    document_query = select(QMSDocument).where(
+        QMSDocument.id == document_id, QMSDocument.tenant_id == actor.tenant_id
+    )
+    if action == "release":
+        # Serialize current/previous revision replacement by parent first, then
+        # child. A waiter must not hold a revision that another release needs.
+        document_query = document_query.with_for_update()
+    doc = db.scalar(document_query.execution_options(populate_existing=True))
+    if doc is None:
+        raise HTTPException(404, "document not found")
     revision = db.scalar(
         select(QMSDocumentRevision)
         .where(
@@ -468,63 +481,60 @@ def transition_revision(
     )
     if revision is None:
         raise HTTPException(404, "revision not found")
-    doc = db.scalar(
-        select(QMSDocument)
-        .where(QMSDocument.id == document_id, QMSDocument.tenant_id == actor.tenant_id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
-    if doc is None:
-        raise HTTPException(404, "document not found")
     if revision.row_version != command.expected_version:
         raise HTTPException(409, "revision changed; refresh before retrying")
     before = _rvalues(revision)
-    if action == "submit":
-        require_capability(db, "documents.review", doc.unit_id)
-        if revision.status not in {"draft", "rejected"}:
-            raise HTTPException(409, "only draft or rejected revisions can be submitted")
-        revision.status = "under_review"
-    elif action == "approve":
-        require_capability(db, "documents.approve", doc.unit_id)
-        if revision.status != "under_review" or revision.prepared_by_user_id == actor.user_id:
-            raise HTTPException(403, "revision cannot be approved by its preparer or in this state")
-        if revision.file_state != "clean":
-            raise HTTPException(409, "revision file must pass the configured security scan")
-        revision.status = "approved"
-        revision.reviewed_by_user_id = actor.user_id
-        revision.approved_by_user_id = actor.user_id
-        revision.review_date = datetime.now(UTC).date()
-    elif action == "reject":
-        require_capability(db, "documents.review", doc.unit_id)
-        if revision.status != "under_review":
-            raise HTTPException(409, "only revisions under review can be rejected")
-        revision.status = "rejected"
-        revision.reviewed_by_user_id = actor.user_id
-        revision.review_date = datetime.now(UTC).date()
-    elif action == "release":
-        require_capability(db, "documents.release", doc.unit_id)
-        if revision.status != "approved" or revision.file_state != "clean":
-            raise HTTPException(409, "only approved revisions with clean files can be released")
-        previous = db.scalar(
-            select(QMSDocumentRevision)
-            .where(
-                QMSDocumentRevision.document_id == document_id,
-                QMSDocumentRevision.status == "active",
-            )
-            .with_for_update()
-        )
-        if previous is not None:
-            previous.status = "superseded"
-            previous.row_version += 1
-        revision.status = "active"
-        revision.reviewed_by_user_id = revision.reviewed_by_user_id or actor.user_id
-        revision.effective_date = revision.effective_date or datetime.now(UTC).date()
-        doc.status = "active"
-        doc.current_revision_id = revision.id
-        doc.row_version += 1
-        doc.updated_at = datetime.now(UTC)
-    revision.row_version += 1
     try:
+        if action == "submit":
+            require_capability(db, "documents.review", doc.unit_id)
+            if revision.status not in {"draft", "rejected"}:
+                raise HTTPException(409, "only draft or rejected revisions can be submitted")
+            revision.status = "under_review"
+        elif action == "approve":
+            require_capability(db, "documents.approve", doc.unit_id)
+            if revision.status != "under_review" or revision.prepared_by_user_id == actor.user_id:
+                raise HTTPException(
+                    403, "revision cannot be approved by its preparer or in this state"
+                )
+            if revision.file_state != "clean":
+                raise HTTPException(409, "revision file must pass the configured security scan")
+            revision.status = "approved"
+            revision.reviewed_by_user_id = actor.user_id
+            revision.approved_by_user_id = actor.user_id
+            revision.review_date = datetime.now(UTC).date()
+        elif action == "reject":
+            require_capability(db, "documents.review", doc.unit_id)
+            if revision.status != "under_review":
+                raise HTTPException(409, "only revisions under review can be rejected")
+            revision.status = "rejected"
+            revision.reviewed_by_user_id = actor.user_id
+            revision.review_date = datetime.now(UTC).date()
+        elif action == "release":
+            require_capability(db, "documents.release", doc.unit_id)
+            if revision.status != "approved" or revision.file_state != "clean":
+                raise HTTPException(409, "only approved revisions with clean files can be released")
+            previous = db.scalar(
+                select(QMSDocumentRevision)
+                .where(
+                    QMSDocumentRevision.document_id == document_id,
+                    QMSDocumentRevision.status == "active",
+                )
+                .with_for_update()
+            )
+            if previous is not None:
+                previous.status = "superseded"
+                previous.row_version += 1
+                # The unique active-revision index is immediate. Retire the old row
+                # before activating the target, independent of UUID/flush ordering.
+                db.flush([previous])
+            revision.status = "active"
+            revision.reviewed_by_user_id = revision.reviewed_by_user_id or actor.user_id
+            revision.effective_date = revision.effective_date or datetime.now(UTC).date()
+            doc.status = "active"
+            doc.current_revision_id = revision.id
+            doc.row_version += 1
+            doc.updated_at = datetime.now(UTC)
+        revision.row_version += 1
         db.flush()
         _commit(
             db,

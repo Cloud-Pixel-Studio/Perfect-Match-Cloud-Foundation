@@ -1,0 +1,823 @@
+{
+  "recorded_at": "2026-11-15T13:32:55.142668+00:00",
+  "base": "786f79ec244b194f76c87c07ada30eb2de5aae4c",
+  "closed_not_merged": [
+    {
+      "n": 21,
+      "sha": "a66476cacf09137067949af2e1a93d2fc7d11c38",
+      "reason": "Superseded by PR50: production HTTPS/origin validation is reused and strengthened, with43 configuration/key cases and exact-head CI. The historical security note is retained in this branch; this is not a claim that every old document was copied.",
+      "state": "closed",
+      "branch": "codex/pmc-production-public-url-guards",
+      "closed_as": "superseded, not merged",
+      "branch_deleted": false
+    },
+    {
+      "n": 23,
+      "sha": "be195e79e74505d3fcda478c609b47a43e5cf322",
+      "reason": "Content incorporated into PR22 by fast-forward repair commit da41f6da13716db216a5b556fc65f054e3fd95ac. Its complete tree0a29fcc4290f1fd81d3e5b15a4172a08852b5128 equals this PR's tree. No business changes: AST equality verified; Ruff and6 domain cases PASS. This is a content-equivalent fix, not a Git merge or release approval.",
+      "state": "closed",
+      "branch": "codex/ci-ruff-document-control-20261112",
+      "closed_as": "superseded, not merged",
+      "branch_deleted": false
+    },
+    {
+      "n": 24,
+      "sha": "6bb620766d95528333403c5b9b6e01826162b79f",
+      "reason": "Inventory behavior was reused and expanded in PR50. Decision: retire the separate vendor-image-candidates.yml workflow and its structural test from active integration; these were NOT copied into PR50. PR53 plus the six-image bound security workflow replaces that candidate-evaluation path and has produced verified real runtime/scanner evidence. The old workflow, test and full history remain available on this preserved branch. No scanner threshold is relaxed.",
+      "state": "closed",
+      "branch": "codex/p0-trivy-cve-inventory-20261112",
+      "closed_as": "superseded, not merged",
+      "branch_deleted": false
+    },
+    {
+      "n": 28,
+      "sha": "1b2aef2db10ff3016bf25ff5840bd97d91d7f164",
+      "reason": "Superseded by PR50: atomic publication and invalidation of stale CVE evidence were reused, tested and extended to all six inspected images. The old branch remains preserved; no merge or production authorization.",
+      "state": "closed",
+      "branch": "codex/p0-trivy-no-stale-evidence-20261112",
+      "closed_as": "superseded, not merged",
+      "branch_deleted": false
+    },
+    {
+      "n": 29,
+      "sha": "53474e2ed17f52b7f3471cf6d8e19bd124243fbc",
+      "reason": "Superseded by PR50: nonempty Results/Target validation and strict CVE inventory were reused and tested. PR50/53 also bind reports to actual image identities, source SHA, run and freshness. This does not remediate vendor CVEs or approve production.",
+      "state": "closed",
+      "branch": "codex/p0-trivy-require-scanned-target-20261112",
+      "closed_as": "superseded, not merged",
+      "branch_deleted": false
+    },
+    {
+      "n": 48,
+      "sha": "bb762e3bd4211cbe1179b0abaa579deb4083f51a",
+      "branch": "brand/product-naming-exploration-20261114",
+      "state": "closed",
+      "branch_deleted": false,
+      "reason": "Archived as a historical brand exploration, not merged. PR49 is the maintained application/marketing candidate. Its commit dcf8f1189297821b54e51ab4c3dc4e2e4841c470 preserves the three unique SVG assets and naming document exactly, plus the entire guide with a historical/no-new-approval note. The public mark duplicated the preserved isotipo. The minimal old-main web-shell variant and its metadata were intentionally not transplanted over the modern PWA/OG metadata. Favicon/PWA/OG consistency, visual signoff and legal clearance remain open; not a claim that all branding is complete or CVEs fixed. User authorized cleanup. This branch/head and all unique history are retained in encrypted recovery; no branch deletion, merge or production deployment."
+    }
+  ],
+  "repairs": [
+    {
+      "n": 22,
+      "branch": "codex/pmc-specialists-ux-observability-20261111",
+      "parent": "d877a255e62d646f27f15d890f75793c8b07a6ec",
+      "files": [
+        "apps/api/src/pmc_api/document_control.py",
+        "apps/api/tests/test_document_control.py"
+      ],
+      "sha": "da41f6da13716db216a5b556fc65f054e3fd95ac",
+      "tree": "0a29fcc4290f1fd81d3e5b15a4172a08852b5128"
+    },
+    {
+      "n": 43,
+      "parent": "84d3aa4b9e68f6dfd4be83d040630a56d116179f",
+      "sha": "a9e92b690f334bbbda2797ad0676364b364910ad",
+      "tree": "5b8fb6e286b654d5338eaab735b0171aab7dcb4f",
+      "source_hash": "e54cbd8c9c4b743bc1683321a8a72604a85ad675",
+      "files": [
+        "docs/audits/2026-11-14/flow-browser-audit.mjs"
+      ],
+      "evidence": "28PASS healthy local runtime; separate synthetic503:5PASS/1BLOCK, no credentials/business attempts; 0644existing→0600; no temp leftovers; no QMS writes"
+    },
+    {
+      "n": 43,
+      "parent": "26ba21b1d4888803df3ffdafb3ddb8fdafbe267d",
+      "sha": "84d3aa4b9e68f6dfd4be83d040630a56d116179f",
+      "tree": "506d938b90de365ebca29580ec1ceb66b1bc8a0e",
+      "files": [
+        "docs/audits/2026-11-14/flow-browser-audit.mjs"
+      ],
+      "browser": "28 PASS / 0 QMS writes; unchanged existing runtime PR39/DB0048; no full health response body persisted",
+      "source_hash": "9b792350757c4ecff6a89f87223ad750ca3db9a7"
+    },
+    {
+      "n": 50,
+      "sha": "9f8e9b719fa540e4c5382919e16ac8daa993bcbf",
+      "parent": "f698d0a33a1ebfa5062251747bd634b6897aacc4",
+      "tree": "4fec6dee9acd43003a18bb23950440e1c6d0ba94",
+      "files": [
+        {
+          "path": "scripts/release_image_evidence.py",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "a262de30f56ef4a2336414e0fdc5fd067284c1a5"
+        },
+        {
+          "path": "tests/test_release_image_evidence.py",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "ef7d09e39702ea612e1929a236a00b0bfc7e66cd"
+        }
+      ]
+    },
+    {
+      "n": 51,
+      "branch": "design/dashboard-kpi-proposal-20261115",
+      "parent": "0701af3342a5aa0b871a2bafc61f960b3339b2ad",
+      "files": [
+        "apps/web/src/lib/dashboard-metrics.test.ts"
+      ],
+      "sha": "e6ae5a7bec65a49ff39518a4d07dd01f11c8abd6",
+      "tree": "b72f3ebcd8eb4339630e0c9b509ef3194027c745"
+    },
+    {
+      "n": 52,
+      "branch": "feat/kpi-definition-contract-20261115",
+      "parent": "d252851ffb90e87c0232662f5612c782f215af02",
+      "files": [
+        "apps/web/src/lib/kpi-calculations.ts",
+        "apps/web/src/lib/kpi-calculations.test.ts"
+      ],
+      "sha": "ec998ee1de72dc66f95277e0edb0545c4a1a92e7",
+      "tree": "d433044b0ceede50c4b6ccf9f450162d0f9860b9"
+    },
+    {
+      "n": 53,
+      "parent": "099d011cbfd8860d305aa40c4c66936a7cac9fae",
+      "sha": "9b398e416d5e8c7be86a5f9d9340397a6f18223b",
+      "tree": "a0f1d22c2dbecab66282a1653439a835d690f0e9",
+      "files": [
+        {
+          "path": "scripts/release_image_evidence.py",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "a262de30f56ef4a2336414e0fdc5fd067284c1a5"
+        },
+        {
+          "path": "tests/test_release_image_evidence.py",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "ef7d09e39702ea612e1929a236a00b0bfc7e66cd"
+        }
+      ],
+      "prior_image_evidence": "7HIGH on099d011, exact run43715161783 artifact14162129065; scan not attributed to this new head",
+      "change": "tested console privacy changes only; image pins/gates unchanged"
+    }
+  ],
+  "checksum_controls": [
+    {
+      "n": 49,
+      "branch": "brand/bems-quality-product-marketing",
+      "parent": "80a8795a5f23d49b28d9894b2cd2c3abe74fe755",
+      "sha": "dcf8f1189297821b54e51ab4c3dc4e2e4841c470",
+      "tree": "a7f8f134d16bcd111ea2621a8ba6c1546f97052e",
+      "paths": [
+        ".gitleaks.toml",
+        ".github/workflows/security.yml",
+        "security/tests/test_checkpoint_secret_allowlist.py",
+        "security/tests/test_architecture_checksum_allowlist.py",
+        "assets/brand/bems-quality-horizontal-dark.svg",
+        "assets/brand/bems-quality-horizontal-light.svg",
+        "assets/brand/bems-quality-mark.svg",
+        "docs/brand/BEMS_QUALITY_BRAND_GUIDE.md",
+        "docs/brand/PRODUCT_NAMING_EXPLORATION.md"
+      ],
+      "checks": "13 scope controls PASS; exact existing5checksum exceptions; published mirror293commits0leaks; no thresholds relaxed"
+    },
+    {
+      "n": 51,
+      "branch": "design/dashboard-kpi-proposal-20261115",
+      "parent": "e6ae5a7bec65a49ff39518a4d07dd01f11c8abd6",
+      "sha": "17ad55f9456ac3d1357b231975ca118872011fbb",
+      "tree": "a0b296602c5e1ea2a5cad453761e41418093df82",
+      "paths": [
+        ".gitleaks.toml",
+        ".github/workflows/security.yml",
+        "security/tests/test_checkpoint_secret_allowlist.py",
+        "security/tests/test_architecture_checksum_allowlist.py"
+      ],
+      "checks": "13 scope controls PASS; exact existing5checksum exceptions; published mirror293commits0leaks; no thresholds relaxed"
+    },
+    {
+      "n": 52,
+      "branch": "feat/kpi-definition-contract-20261115",
+      "parent": "9365beaa84488cefa50eefdb1df8cc82d7ed26a5",
+      "sha": "6ae081901088ab538a603f15ba25e22625d9b37f",
+      "tree": "f56af51844acb966e4053fe719b3685720212da4",
+      "paths": [
+        ".gitleaks.toml",
+        ".github/workflows/security.yml",
+        "security/tests/test_checkpoint_secret_allowlist.py",
+        "security/tests/test_architecture_checksum_allowlist.py"
+      ],
+      "preserved_external": "9365bea added invalid count/prototype cases on top of our ec998ee; appended security-only changes, no overwrite"
+    }
+  ],
+  "observed_ci": [
+    {
+      "pr": 43,
+      "sha": "a9e92b690f334bbbda2797ad0676364b364910ad",
+      "workflow_runs": [
+        {
+          "id": 43719039545,
+          "name": "Foundation security",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_number": 268,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039545/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039545/logs",
+          "workflow_id": 351828993
+        },
+        {
+          "id": 43719039563,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 184,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039563/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039563/logs",
+          "workflow_id": 404986033
+        },
+        {
+          "id": 43719039599,
+          "name": "Foundation quality",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 269,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039599/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43719039599/logs",
+          "workflow_id": 351828994
+        }
+      ],
+      "threads": [
+        {
+          "id": "PRRT_kwDOUP1xsc63iy2Z",
+          "resolved": true,
+          "outdated": true,
+          "line": null
+        },
+        {
+          "id": "PRRT_kwDOUP1xsc63iy22",
+          "resolved": true,
+          "outdated": true,
+          "line": null
+        },
+        {
+          "id": "PRRT_kwDOUP1xsc63p3g0",
+          "resolved": true,
+          "outdated": true,
+          "line": null
+        },
+        {
+          "id": "PRRT_kwDOUP1xsc63p3hE",
+          "resolved": true,
+          "outdated": true,
+          "line": null
+        }
+      ]
+    },
+    {
+      "pr": 49,
+      "sha": "dcf8f1189297821b54e51ab4c3dc4e2e4841c470",
+      "workflow_runs": [
+        {
+          "id": 43718572799,
+          "name": "Foundation security",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_number": 264,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572799/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572799/logs",
+          "workflow_id": 351828993
+        },
+        {
+          "id": 43718572754,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 180,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572754/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572754/logs",
+          "workflow_id": 404986033
+        },
+        {
+          "id": 43718572704,
+          "name": "Foundation quality",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 265,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572704/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718572704/logs",
+          "workflow_id": 351828994
+        }
+      ]
+    },
+    {
+      "pr": 50,
+      "sha": "9f8e9b719fa540e4c5382919e16ac8daa993bcbf",
+      "workflow_runs": [
+        {
+          "id": 43717633234,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 177,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633234/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633234/logs",
+          "workflow_id": 404986033
+        },
+        {
+          "id": 43717633397,
+          "name": "Foundation quality",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 262,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633397/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633397/logs",
+          "workflow_id": 351828994
+        },
+        {
+          "id": 43717633223,
+          "name": "Foundation security",
+          "status": "completed",
+          "conclusion": "failure",
+          "run_number": 261,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633223/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43717633223/logs",
+          "workflow_id": 351828993
+        }
+      ]
+    },
+    {
+      "pr": 51,
+      "sha": "17ad55f9456ac3d1357b231975ca118872011fbb",
+      "workflow_runs": [
+        {
+          "id": 43718584537,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 181,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584537/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584537/logs",
+          "workflow_id": 404986033
+        },
+        {
+          "id": 43718584520,
+          "name": "Foundation quality",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 266,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584520/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584520/logs",
+          "workflow_id": 351828994
+        },
+        {
+          "id": 43718584497,
+          "name": "Foundation security",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_number": 265,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584497/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718584497/logs",
+          "workflow_id": 351828993
+        }
+      ]
+    },
+    {
+      "pr": 52,
+      "sha": "6ae081901088ab538a603f15ba25e22625d9b37f",
+      "workflow_runs": [
+        {
+          "id": 43718872484,
+          "name": "Foundation security",
+          "status": "in_progress",
+          "conclusion": null,
+          "run_number": 266,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872484/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872484/logs",
+          "workflow_id": 351828993
+        },
+        {
+          "id": 43718872499,
+          "name": "CodeQL",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 182,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872499/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872499/logs",
+          "workflow_id": 404986033
+        },
+        {
+          "id": 43718872580,
+          "name": "Foundation quality",
+          "status": "completed",
+          "conclusion": "success",
+          "run_number": 267,
+          "jobs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872580/jobs",
+          "logs_url": "https://api.github.com/repos/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/43718872580/logs",
+          "workflow_id": 351828994
+        }
+      ]
+    }
+  ],
+  "open_prs_after_cleanup": 31,
+  "vendor_evidence": {
+    "source_sha": "099d011cbfd8860d305aa40c4c66936a7cac9fae",
+    "run": "43715161783",
+    "count": 7,
+    "secrets": 0,
+    "images": [
+      {
+        "role": "api",
+        "high_or_critical": 0
+      },
+      {
+        "role": "clamav",
+        "reference": "clamav/clamav:1.5.4@sha256:bda39705e291105049c3936e2803ac90b955172af8030f94f05dce1252df6c6d",
+        "high_or_critical": 0
+      },
+      {
+        "role": "keycloak",
+        "reference": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "high_or_critical": 6
+      },
+      {
+        "role": "postgres",
+        "reference": "pmcloud-postgres:local",
+        "high_or_critical": 0
+      },
+      {
+        "role": "seaweedfs",
+        "reference": "chrislusf/seaweedfs:4.53@sha256:ccad23e18639c8b98cee17e7100b95830a06077b56d8e5b006d6dcf8ec5e94a0",
+        "high_or_critical": 1
+      },
+      {
+        "role": "web",
+        "high_or_critical": 0
+      }
+    ],
+    "findings": [
+      {
+        "cve": "CVE-2026-102554",
+        "fixed_version": "33.7.2",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "33.6.0-jre",
+        "package": "com.google.guava:guava",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "Java"
+      },
+      {
+        "cve": "CVE-2026-119373",
+        "fixed_version": "",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "3.34.1-11.el9_8",
+        "package": "sqlite-libs",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0 (redhat 9.9)"
+      },
+      {
+        "cve": "CVE-2026-119374",
+        "fixed_version": "",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "3.34.1-11.el9_8",
+        "package": "sqlite-libs",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0 (redhat 9.9)"
+      },
+      {
+        "cve": "CVE-2026-119379",
+        "fixed_version": "",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "3.34.1-11.el9_8",
+        "package": "sqlite-libs",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0 (redhat 9.9)"
+      },
+      {
+        "cve": "CVE-2026-119586",
+        "fixed_version": "",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "3.34.1-11.el9_8",
+        "package": "sqlite-libs",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0 (redhat 9.9)"
+      },
+      {
+        "cve": "CVE-2026-91403",
+        "fixed_version": "",
+        "image": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+        "installed_version": "1:21.0.13.0.9-1.2.el9",
+        "package": "java-21-openjdk-headless",
+        "role": "keycloak",
+        "severity": "HIGH",
+        "target": "quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0 (redhat 9.9)"
+      },
+      {
+        "cve": "CVE-2026-78661",
+        "fixed_version": "0.62.0",
+        "image": "chrislusf/seaweedfs:4.53@sha256:ccad23e18639c8b98cee17e7100b95830a06077b56d8e5b006d6dcf8ec5e94a0",
+        "installed_version": "v0.61.0",
+        "package": "golang.org/x/net",
+        "role": "seaweedfs",
+        "severity": "HIGH",
+        "target": "usr/bin/weed"
+      }
+    ],
+    "application_tag_evidence": "Exact application commit tags are in the digest-verified private artifact; source_sha above binds this public summary."
+  },
+  "artifact": {
+    "id": 14162129065,
+    "run": 43715161783,
+    "zip_sha256": "440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d",
+    "source_sha": "099d011cbfd8860d305aa40c4c66936a7cac9fae"
+  },
+  "logs": [
+    {
+      "name": "pmqms-cleanup-concurrent-fetch.log",
+      "sha256": "5bc30681e838ebce28684a38a13d2fd07131db1f49a35d7268d623a7824dde5f"
+    },
+    {
+      "name": "pmqms-cleanup-cp00.log",
+      "sha256": "3ba9d7c489387d2cf24ff47da064f89165f2ae3ccdb291d81507a4f29d1b3179"
+    },
+    {
+      "name": "pmqms-cleanup-delivery-fetch.log",
+      "sha256": "f74fa7f9a823e9ef4cf3db184363148e6046395b7a401a008e5b27de46f53831"
+    },
+    {
+      "name": "pmqms-cleanup-fetch.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pmqms-cleanup-final-fetch.log",
+      "sha256": "f30969bd0088b7922db2d5128ea05b90d7f56770955cadf62871f3777248dc93"
+    },
+    {
+      "name": "pmqms-cleanup-flow-503-browser.log",
+      "sha256": "0e8c9f6540bc28a1832b3d87e19e97fc36398f81c8c7cbf57d59169e38a8f5ea"
+    },
+    {
+      "name": "pmqms-cleanup-flow-browser.log",
+      "sha256": "1cfa679f87d4b30c20a00311fdf00871c8f1c7481340cc4877d3370364fff11a"
+    },
+    {
+      "name": "pmqms-cleanup-flow-finite-browser.log",
+      "sha256": "1cfa679f87d4b30c20a00311fdf00871c8f1c7481340cc4877d3370364fff11a"
+    },
+    {
+      "name": "pmqms-cleanup-flow-rerun-browser.log",
+      "sha256": "1cfa679f87d4b30c20a00311fdf00871c8f1c7481340cc4877d3370364fff11a"
+    },
+    {
+      "name": "pmqms-cleanup-logging-pass.log",
+      "sha256": "af63d1b4c0eec5c6d9e657f1c491b8030d4e916a47d4aced5e437754342b14bf"
+    },
+    {
+      "name": "pmqms-cleanup-logging-red.log",
+      "sha256": "adf44c8f664c06534b9e558280dea3dcd97642929c5efaecf84ba0a8cf0213a5"
+    },
+    {
+      "name": "pmqms-cleanup-logging-security.log",
+      "sha256": "9bd9d8022dde4a493e7f06a67ffa80a428d6b71482510ecfb84818ba8e411f9d"
+    },
+    {
+      "name": "pmqms-cleanup-logging-verified.log",
+      "sha256": "28d8c695e55801d6c6138534eb0df6ecfb25a668467d0406af77e0d214979155"
+    },
+    {
+      "name": "pmqms-cleanup-published-clone.log",
+      "sha256": "609cba7210ea99749e221129672b724e0d9ddf8d610ac7af84fa3b7dde5bd189"
+    },
+    {
+      "name": "pmqms-cleanup-published-secrets.log",
+      "sha256": "91c119a3bae7a1d66cd268c3e84f8860082af758adfe955164a3707bb07e6b8f"
+    },
+    {
+      "name": "pmqms-cleanup-repair-fetch.log",
+      "sha256": "564f281ac4a74c6792b169561a07b6907dfaf3016fb4251fd3aadbbbda766e25"
+    },
+    {
+      "name": "pmqms-repair-22-pass.log",
+      "sha256": "e0b850724f8f3ca2f2acd96cbb164f47c10d5f393cab30fcc8791e359716bed5"
+    },
+    {
+      "name": "pmqms-repair-22-red.log",
+      "sha256": "85401e19da237507505b08b7cefa800cc498c7e5e98c2359c2050d75cca6341f"
+    },
+    {
+      "name": "pmqms-repair-49-default-build.log",
+      "sha256": "f80437372d2dab63907982bbc9b32cc8bbd3ac5409bc6c3068bb92f9cff68a85"
+    },
+    {
+      "name": "pmqms-repair-51-eslint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "pmqms-repair-51-pass.log",
+      "sha256": "0817a284d718b6abddc25425f961997e0a780b622b7d6fd8f8eb16a53b96f39f"
+    },
+    {
+      "name": "pmqms-repair-51-red.log",
+      "sha256": "1f26e2e5ddd537e716cd9fd35512dc364218762777d389ce41a287efbf846d3f"
+    },
+    {
+      "name": "pmqms-repair-51-syntax-red.log",
+      "sha256": "c3caf73c1302bb7d5147f9902fbf3b188ac5a189c100da09b7e902bb3e57c0ef"
+    },
+    {
+      "name": "pmqms-repair-51-verified.log",
+      "sha256": "db10e20eb110a4e25e47c8d7a4b5ce3c1e9af13315f2634135a447292f46f422"
+    },
+    {
+      "name": "pmqms-repair-52-concurrent-verified.log",
+      "sha256": "9763b1ba4f06204a9c2384bb989eef8ed25f2d90380ca51798054b6c68037269"
+    },
+    {
+      "name": "pmqms-repair-52-default-build.log",
+      "sha256": "7bee702e0920b0881d84adbea353a634e1cfb10b60277600ff2fd524ae0c9d78"
+    },
+    {
+      "name": "pmqms-repair-52-pass.log",
+      "sha256": "984fe6000fa939d259630829a05d5da3088b358bc1d45ed82fb4d56cce25a76f"
+    },
+    {
+      "name": "pmqms-repair-52-red.log",
+      "sha256": "bad84c408510363ec7f6134552bd1dfb16c36751f7d70f055034cff37fa1592d"
+    },
+    {
+      "name": "pmqms-repair-52-verified.log",
+      "sha256": "308c3da51f4b1492b4649094d6ec107426e64dda560468f1721e46d7fdb676f0"
+    },
+    {
+      "name": "pmqms-repair-52-vitest.log",
+      "sha256": "535bf87819f3441acd3240d1f8ccc692c40beba4e249ace7154c12a5447322c4"
+    },
+    {
+      "name": "pmqms-repair-checksum-49.log",
+      "sha256": "ce599845922de324b0c6960167f9d159086518558247a3249c162f87a54ea4af"
+    },
+    {
+      "name": "pmqms-repair-checksum-51.log",
+      "sha256": "c24bd8f9a8b71859bc83f54a074ff78aaf82d0260af8c6118ea27f1d1b05b482"
+    },
+    {
+      "name": "pmqms-repair-checksum-52.log",
+      "sha256": "62e9a48a373a3534eda3c4dfa46bf45d973a14aa464a3f878182bf94cec3d066"
+    },
+    {
+      "name": "pmqms-repair-checksum-final.log",
+      "sha256": "a9d3a4367c4c6f961322827eae8f60ecb8b06ea4a2aa30aa15d573e2ba059d42"
+    },
+    {
+      "name": "pmqms-cleanup-products-browser49.log",
+      "sha256": "1b81f7059ca70f7326e7c6fe27440ab8b4ea3df60a84d3f300d56e472487657d"
+    },
+    {
+      "name": "pmqms-cleanup-final-tree-detection.log",
+      "sha256": "6ed9e0fdc4f861521a7db751ff1135ef47c69eff14958e6d9105fdbad310d1ca"
+    },
+    {
+      "name": "pmqms-cleanup-final-tree-secrets.log",
+      "sha256": "1a40f96990f9e19d4e0154a23df166c2f9399e7ecf488103013214e7bf452d5e"
+    },
+    {
+      "name": "pmqms-cleanup-final-tree-verified.log",
+      "sha256": "4383b493ddd99e39a097e123cc62f2267321e337bdb9833118069c6ba837cf20"
+    },
+    {
+      "name": "pmqms-cleanup-overview-browser52.log",
+      "sha256": "b6a79d4415aae675aec35a5a3885178ce26037f960a4e86e2b910c8195600724"
+    },
+    {
+      "name": "pmqms-cleanup-web49.log",
+      "sha256": "1510f16c8da4e1e465ace40f211461622eade59dc3834d703760ea4b434c60e1"
+    },
+    {
+      "name": "pmqms-cleanup-cp06b.log",
+      "sha256": "73943ef4f4e11f83b6f530ffaee98df0ffb47bef9238b14677c0358ac21ef708"
+    },
+    {
+      "name": "pmqms-cleanup-harness-fetch.log",
+      "sha256": "2484b11a9d109a33eae23665c040998dc0ababd73cd66bbb4d9e1e39801016c4"
+    },
+    {
+      "name": "pmqms-cleanup-cp06.log",
+      "sha256": "333d35129576e6d21d8cb0c7690230f52e2f78b24ca2b7c3a17b1c53276b24c5"
+    },
+    {
+      "name": "pmqms-cleanup-web52.log",
+      "sha256": "27b7780f0e4f924365cfcb7b9fbd53f0236a10a818ae258054c58f96cc96bae4"
+    },
+    {
+      "name": "pmqms-cleanup-tenant-harness.log",
+      "sha256": "8a42b5112b6c44aaabbdb123790bc023231f26aada3deb7f49967fee4befdfac"
+    }
+  ],
+  "production": "NO GO; no threshold change or production deployment",
+  "unchanged": "original/Studio WIP; QMS data/schema/models/roles/grants; no branch deletion, reset or force push",
+  "limits": "argparse is outside scanner-input error guarantee; historical CI is not reused as exact new-head PASS; code review was scoped, not full QMS certification",
+  "visual_follow_up": [
+    {
+      "n": 49,
+      "parent": "dcf8f1189297821b54e51ab4c3dc4e2e4841c470",
+      "sha": "cdbf5e12da32f96fc8cfa027f7f0d0609be2f009",
+      "tree": "a2385f2012fc52548b3c45539660c5686de3001a",
+      "paths": [
+        "apps/web/src/components/product-demo-request.tsx",
+        "apps/web/e2e/__screenshots__/linux/products-mobile.png",
+        "apps/web/e2e/__screenshots__/linux/products-tablet.png"
+      ],
+      "review": "Mobile/tablet actuals visually inspected from ZIP digest3bf2fcd...; approved only branding/reflow difference. Existing desktop/dark comparisons passed; 2percent tolerance unchanged. Demo filename kept compatible, content remains branded."
+    },
+    {
+      "n": 51,
+      "branch": "design/dashboard-kpi-proposal-20261115",
+      "parent": "17ad55f9456ac3d1357b231975ca118872011fbb",
+      "sha": "ec1565547a099978a4c6885718d00e1c323a4d17",
+      "tree": "71616b5663a15252ba8aec7227d0ba7f56f132f9",
+      "paths": [
+        "apps/web/src/components/workspace-overview.tsx",
+        "apps/web/src/app/styles.css"
+      ],
+      "decision": "Remove unavailable metric cards/chart preview from runtime; keep proposal, pure catalog and calculation tests. Original operational overview preserved; no API/auth changes."
+    },
+    {
+      "n": 52,
+      "branch": "feat/kpi-definition-contract-20261115",
+      "parent": "6ae081901088ab538a603f15ba25e22625d9b37f",
+      "sha": "31fa23fd6cb932b113a0d363b6b6b6c30d7a8b97",
+      "tree": "b0c4dfc8bb9b7a7433e4ab6574d2f38b5e228d72",
+      "paths": [
+        "apps/web/src/components/workspace-overview.tsx",
+        "apps/web/src/app/styles.css"
+      ],
+      "decision": "Remove unavailable metric cards/chart preview from runtime; keep proposal, pure catalog and calculation tests. Original operational overview preserved; no API/auth changes."
+    }
+  ],
+  "harness_follow_up": [
+    {
+      "n": 49,
+      "branch": "brand/bems-quality-product-marketing",
+      "parent": "cdbf5e12da32f96fc8cfa027f7f0d0609be2f009",
+      "sha": "021c5a471f463d1a30f0776ff57412a424d5701d",
+      "tree": "d5d9910adff9141e6796817b2b093e4f00819e32",
+      "source_blob": "ad5cbf2028fc2dad612f51656974f94fb838d556",
+      "paths": [
+        "scripts/run-tenant-isolation.sh"
+      ],
+      "evidence": "Reused exact PR22 hardened harness; ShellCheck PASS; local latest source27 tenant-isolation PASS/575 deselected in disposable fresh DB. Historical silent CI failure cause not proven; exact branch CI pending."
+    },
+    {
+      "n": 51,
+      "branch": "design/dashboard-kpi-proposal-20261115",
+      "parent": "ec1565547a099978a4c6885718d00e1c323a4d17",
+      "sha": "9b2248d476df48ba40e4be0ce48ad69e698f90cf",
+      "tree": "81628a554c8ef381656ec64a1fcb2c9b6b745d64",
+      "source_blob": "ad5cbf2028fc2dad612f51656974f94fb838d556",
+      "paths": [
+        "scripts/run-tenant-isolation.sh"
+      ],
+      "evidence": "Reused exact PR22 hardened harness; ShellCheck PASS; local latest source27 tenant-isolation PASS/575 deselected in disposable fresh DB. Historical silent CI failure cause not proven; exact branch CI pending."
+    },
+    {
+      "n": 52,
+      "branch": "feat/kpi-definition-contract-20261115",
+      "parent": "31fa23fd6cb932b113a0d363b6b6b6c30d7a8b97",
+      "sha": "a0801dca210dbcc6f2d296e3d6dfd5556b1ee7d7",
+      "tree": "f8800ad07c7d352515c3862be82b1e0214de478a",
+      "source_blob": "ad5cbf2028fc2dad612f51656974f94fb838d556",
+      "paths": [
+        "scripts/run-tenant-isolation.sh"
+      ],
+      "evidence": "Reused exact PR22 hardened harness; ShellCheck PASS; local latest source27 tenant-isolation PASS/575 deselected in disposable fresh DB. Historical silent CI failure cause not proven; exact branch CI pending."
+    }
+  ],
+  "visual_review": [
+    {
+      "file": "apps/web/e2e/__screenshots__/linux/products-mobile.png",
+      "before_sha256": "979f9703e363d66d695f45dce0970bbc23ed4d1862052bbc055e74e6bcb03019",
+      "after_sha256": "70f6d9030c80142c4aadde284e046f6914d781e82b8bdefe6d46f3d18389fc2b",
+      "review": "CI digest-verified actual inspected; header brand/endorsement reflow, no overflow or axe failures; desktop/dark existing comparisons passed"
+    },
+    {
+      "file": "apps/web/e2e/__screenshots__/linux/products-tablet.png",
+      "before_sha256": "4b11c47c89b898f8ae7e62a0fcdd405fc994283cedb52b713da96a728d627a06",
+      "after_sha256": "c82f5f16f40cbc839bd1c50387d1f10929fa6bdd446c2ad2883e9e9fa43df8cd",
+      "review": "CI digest-verified actual inspected; header brand/endorsement reflow, no overflow or axe failures; desktop/dark existing comparisons passed"
+    }
+  ],
+  "local_followup": {
+    "tenant_isolation": {
+      "pass": 27,
+      "deselected": 575,
+      "database": "fresh disposable fixture, no actual QMS migration"
+    },
+    "marketing_browser": {
+      "pass": 3,
+      "base": "owned preview3111; no send/lead storage"
+    },
+    "workspace_browser_preview": {
+      "skipped": 4,
+      "reason": "development credential absent in isolated3112; not PASS and no auth bypass attempted"
+    },
+    "pnpm_guard": "kept; owned dependency hardlinks support default builds without package edits",
+    "default_build": "49and52PASS;51temporary symlink view failed, exact remote frontend jobPASS; harness job failure separate",
+    "visual_baselines": "only2Linuxmobile/tablet actuals reviewed; desktop/dark existing comparison passed; threshold unchanged; Darwin brand snapshots not refreshed"
+  }
+}

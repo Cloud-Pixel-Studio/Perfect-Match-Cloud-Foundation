@@ -5,15 +5,13 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, text
+from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
 from pmc_api import audit_service
 from pmc_api.models import (
-    Membership,
     OrganizationUnit,
     OrganizationUnitAssignment,
-    User,
     WorkflowDefinition,
     WorkflowInstance,
     WorkflowInstanceEvent,
@@ -23,6 +21,7 @@ from pmc_api.models import (
     WorkflowVersion,
 )
 from pmc_api.organization_service import OrganizationActor
+from pmc_api.tenant_access import require_tenant_access
 
 
 @dataclass(frozen=True)
@@ -34,19 +33,8 @@ class WorkflowActor:
 
 
 def require_context(db: Session, *, user_id: UUID, tenant_id: UUID | None) -> WorkflowActor:
-    if tenant_id is None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "tenant selection required")
-    membership = db.scalar(
-        select(Membership).where(
-            Membership.tenant_id == tenant_id,
-            Membership.user_id == user_id,
-            Membership.status == "active",
-        )
-    )
-    user = db.get(User, user_id)
-    if membership is None or user is None or user.status != "active":
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "tenant access denied")
-    return WorkflowActor(user.id, user.display_name, membership.role, tenant_id)
+    access = require_tenant_access(db, user_id=user_id, tenant_id=tenant_id)
+    return WorkflowActor(access.user_id, access.display_name, access.role, access.tenant_id)
 
 
 def _write(actor: WorkflowActor) -> None:
@@ -422,6 +410,53 @@ def upsert_assignment(
     return row
 
 
+def _assignment_has_executor(
+    db: Session, tenant_id: UUID, assignment: WorkflowStepAssignment
+) -> bool:
+    # The existing directory only exposes active users with active membership
+    # in the selected tenant. Its technical auditor role cannot execute steps.
+    members = func.public.organization_member_directory().table_valued("user_id", "role")
+    eligible = select(members.c.user_id).where(members.c.role.in_(("owner", "admin", "member")))
+    if assignment.target_type == "user":
+        eligible = eligible.where(members.c.user_id == assignment.target_user_id)
+    elif assignment.target_type == "application_role":
+        eligible = eligible.where(members.c.role == assignment.target_application_role)
+    elif assignment.target_type == "organization_unit":
+        eligible = (
+            eligible.join(
+                OrganizationUnitAssignment,
+                and_(
+                    OrganizationUnitAssignment.user_id == members.c.user_id,
+                    OrganizationUnitAssignment.tenant_id == tenant_id,
+                    OrganizationUnitAssignment.status == "active",
+                ),
+            )
+            .join(
+                OrganizationUnit,
+                and_(
+                    OrganizationUnit.id == OrganizationUnitAssignment.unit_id,
+                    OrganizationUnit.tenant_id == tenant_id,
+                    OrganizationUnit.status == "active",
+                ),
+            )
+            .where(OrganizationUnit.id == assignment.target_organization_unit_id)
+        )
+    else:
+        return False
+    return bool(db.scalar(select(eligible.exists())))
+
+
+def _step_has_executor(db: Session, tenant_id: UUID, version_id: UUID, step_id: UUID) -> bool:
+    assignments = db.scalars(
+        select(WorkflowStepAssignment).where(
+            WorkflowStepAssignment.tenant_id == tenant_id,
+            WorkflowStepAssignment.workflow_version_id == version_id,
+            WorkflowStepAssignment.step_id == step_id,
+        )
+    )
+    return any(_assignment_has_executor(db, tenant_id, assignment) for assignment in assignments)
+
+
 def _validate_graph(db: Session, version: WorkflowVersion) -> None:
     steps = list(
         db.scalars(select(WorkflowStep).where(WorkflowStep.workflow_version_id == version.id))
@@ -444,6 +479,8 @@ def _validate_graph(db: Session, version: WorkflowVersion) -> None:
         )
     ids = {s.id for s in steps}
     start = next(s for s in steps if s.is_start)
+    if start.step_type == "end":
+        raise HTTPException(status.HTTP_409_CONFLICT, "workflow start must be an actionable step")
     outgoing: dict[UUID, set[UUID]] = {s.id: set() for s in steps}
     incoming: dict[UUID, set[UUID]] = {s.id: set() for s in steps}
     for edge in transitions:
@@ -477,35 +514,25 @@ def _validate_graph(db: Session, version: WorkflowVersion) -> None:
     if any(s.step_type in {"task", "approval"} and s.id not in assigned for s in steps):
         raise HTTPException(status.HTTP_409_CONFLICT, "actionable steps require an assignment")
     for assignment in assignments:
-        valid_target = False
-        if assignment.target_type == "user":
-            valid_target = (
-                db.scalar(
-                    text(
-                        "SELECT user_id FROM organization_member_directory() "
-                        "WHERE user_id = :user_id"
-                    ),
-                    {"user_id": assignment.target_user_id},
-                )
-                is not None
-            )
-        elif assignment.target_type == "organization_unit":
-            valid_target = (
-                db.scalar(
-                    select(OrganizationUnit.id).where(
-                        OrganizationUnit.id == assignment.target_organization_unit_id,
-                        OrganizationUnit.tenant_id == version.tenant_id,
-                        OrganizationUnit.status == "active",
-                    )
-                )
-                is not None
-            )
-        else:
-            valid_target = assignment.target_application_role in {"owner", "admin", "member"}
-        if not valid_target:
+        if not _assignment_has_executor(db, version.tenant_id, assignment):
             raise HTTPException(
-                status.HTTP_409_CONFLICT, "assignment target must be active and tenant-scoped"
+                status.HTTP_409_CONFLICT,
+                "each assignment requires an active tenant-scoped owner, admin or member executor",
             )
+
+
+def _require_active_definition(db: Session, actor: WorkflowActor, version: WorkflowVersion) -> None:
+    active = db.scalar(
+        select(WorkflowDefinition.id).where(
+            WorkflowDefinition.id == version.definition_id,
+            WorkflowDefinition.tenant_id == actor.tenant_id,
+            WorkflowDefinition.status == "active",
+        )
+    )
+    if active is None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "publishing or starting requires an active workflow"
+        )
 
 
 def publish_version(
@@ -522,6 +549,7 @@ def publish_version(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "workflow version not found")
     version = locked
     _draft(version)
+    _require_active_definition(db, actor, version)
     _validate_graph(db, version)
     version.status = "published"
     version.published_at = _now()
@@ -618,6 +646,10 @@ def start_instance(
     _write(actor)
     if version.status != "published":
         raise HTTPException(status.HTTP_409_CONFLICT, "instances require a published version")
+    _require_active_definition(db, actor, version)
+    # Published configuration is immutable, but people, roles and unit assignments
+    # can change. Validate current executors before creating any instance/history.
+    _validate_graph(db, version)
     start = db.scalar(
         select(WorkflowStep).where(
             WorkflowStep.workflow_version_id == version.id, WorkflowStep.is_start.is_(True)
@@ -706,6 +738,12 @@ def transition_instance(
     destination = db.get(WorkflowStep, edge.to_step_id)
     if destination is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "transition destination is missing")
+    if destination.step_type != "end" and not _step_has_executor(
+        db, actor.tenant_id, locked.workflow_version_id, destination.id
+    ):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "destination step has no active workflow executor"
+        )
     now = _now()
     locked.current_step_id = destination.id
     locked.row_version += 1

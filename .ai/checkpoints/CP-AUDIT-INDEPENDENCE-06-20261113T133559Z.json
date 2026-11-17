@@ -1,0 +1,24 @@
+{
+  "id": "CP-AUDIT-INDEPENDENCE-06-20261113T133559Z",
+  "branch": "codex/internal-audit-independence",
+  "baseCommit": "43df60747a160b8e155e7ab113fd70753ff309b7",
+  "sourceEntries": 469,
+  "artifacts": {
+    "source.tar.gz.enc": "d27dfef1c2ad1f0538a9ba110571c530bad1de17f0a649127db6037a08b5e958",
+    "repository.bundle.enc": "b7036c385386ca63db83d2cff0701f8a76a19485d5fd6498023a4fb0d87d0848"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0045 to0046; demo remains unreviewed, separate pre/post DB restores PASS, no production migration",
+  "databaseCheckpoints": [
+    "CP-AUDIT-INDEPENDENCE-DB-00-20261113T124853Z",
+    "CP-AUDIT-INDEPENDENCE-DB-06-20261113T130947Z"
+  ],
+  "visualEvidence": {
+    "png": 5,
+    "qualityLogs": 11,
+    "dependencyJson": 1,
+    "encrypted_sha256": "f250b3c4bab6717d154d3c6bf0216f05aad191facc936b4670d71836cc158823",
+    "verification": "PASS: encrypted archive decrypted; all17 entries matched SHA256"
+  }
+}

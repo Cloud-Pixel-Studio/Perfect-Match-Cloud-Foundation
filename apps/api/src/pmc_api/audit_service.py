@@ -72,6 +72,132 @@ QMS_ACCESS_ACTIONS = {
     "qms.access_granted": "qms_access_grant",
     "qms.access_revoked": "qms_access_grant",
 }
+INTERNAL_AUDIT_ACTIONS = {
+    **{
+        action: "qms_audit_program"
+        for action in (
+            "audit_program.created",
+            "audit_program.updated",
+            "audit_program.transitioned",
+        )
+    },
+    **{
+        action: "qms_internal_audit"
+        for action in (
+            "internal_audit.created",
+            "internal_audit.updated",
+            "internal_audit.transitioned",
+        )
+    },
+}
+AUDIT_PROGRAM_FIELDS = frozenset(
+    {
+        "unit_id",
+        "code",
+        "name_hash",
+        "objective_hash",
+        "description_hash",
+        "date_start",
+        "date_end",
+        "owner_user_id",
+        "state",
+        "cancellation_reason_hash",
+        "approved_by_user_id",
+        "approved_at",
+        "completed_by_user_id",
+        "completed_at",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "row_version",
+        "decision",
+    }
+)
+INTERNAL_AUDIT_FIELDS = frozenset(
+    {
+        "unit_id",
+        "program_id",
+        "code",
+        "name_hash",
+        "audit_type",
+        "planned_start",
+        "planned_end",
+        "actual_start",
+        "actual_end",
+        "objective_hash",
+        "scope_summary_hash",
+        "competence_review_id",
+        "competence_review_version",
+        "competence_source_audit_version",
+        "competence_team_member_id",
+        "competence_subject_user_id",
+        "competence_decision",
+        "competence_reviewer_id",
+        "competence_document_id",
+        "competence_document_revision_id",
+        "competence_file_sha256",
+        "competence_valid_until",
+        "competence_notes_hash",
+        "independence_review_id",
+        "independence_review_version",
+        "independence_source_audit_version",
+        "independence_decision",
+        "independence_reviewer_id",
+        "agenda_id",
+        "agenda_sequence",
+        "agenda_title_hash",
+        "agenda_objective_hash",
+        "agenda_location_hash",
+        "agenda_method",
+        "agenda_starts_at",
+        "agenda_ends_at",
+        "agenda_scope_id",
+        "agenda_auditor_id",
+        "agenda_auditee_id",
+        "agenda_version",
+        "agenda_status",
+        "agenda_withdrawal_reason_hash",
+        "team_member_id",
+        "team_user_id",
+        "team_role",
+        "team_display_name_hash",
+        "team_responsibilities_hash",
+        "team_version",
+        "team_status",
+        "team_withdrawal_reason_hash",
+        "criterion_id",
+        "criterion_sequence",
+        "criterion_title_hash",
+        "criterion_requirement_hash",
+        "criterion_reference_hash",
+        "criterion_source_type",
+        "criterion_scope_id",
+        "criterion_version",
+        "criterion_status",
+        "criterion_withdrawal_reason_hash",
+        "scope_id",
+        "scope_sequence",
+        "scope_title_hash",
+        "scope_description_hash",
+        "scope_process_id",
+        "scope_version",
+        "scope_status",
+        "scope_withdrawal_reason_hash",
+        "conclusion_hash",
+        "lead_auditor_user_id",
+        "independence_status",
+        "independence_notes_hash",
+        "independence_reviewed_by_user_id",
+        "independence_reviewed_at",
+        "state",
+        "cancellation_reason_hash",
+        "completed_by_user_id",
+        "completed_at",
+        "cancelled_by_user_id",
+        "cancelled_at",
+        "row_version",
+        "decision",
+    }
+)
 ACTION_TENANT_SELECTED = "auth.tenant_selected"
 RISK_ACTIONS = {
     action: "qms_risk"
@@ -557,6 +683,7 @@ def _record(
         **ORGANIZATION_ACTIONS,
         **WORKFLOW_ACTIONS,
         **QMS_ACCESS_ACTIONS,
+        **INTERNAL_AUDIT_ACTIONS,
         **PROCESS_ACTIONS,
         **CONTROL_ACTIONS,
         **RISK_ACTIONS,
@@ -751,6 +878,23 @@ def record_qms_access(db: Session, **kwargs: object) -> AuditEvent:
     if not isinstance(payload, dict) or set(payload) != allowed:
         raise AuditPayloadError("QMS access audit payload fields are invalid")
     return _record(db, resource_type="qms_access_grant", **kwargs)  # type: ignore[arg-type]
+
+
+def record_internal_audit(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    resource_type = INTERNAL_AUDIT_ACTIONS.get(action)
+    if resource_type is None:
+        raise AuditPayloadError("unsupported internal-audit action")
+    allowed = (
+        AUDIT_PROGRAM_FIELDS if resource_type == "qms_audit_program" else INTERNAL_AUDIT_FIELDS
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (
+            not isinstance(payload, dict) or not set(payload).issubset(allowed)
+        ):
+            raise AuditPayloadError("internal-audit payload fields are invalid")
+    return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
 
 
 def record_process(db: Session, **kwargs: object) -> AuditEvent:

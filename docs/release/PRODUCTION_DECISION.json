@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "assessed_at": "2026-11-15T13:32:55.142668+00:00",
+  "assessed_source_sha": "099d011cbfd8860d305aa40c4c66936a7cac9fae",
+  "decision": "NO_GO",
+  "scope": "commercial SaaS production",
+  "readiness_owner": "PM under user delegation",
+  "production_requires_explicit_human_approval": true,
+  "basis": {
+    "quality_run": 43715161768,
+    "codeql_run": 43715161763,
+    "security_run": 43715161783,
+    "quality": "success",
+    "codeql": "success",
+    "security": "failure",
+    "runtime": "development PR39 / DB0048; not this release candidate"
+  },
+  "blockers": [
+    {
+      "id": "SECURITY_IMAGES",
+      "state": "blocked",
+      "evidence": "verified artifact14162129065 ZIP440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d; SeaweedFS1HIGH, Keycloak6HIGH; exact099d011 only",
+      "clear_when": "all six candidate images have fresh bound evidence and zero HIGH/CRITICAL; no secret findings"
+    },
+    {
+      "id": "INTEGRATED_RELEASE",
+      "state": "pending",
+      "clear_when": "reviewed candidate includes required fixes and has exact-head successful CI; no inherited green"
+    },
+    {
+      "id": "STAGING_ACCEPTANCE",
+      "state": "pending",
+      "clear_when": "isolated staging validates actual OIDC/AV/private storage, cross-company permissions and full business commands with independent actors"
+    },
+    {
+      "id": "OPERATIONS",
+      "state": "pending",
+      "clear_when": "production infrastructure, TLS, MFA, managed secrets, monitoring, backups and tested recovery with agreed RPO/RTO"
+    },
+    {
+      "id": "COMMERCIAL_LIFECYCLE",
+      "state": "pending",
+      "clear_when": "company provisioning/invitations/initial authority, tenant seats/ISO entitlements and billing work end to end"
+    },
+    {
+      "id": "QMS_SCOPE",
+      "state": "pending",
+      "clear_when": "required QMS verticals including audit execution/findings/report/closure satisfy agreed Odoo-equivalence acceptance"
+    }
+  ],
+  "current_change": "verified CI/quality repairs, retired duplicate PRs, scanner/harness log privacy; new exact-head runs remain separate",
+  "next_step": "remediate remaining vendor findings without waiver; fix3Action Center projection issues and integrate verified source before staging; no production"
+}

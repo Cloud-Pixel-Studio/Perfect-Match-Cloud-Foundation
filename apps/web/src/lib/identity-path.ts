@@ -1,5 +1,5 @@
 const allowedRoots = new Set([
-  "auth", "tenant", "audit", "organization", "action-center", "workflows", "workflow-instances", "qms-access", "processes", "controls", "control-instances", "control-activities", "control-evidence-requirements", "control-instance-activities", "control-instance-evidence", "documents", "risks", "nonconformities", "capas",
+  "auth", "tenant", "audit", "organization", "action-center", "workflows", "workflow-instances", "qms-access", "processes", "controls", "control-instances", "control-activities", "control-evidence-requirements", "control-instance-activities", "control-instance-evidence", "documents", "risks", "nonconformities", "capas", "internal-audits",
 ]);
 const namedSegment = /^[a-z][a-z-]*$/;
 const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

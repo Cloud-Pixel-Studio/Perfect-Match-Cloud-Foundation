@@ -1,0 +1,23 @@
+{
+  "id": "CP-AUDIT-UI-06-20261112T222230Z",
+  "branch": "codex/internal-audit-planning-ui",
+  "baseCommit": "a7b2a9ff00c51bc6bc192874d40ae2d75d6cd797",
+  "sourceEntries": 421,
+  "artifacts": {
+    "source.tar.gz.enc": "5135307085b9f8006231028b81ee5b9922565a163302134bc727d370dec96d8f",
+    "repository.bundle.enc": "246e29a47c8c72b9919092eef5d04c4219f0e6c00bc279013d8ff154c81a56db",
+    "visual-evidence.png.enc": "5a116dc4b07de8f89c10575a42db5c559a119255fa2a54b56d396e5804317ab8"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local0039\u21920040 applied only after separate encrypted DB backup and isolated restore CP-AUDIT-UI-DB-00-20261112T215516Z-r12 PASS; synthetic planning seed only;0041 excluded.",
+  "tests": {
+    "postgresql": 11,
+    "web_unit": 60,
+    "linux_browser": 67,
+    "darwin_new_browser": 17,
+    "retries": 0,
+    "goldens_updated": false
+  },
+  "visual_restore": "decrypted PNG bytes matched PASS"
+}

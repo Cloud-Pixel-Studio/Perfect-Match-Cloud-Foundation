@@ -94,6 +94,7 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
   const canManageControls = capabilities.includes("controls.manage") && capabilities.includes("processes.read");
   const canReadInstances = capabilities.includes("control_instances.read");
   const canManageInstances = capabilities.includes("control_instances.manage") && canReadControls;
+  const canReviewEvidence = canManageInstances && canReadInstances && capabilities.includes("evidence.review");
   const activeControls = useMemo(() => controls.filter((control) => control.state === "active"), [controls]);
 
   const loadScope = useCallback(async (signal?: AbortSignal) => {
@@ -333,7 +334,7 @@ export function ControlsWorkspace({ onAccessDenied, preferredUnitId, onUnitChang
             targetActivityId={initialTarget?.source === "control_activity" && initialTarget.recordId === implementation.id ? initialTarget.subrecordId : undefined} />}
           {implementation && canReadInstances && <ControlInstanceEvidence
             instanceId={implementation.id} unitId={unitId} processId={processId}
-            canManage={canManageInstances} canReadDocuments={capabilities.includes("documents.read")}
+            canManage={canManageInstances} canReview={canReviewEvidence} canReadDocuments={capabilities.includes("documents.read")}
             targetEvidenceId={initialTarget?.source === "evidence_review" && initialTarget.recordId === implementation.id ? initialTarget.subrecordId : undefined} />}
           {!canReadInstances && <small>Implementation status is hidden: no read access assigned.</small>}</div>
         </details>;

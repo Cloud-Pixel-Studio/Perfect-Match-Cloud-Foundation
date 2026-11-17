@@ -1,0 +1,13 @@
+{
+  "id": "CP-AUDIT-SCOPE-00-20261112T230734Z",
+  "branch": "codex/internal-audit-planning-ui",
+  "baseCommit": "5f25342ef2423a8abf4fb1b6d10a6968a47ccc24",
+  "sourceEntries": 422,
+  "artifacts": {
+    "source.tar.gz.enc": "50ae6eb9da7ab9cd204024ce3dd3d414dfd5db19572b2a3e3a41f700f6091a8b",
+    "repository.bundle.enc": "316b84191017454e9f8cf3874b31ead0a5994d23ad58adba9cfb1b1ddfd0bec3"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

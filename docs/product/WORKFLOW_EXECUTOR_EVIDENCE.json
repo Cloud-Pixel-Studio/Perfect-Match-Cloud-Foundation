@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "checks": [
+    "empty unit publication denied",
+    "failed publication preserves draft",
+    "terminal start publication denied",
+    "valid publication and start",
+    "assigned operator completes step",
+    "history retained",
+    "retired definition start denied",
+    "existing history unchanged after denied start"
+  ],
+  "synthetic_qa_only": true,
+  "grant_or_role_changes": 0,
+  "deletions": 0,
+  "run_suffix": "1116224840",
+  "tests": {
+    "initial_red": 4,
+    "new_http_postgres_0049": 32,
+    "compatible_http_postgres_0048": 32,
+    "workflow_regressions": 31,
+    "action_center_regressions": 18,
+    "api_unit": 93,
+    "db_skipped_without_harness": 562
+  },
+  "runtime": {
+    "schema": "0048_audit_competence",
+    "migration_applied": false,
+    "updated_modules": [
+      "workflow_service.py",
+      "tenant_access.py(existing dependency)"
+    ],
+    "production": false,
+    "all_legacy_suspension_deployed": false
+  },
+  "static_checks": {
+    "ruff_format_files": 128,
+    "mypy_sources": 79,
+    "root_unittest": 49,
+    "gitleaks_tree_findings": 0,
+    "opengrep_rules": 6,
+    "opengrep_files": 2,
+    "opengrep_findings": 0
+  },
+  "recovery": {
+    "initial_source": "CP-WORKFLOW-EXECUTORS-00-20261116T223317Z",
+    "pre_preview_source": "CP-WORKFLOW-EXECUTORS-02B-20261116T224744Z",
+    "pre_qa_database": "CP-WORKFLOW-EXECUTORS-DB-00-20261116T224106Z",
+    "restoration": "PASS; external encrypted source/Git and isolated database restore"
+  }
+}

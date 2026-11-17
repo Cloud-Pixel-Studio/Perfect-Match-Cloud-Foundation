@@ -1,0 +1,63 @@
+{
+  "keycloak": {
+    "url": "https://quay.io/api/v1/repository/keycloak/keycloak/tag/?specificTag=26.8.2",
+    "digest": "sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+    "updated": "Thu, 12 Nov 2026 13:34:23 -0000",
+    "metadata_sha256": "8e51888ef5a6f1b0057a9f788da5136d14b8a13597d66df8e5251c6cd931a434"
+  },
+  "seaweedfs": {
+    "url": "https://hub.docker.com/v2/repositories/chrislusf/seaweedfs/tags/4.53",
+    "digest": "sha256:ccad23e18639c8b98cee17e7100b95830a06077b56d8e5b006d6dcf8ec5e94a0",
+    "updated": "2026-11-08T20:49:55.711048Z",
+    "platforms": [
+      {
+        "os": "linux",
+        "architecture": "amd64",
+        "digest": "sha256:972ba30c529dfc72a6a12ed427e94d99c7b6a6e59d97bfa52be0a849f43e2cc9"
+      },
+      {
+        "os": "linux",
+        "architecture": "ppc64le",
+        "digest": "sha256:742bd12f47d56b3876dd7b3fbb13f25694a5cc877c2687dcd4fd04a7ec32c4aa"
+      },
+      {
+        "os": "linux",
+        "architecture": "arm64",
+        "digest": "sha256:210d0f5999432219ca23f61bf467965869520202d4a820d717a6a6c008b77a41"
+      },
+      {
+        "os": "linux",
+        "architecture": "386",
+        "digest": "sha256:fa35ca6ab8247a95a77cd2f4cf54b5f6542958e877ca62c3572bb2accf80f2c1"
+      },
+      {
+        "os": "linux",
+        "architecture": "s390x",
+        "digest": "sha256:9a65175f6a91bd8faf198950acbf96bbba02e2e14fd34d27dd230c05dc925633"
+      },
+      {
+        "os": "linux",
+        "architecture": "arm",
+        "digest": "sha256:a1f631eb9e94ba9bf9cae1f486d59c61d55a1092d15594e60b2fe550995d0c12"
+      }
+    ],
+    "metadata_sha256": "9a64896615a848c9307ed6ea843f9c2dd5952b80e3aca3db53185b9d020260bb"
+  },
+  "purpose": "isolated CI candidate evaluation only; no production approval",
+  "source_base": "f698d0a33a1ebfa5062251747bd634b6897aacc4",
+  "checkpoint": "CP-VENDOR-CANDIDATES-00-20261115T042218Z",
+  "production_authorized": false,
+  "ci_status": "099d011 complete: quality/CodeQL PASS; security FAIL only final gate; current9b398e4 must be assessed separately",
+  "live_database": "unchanged; no real volume attached or migration applied",
+  "verified_artifact": 14162129065,
+  "verified_zip_sha256": "440671006ea19de6d6f42e672da17f67a0d4d136badb2cdd20457811ccd8933d",
+  "measured_findings": {
+    "keycloak": 6,
+    "seaweedfs": 1,
+    "api": 0,
+    "web": 0,
+    "postgres": 0,
+    "clamav": 0
+  },
+  "secret_findings": 0
+}

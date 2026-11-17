@@ -38,6 +38,8 @@ The standalone engineering tools are Docker Engine 29.8.0 (Apache-2.0 core),
 Docker Compose 5.5.1 (Apache-2.0), OpenGrep 1.29.0 (LGPL-2.1), Trivy 0.74.0
 (Apache-2.0), Gitleaks 8.30.1 (MIT), pip-audit 2.10.1 (Apache-2.0), OWASP ZAP
 stable image digest `sha256:781a2bdaea47324e7bab583e2263f21d257b0aee61ed51521a5be45f5f5081ef`
+(Apache-2.0), Playwright 1.64.1 Noble image digest
+`sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f`
 (Apache-2.0), Ruff (MIT), mypy (MIT), pytest (MIT), ESLint (MIT), Vitest
 (MIT), and ShellCheck (GPL-3.0). These tools are required standalone build or
 audit utilities; their code is not linked into or distributed as the

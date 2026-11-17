@@ -1,0 +1,75 @@
+{
+  "baseline": "db302b6cc7ceec5bf6121a87e804fe8a5cab4f7b",
+  "database_cases": {
+    "document_commands": 18,
+    "domain_regression": 199
+  },
+  "api_unit_pass": 50,
+  "db_skipped_without_harness": 509,
+  "review": "independent static review; no new DB execution by reviewer",
+  "external_services": "in-memory AV and storage; no real OIDC/browser/AV/storage execution",
+  "logs": [
+    {
+      "path": "pmqms-document-review-cp06.log",
+      "sha256": "54b268d6744e79e15870602f7c42d5090f28f6cfef5d79a1595bfc602d6afd51"
+    },
+    {
+      "path": "pmqms-document-review-delivery-quality.log",
+      "sha256": "07d0f542b72fbf83691ce40097697f4de3c7f0e8ac0dfb35ecd76f7160692b5b"
+    },
+    {
+      "path": "pmqms-document-review-delivery-tests.log",
+      "sha256": "605941fba358bb118d4060a177b0757c62236b170c04b9946db2690e09e0e79b"
+    },
+    {
+      "path": "pmqms-document-review-green-complete.log",
+      "sha256": "9a84863ab37f3c0ec0a0cc8913f33b37fe35fa4df089900b4260cebc45b398e3"
+    },
+    {
+      "path": "pmqms-document-review-green-final.log",
+      "sha256": "f503453fc646468ad1d8a173e2319440b2d3d4580be7480ef1e353fc608579b8"
+    },
+    {
+      "path": "pmqms-document-review-green-first.log",
+      "sha256": "43ff33b70697a324306d307dcd98dc9204d62e56a388ab6466bcb77254d47e20"
+    },
+    {
+      "path": "pmqms-document-review-lock-cp00.log",
+      "sha256": "809021fabfed02dade7a25ae4241af65b22099b46e537aa7b923d26dc7d0a1f1"
+    },
+    {
+      "path": "pmqms-document-review-precommit.log",
+      "sha256": "5e559412e9c4ef2f7f1beffd6c59115869826fc6fca9c06ad8dcbaaf3de12fc5"
+    },
+    {
+      "path": "pmqms-document-review-process-regression.log",
+      "sha256": "d8905b7852ed2a7f74813ccacc9ed92d93009a9866153d7f7df2608f4d338a1f"
+    },
+    {
+      "path": "pmqms-document-review-quality-final.log",
+      "sha256": "1074850a08db8b4c3e32c22bd436774c9123ea06127d4c9af65ea2151d99d583"
+    },
+    {
+      "path": "pmqms-document-review-quality.log",
+      "sha256": "c684fe513632e6c0ce821ab995dcc2a550ca78ab604865fa4ba5086875ccb36f"
+    },
+    {
+      "path": "pmqms-document-review-red.log",
+      "sha256": "ff54893d2832d8e25f0929c6640f8cff78a386732b522e7fc05d0d9582073616"
+    },
+    {
+      "path": "pmqms-document-review-security.log",
+      "sha256": "fb6361f4848ae19711eea720c93f55b3c3fd7a104207fd21f1871af19aa71490"
+    },
+    {
+      "path": "pmqms-document-review-source-final-gate.log",
+      "sha256": "965c03132060bb46874e9a6cabcf5d95e45e0d9cf477f82d6ae00fb26b26efa0"
+    },
+    {
+      "path": "pmqms-document-release-order-red.log",
+      "sha256": "55b003bc483badf2ee4c024301e308df82b5a8a8e62ae44e6e8ff3ce61f1bf93"
+    }
+  ],
+  "vendor_source_report_sha256": "a5023acdc652bd3e2b84580d20cd485cb2b1a78c10b0a0ef73bae5cccbf70ad6",
+  "deployment": "none; runtime remains PR39/DB0048"
+}

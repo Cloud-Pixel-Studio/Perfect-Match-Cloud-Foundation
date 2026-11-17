@@ -1,5 +1,7 @@
 # Matriz inicial de paridad funcional Odoo → SaaS
 
+**Corte histórico2nov.** Para estado vigente leer [comparativa12nov](ODOO_GAP_REVIEW_2026-11-12.md) y [NCR/riesgo→CAPA](CAPA_ORIGIN_WORKFLOW.md). La auditoría0040 ya tiene planificación backend: el conteo actual es11bloques parciales/9sinvertical, sin equivalencia completa verificada.
+
 Estado SaaS actualizado: 2 de noviembre de 2026; inventario Odoo verificado contra
 `main@d89330cc1a8e9a2ea16992c9b49394f1dc481b7f`. Esta matriz compara el inventario
 `addons/` del repositorio Odoo de referencia con el estado evidenciado en

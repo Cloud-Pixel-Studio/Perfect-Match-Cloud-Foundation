@@ -1,0 +1,4 @@
+# Project-scoped Codex subagent settings. No model/provider override or secrets.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4

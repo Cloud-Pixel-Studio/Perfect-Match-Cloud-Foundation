@@ -18,6 +18,9 @@ test("resource UUIDs are accepted for organization and workflow routes", () => {
   expect(isAllowedIdentityPath(["risks", id, "transition"])).toBe(true);
   expect(isAllowedIdentityPath(["nonconformities", id, "transition"])).toBe(true);
   expect(isAllowedIdentityPath(["capas", id])).toBe(true);
+  expect(isAllowedIdentityPath(["internal-audits", "programs", id, "transition"])).toBe(true);
+  expect(isAllowedIdentityPath(["internal-audits", "audits", id])).toBe(true);
+  expect(isAllowedIdentityPath(["internal-audits", "..", id])).toBe(false);
 });
 
 test("proxy refuses unknown roots, path traversal, embedded URLs and invalid IDs", () => {

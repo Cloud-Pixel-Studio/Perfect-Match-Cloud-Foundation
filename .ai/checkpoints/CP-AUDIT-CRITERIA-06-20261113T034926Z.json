@@ -1,0 +1,15 @@
+{
+  "id": "CP-AUDIT-CRITERIA-06-20261113T034926Z",
+  "branch": "codex/internal-audit-criteria",
+  "baseCommit": "8c60a5028d3852ee6492e6a6c78015ce70feea18",
+  "sourceEntries": 440,
+  "artifacts": {
+    "source.tar.gz.enc": "061ad9656b89922a01d43dec8dd6d1489f3837ac2aede908211c88ae8cb92533",
+    "repository.bundle.enc": "54db29aa7fc387000543d8ec469b8bac4cbeb014ee664c5f74c894ceea16b8f4",
+    "quality-visual-evidence.tar.gz.enc": "81431b51166c0c0f73b6a4d1cf3d05f911eb6c94ec6e34328a83d46c3448b823"
+  },
+  "verification": "PASS: isolated source restoration with all file SHA256 matched; git bundle verify; fourteen evidence entries match after decryption",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "Local preview0042\u21920043 and one synthetic demo criterion; separate pre/post DB restoration PASS, see DB manifests",
+  "quality_evidence": "Five actual synthetic PNGs and nine final test/readback/health logs encrypted, decrypted and all hashes verified"
+}

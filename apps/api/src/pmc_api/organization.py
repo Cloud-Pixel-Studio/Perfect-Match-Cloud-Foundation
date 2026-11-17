@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
@@ -160,10 +160,14 @@ def _assignment_response(
 def get_units(
     db: DBSession,
     authenticated: Authenticated,
+    response: Response,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0, le=1000000)] = 0,
 ) -> list[OrganizationUnit]:
-    return list_units(db, _actor(db, authenticated), limit=limit, offset=offset)
+    actor = _actor(db, authenticated)
+    response.headers["X-Tenant-ID"] = str(actor.tenant_id)
+    response.headers["Cache-Control"] = "private, no-store"
+    return list_units(db, actor, limit=limit, offset=offset)
 
 
 @router.post(
@@ -288,11 +292,14 @@ def get_assignments(
 def get_members(
     db: DBSession,
     authenticated: Authenticated,
+    response: Response,
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0, le=10000)] = 0,
     search: Annotated[str, Query(max_length=160)] = "",
 ) -> list[dict[str, object]]:
-    _actor(db, authenticated)
+    actor = _actor(db, authenticated)
+    response.headers["X-Tenant-ID"] = str(actor.tenant_id)
+    response.headers["Cache-Control"] = "private, no-store"
     params: dict[str, object] = {"limit": limit, "offset": offset, "pattern": None}
     if search.strip():
         value = search.strip().replace("!", "!!").replace("%", "!%").replace("_", "!_")

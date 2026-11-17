@@ -43,6 +43,8 @@ ALL_CAPABILITIES = (
     "capa.read",
     "capa.manage",
     "capa.review",
+    "audits.read",
+    "audits.manage",
 )
 phase = "startup"
 
@@ -145,6 +147,8 @@ def main() -> None:
                 "ncr.review",
                 "capa.read",
                 "capa.review",
+                "audits.read",
+                "audits.review",
             ),
         }
         phase = "persistent demo capabilities"
@@ -576,10 +580,335 @@ def main() -> None:
                 201,
             )
 
+        phase = "demo internal-audit planning"
+        programs = checked(
+            author.get(
+                f"{API}/internal-audits/programs",
+                params={"unit_id": unit["id"], "q": "DEMO-AP-001", "limit": 50},
+            )
+        )
+        program = find(programs, "DEMO-AP-001")
+        if program is None:
+            program = checked(
+                post(
+                    author,
+                    f"{API}/internal-audits/programs",
+                    {
+                        "unit_id": unit["id"],
+                        "code": "DEMO-AP-001",
+                        "name": "Programa de auditorías internas — demostración",
+                        "objective": "Planificar la revisión del proceso de recepción y su información documentada.",
+                        "description": "Datos sintéticos. La aprobación del programa no certifica cumplimiento ni independencia del equipo.",
+                        "date_start": today.isoformat(),
+                        "date_end": (today + timedelta(days=90)).isoformat(),
+                        "owner_user_id": user_ids["pmc-user-a"],
+                    },
+                ),
+                201,
+            )
+        if program["state"] == "draft":
+            program = checked(
+                post(
+                    reviewer,
+                    f"{API}/internal-audits/programs/{program['id']}/transition",
+                    {
+                        "expected_version": program["row_version"],
+                        "target_state": "approved",
+                        "decision": "Programa sintético revisado para demostrar planificación; no implica certificación.",
+                    },
+                )
+            )
+        # The audit list has no program/search filter. Read every page rather
+        # than assuming the demo is absent because it is outside page one.
+        audit = None
+        for offset in range(0, 1_000_001, 50):
+            audit_page = checked(
+                author.get(
+                    f"{API}/internal-audits/audits",
+                    params={
+                        "unit_id": unit["id"],
+                        "limit": 50,
+                        "offset": offset,
+                    },
+                )
+            )
+            audit = find(audit_page, "DEMO-AUD-001")
+            if audit is not None or len(audit_page) < 50:
+                break
+        if audit is None and program["state"] != "cancelled":
+            audit = checked(
+                post(
+                    author,
+                    f"{API}/internal-audits/audits",
+                    {
+                        "unit_id": unit["id"],
+                        "program_id": program["id"],
+                        "code": "DEMO-AUD-001",
+                        "name": "Auditoría del proceso de recepción y proveedores",
+                        "audit_type": "process",
+                        "planned_start": (today + timedelta(days=14)).isoformat(),
+                        "planned_end": (today + timedelta(days=15)).isoformat(),
+                        "objective": "Planificar la evaluación de los controles de recepción, documentos vigentes y tratamiento de incidencias.",
+                        "scope_summary": "Resumen de planificación: recepción, certificados y registros del proveedor. Criterios, equipo e independencia quedan pendientes.",
+                        "lead_auditor_user_id": user_ids["pmc-multi-user"],
+                    },
+                ),
+                201,
+            )
+        if (
+            audit is not None
+            and audit["state"] == "draft"
+            and program["state"] != "cancelled"
+        ):
+            checked(
+                post(
+                    author,
+                    f"{API}/internal-audits/audits/{audit['id']}/transition",
+                    {
+                        "expected_version": audit["row_version"],
+                        "target_state": "planned",
+                        "decision": "Fechas y objetivo registrados. Independencia y ejecución todavía pendientes.",
+                    },
+                )
+            )
+
+        phase = "demo structured audit scope"
+        if audit is not None and audit["state"] in {"draft", "planned"}:
+            scope_title = "Recepción y aceptación de materiales — demostración"
+            existing_scope = []
+            for offset in range(0, 1_000_001, 50):
+                page = checked(
+                    author.get(
+                        f"{API}/internal-audits/audits/{audit['id']}/scopes",
+                        params={"limit": 50, "offset": offset},
+                    )
+                )
+                existing_scope.extend(page)
+                if len(page) < 50:
+                    break
+            if not any(item["title"] == scope_title for item in existing_scope):
+                current_audit = checked(
+                    author.get(f"{API}/internal-audits/audits/{audit['id']}")
+                )
+                occupied = {
+                    item["sequence"] for item in existing_scope if item["status"] == "active"
+                }
+                sequence = next(
+                    (value for value in range(10, 10001, 10) if value not in occupied), None
+                )
+                if sequence is None:
+                    raise ValueError("No available demonstration scope order")
+                checked(
+                    post(
+                        author,
+                        f"{API}/internal-audits/audits/{audit['id']}/scopes",
+                        {
+                            "expected_audit_version": current_audit["row_version"],
+                            "sequence": sequence,
+                            "title": scope_title,
+                            "description": (
+                                "Datos sintéticos: revisar registros de recepción, certificados y "
+                                "aceptación de materiales. No registra ejecución ni hallazgos."
+                            ),
+                            "process_id": process["id"] if process["status"] == "active" else None,
+                        },
+                    ),
+                    201,
+                )
+
+
+        phase = "demo internal-audit criteria"
+        if audit is not None:
+            current_audit = checked(
+                author.get(f"{API}/internal-audits/audits/{audit['id']}")
+            )
+            if current_audit["state"] in {"draft", "planned"}:
+                scope_items = []
+                criteria_items = []
+                for collection, destination in [
+                    ("scopes", scope_items),
+                    ("criteria", criteria_items),
+                ]:
+                    for offset in range(0, 1_000_001, 50):
+                        page = checked(
+                            author.get(
+                                f"{API}/internal-audits/audits/{audit['id']}/{collection}",
+                                params={"limit": 50, "offset": offset},
+                            )
+                        )
+                        destination.extend(page)
+                        if len(page) < 50:
+                            break
+                demo_scope = next(
+                    (
+                        item
+                        for item in scope_items
+                        if item["status"] == "active"
+                        and item["title"]
+                        == "Recepción y aceptación de materiales — demostración"
+                    ),
+                    None,
+                )
+                criterion_title = "Aceptación documentada de materiales — demostración"
+                if demo_scope and not any(
+                    item["title"] == criterion_title for item in criteria_items
+                ):
+                    occupied = {
+                        item["sequence"]
+                        for item in criteria_items
+                        if item["status"] == "active"
+                    }
+                    sequence = next(
+                        (value for value in range(10, 10001, 10) if value not in occupied),
+                        None,
+                    )
+                    if sequence is None:
+                        raise ValueError("No available demonstration criterion order")
+                    checked(
+                        post(
+                            author,
+                            f"{API}/internal-audits/audits/{audit['id']}/criteria",
+                            {
+                                "expected_audit_version": current_audit["row_version"],
+                                "sequence": sequence,
+                                "title": criterion_title,
+                                "source_type": "internal",
+                                "reference": "DEMO-PROC-001 · procedimiento interno de recepción",
+                                "requirement": (
+                                    "Comprobar que los registros sintéticos identifican el material, "
+                                    "el resultado de inspección y la persona responsable de su aceptación."
+                                ),
+                                "scope_id": demo_scope["id"],
+                            },
+                        ),
+                        201,
+                    )
+
+
+        phase = "demo audit planning team"
+        if audit is not None:
+            current_audit = checked(
+                author.get(f"{API}/internal-audits/audits/{audit['id']}")
+            )
+            if current_audit["state"] in {"draft", "planned"}:
+                team_items = []
+                for offset in range(0, 1_000_001, 50):
+                    page = checked(
+                        author.get(
+                            f"{API}/internal-audits/audits/{audit['id']}/team-members",
+                            params={"limit": 50, "offset": offset},
+                        )
+                    )
+                    team_items.extend(page)
+                    if len(page) < 50:
+                        break
+                if not any(
+                    item["user_id"] == user_ids["pmc-multi-user"] for item in team_items
+                ):
+                    checked(
+                        post(
+                            author,
+                            f"{API}/internal-audits/audits/{audit['id']}/team-members",
+                            {
+                                "expected_audit_version": current_audit["row_version"],
+                                "user_id": user_ids["pmc-multi-user"],
+                                "team_role": "auditor",
+                                "responsibilities": (
+                                    "Asignación sintética: planificar muestreo de recepción. "
+                                    "No concede permisos ni confirma independencia o competencias."
+                                ),
+                            },
+                        ),
+                        201,
+                    )
+
+
+        phase = "demo audit agenda"
+        if audit is not None:
+            current_audit = checked(
+                author.get(f"{API}/internal-audits/audits/{audit['id']}")
+            )
+            if current_audit["state"] in {"draft", "planned"}:
+                agenda_items = []
+                active_scopes = []
+                active_team = []
+                for collection, destination in [
+                    ("agenda", agenda_items),
+                    ("scopes", active_scopes),
+                    ("team-members", active_team),
+                ]:
+                    for offset in range(0, 1_000_001, 50):
+                        page = checked(
+                            author.get(
+                                f"{API}/internal-audits/audits/{audit['id']}/{collection}",
+                                params={"limit": 50, "offset": offset},
+                            )
+                        )
+                        destination.extend(page)
+                        if len(page) < 50:
+                            break
+                title = "Revisión de recepción — demostración"
+                planned_auditor = next(
+                    (
+                        item
+                        for item in active_team
+                        if item["status"] == "active"
+                        and item["team_role"] == "auditor"
+                        and item["user_id"] == user_ids["pmc-multi-user"]
+                    ),
+                    None,
+                )
+                boundary = next(
+                    (
+                        item
+                        for item in active_scopes
+                        if item["status"] == "active"
+                        and item["title"]
+                        == "Recepción y aceptación de materiales — demostración"
+                    ),
+                    None,
+                )
+                if (
+                    planned_auditor
+                    and boundary
+                    and not any(item["title"] == title for item in agenda_items)
+                ):
+                    used = {
+                        item["sequence"]
+                        for item in agenda_items
+                        if item["status"] == "active"
+                    }
+                    order = next(
+                        (value for value in range(10, 10001, 10) if value not in used), None
+                    )
+                    if order is None:
+                        raise ValueError("No available demonstration agenda order")
+                    checked(
+                        post(
+                            author,
+                            f"{API}/internal-audits/audits/{audit['id']}/agenda",
+                            {
+                                "expected_audit_version": current_audit["row_version"],
+                                "sequence": order,
+                                "title": title,
+                                "objective": "Actividad sintética planificada; no registra ejecución, evidencia o hallazgos.",
+                                "method": "sampling",
+                                "location": "Recepción · sede de demostración",
+                                "starts_at": current_audit["planned_start"] + "T09:00:00Z",
+                                "ends_at": current_audit["planned_start"] + "T10:00:00Z",
+                                "scope_id": boundary["id"],
+                                "auditor_team_member_id": planned_auditor["id"],
+                                "auditee_team_member_id": None,
+                            },
+                        ),
+                        201,
+                    )
+
         print(
             "Demo data ready: DEMO-PROC-001, DEMO-DOC-001, DEMO-CTL-001, "
             "DEMO-IMP-001, DEMO-RSK-001, DEMO-NCR-001 and DEMO-CAPA-001 "
-            "with direct control traceability"
+            "with direct control traceability; internal-audit planning and structured scope "
+            "criteria, team and UTC agenda demo preserved"
         )
         for client in clients:
             if "pm_csrf" in client.cookies:

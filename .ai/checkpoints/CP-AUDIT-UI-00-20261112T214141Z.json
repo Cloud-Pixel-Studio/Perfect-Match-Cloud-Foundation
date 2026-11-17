@@ -1,0 +1,13 @@
+{
+  "id": "CP-AUDIT-UI-00-20261112T214141Z",
+  "branch": "codex/capa-origin-workflow",
+  "baseCommit": "a7b2a9ff00c51bc6bc192874d40ae2d75d6cd797",
+  "sourceEntries": 416,
+  "artifacts": {
+    "source.tar.gz.enc": "6e305afac68d04024d031cdd5307caa8b18bda56684a616c8e246656e2f5a752",
+    "repository.bundle.enc": "d3cda5073624b92f293015796d6c8515de148893815516c93bfa849c7a423239"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}

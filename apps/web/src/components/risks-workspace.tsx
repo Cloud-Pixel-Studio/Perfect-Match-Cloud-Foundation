@@ -3,6 +3,7 @@
 import { ChartNoAxesCombined, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RiskLinks } from "./risk-links";
+import { RelatedCAPAs } from "./related-capas";
 import { RecordWorkspaceSkeleton } from "./record-workspace-skeleton";
 
 type Unit = { id: string; code: string; name: string; status: string };
@@ -248,6 +249,8 @@ export function RisksWorkspace({ onAccessDenied, preferredUnitId, onUnitChange }
           <p className="qms-history-caption">5 × 5 assessment: probability × impact. Low 1–4, moderate 5–9, high 10–15, critical 16–25. Method: {selected.scoring_model}.</p>
           <p className="control-description">{selected.description}</p><dl className="risk-metadata"><div><dt>Process</dt><dd>{processNames[selected.process_id] ?? "Linked process"}</dd></div><div><dt>Responsible person</dt><dd>{selected.owner_user_id ? (memberNames[selected.owner_user_id] ?? "Assigned member") : "Unassigned"}</dd></div><div><dt>Response</dt><dd>{label(selected.response_strategy)}</dd></div><div><dt>Category</dt><dd>{label(selected.category)}</dd></div><div><dt>Target</dt><dd>{dateLabel(selected.target_date)}</dd></div><div><dt>Next review</dt><dd>{dateLabel(selected.review_date)}</dd></div><div><dt>Assessed</dt><dd>{dateLabel(selected.assessed_at)}</dd></div><div><dt>Last review</dt><dd>{dateLabel(selected.reviewed_at)}</dd></div><div><dt>Closed</dt><dd>{dateLabel(selected.closed_at)}</dd></div></dl>
           <details className="control-guidance-read"><summary>Assessment and response details</summary><dl>{(["source", "cause", "potential_effect", "benefit", "opportunity_action", "mitigation_plan", "closure_notes"] as const).map((name) => <div key={name}><dt>{label(name)}</dt><dd>{selected[name] || "Not recorded"}</dd></div>)}</dl></details>
+          <RelatedCAPAs key={`capa-${selected.id}-${selected.unit_id}-${selected.process_id}`} origin={{ ...selected, kind: "risk" }} capabilities={caps} disabled={busy || editing || creating} onBusyChange={setBusy}
+            onAccessChanged={() => { invalidate(); setRefresh((value) => value + 1); denied.current?.(); }} />
           <RiskLinks risk={selected} capabilities={caps} disabled={busy || editing} onBusyChange={setBusy}
             onVersionChange={(version) => setRows((current) => current.map((row) => row.id === selected.id ? { ...row, row_version: version } : row))}
             onRefresh={() => { setEditing(false); setRefresh((value) => value + 1); }} />

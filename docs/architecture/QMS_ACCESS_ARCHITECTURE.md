@@ -43,6 +43,10 @@ Endpoints:
 - GET `/qms-access/grants`: own grants; tenant owners can inspect tenant grants;
   bounded to the newest 100 records. The owner management panel and personal
   read-only view use this endpoint; pagination beyond 100 is pending.
+- GET `/qms-access/active-capabilities`: distinct active capability names for
+  the authenticated tenant/member across all visible grants. It is not derived
+  from the bounded management list and re-evaluates each grant through
+  `qms_has_capability`; the web shell uses it only to reduce visible navigation.
 - POST `/qms-access/grants`: strict input, CSRF, tenant from authenticated session,
   owner authority and active scoped target validation.
 - POST `/qms-access/grants/{id}/revoke`: CSRF, owner authority, tenant lookup,
@@ -59,14 +63,15 @@ The disposable PostgreSQL suite covers explicit/empty scopes, forced RLS,
 cross-tenant existing targets, no implicit owner authority, member escalation,
 self-grants, invalid targets, duplicates, revocation, immutable history,
 auditor restrictions, disabled identities/tenants, archived scope and audit
-atomicity. Run `scripts/run-qms-access-integrity.sh`; CI and local checkpoint
+atomicity, active capability summary and immediate exclusion after revocation.
+Run `scripts/run-qms-access-integrity.sh`; CI and local checkpoint
 include the suite. Its migration round-trip precedes tests; audit-bearing
 downgrade is rejected by the transactional audit constraint restoration.
 
-These controls do not yet enforce a document lifecycle: there is no document
-module to call them. Document author/approver independence remains a separate
-required domain rule. Process scopes, approval policies, commercial entitlements
-and pagination beyond the initial bounded lists remain unfinished.
+These controls are consumed by the implemented process, document, control,
+risk, NCR and CAPA domains. Commercial entitlements and pagination beyond the
+initial bounded management lists remain unfinished and separate from QMS
+authority.
 
 ## Management interface
 

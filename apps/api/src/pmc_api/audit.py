@@ -11,7 +11,8 @@ from sqlalchemy.orm import Session
 
 from pmc_api.auth import Authenticated
 from pmc_api.database import get_db, set_request_context
-from pmc_api.models import AuditEvent, Membership
+from pmc_api.models import AuditEvent
+from pmc_api.tenant_access import require_tenant_access
 
 
 class AuditEventResponse(BaseModel):
@@ -73,14 +74,8 @@ def events(
         tenant_id=tenant_id,
         session_hash=authenticated.record.token_hash,
     )
-    membership = db.scalar(
-        select(Membership).where(
-            Membership.tenant_id == tenant_id,
-            Membership.user_id == authenticated.user.id,
-            Membership.status == "active",
-        )
-    )
-    if membership is None or membership.role not in {"owner", "admin", "auditor"}:
+    access = require_tenant_access(db, user_id=authenticated.user.id, tenant_id=tenant_id)
+    if access.role not in {"owner", "admin", "auditor"}:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "audit access denied")
     statement = select(AuditEvent).where(AuditEvent.tenant_id == tenant_id)
     if action:
@@ -107,6 +102,7 @@ def events(
     rows = rows[:limit]
     next_cursor = f"{rows[-1].occurred_at.isoformat()}|{rows[-1].id}" if has_more and rows else None
     response.headers["X-Request-ID"] = str(request.state.request_id)
+    response.headers["Cache-Control"] = "private, no-store"
     return AuditEventPage(
         items=[AuditEventResponse.model_validate(row) for row in rows], next_cursor=next_cursor
     )

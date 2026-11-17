@@ -1,0 +1,13 @@
+{
+  "id": "CP-AUDIT-CRITERIA-00-20261112T233726Z",
+  "branch": "codex/internal-audit-scope",
+  "baseCommit": "cc2d2367824fc360d20cbb91a09e1ce1d942e8a3",
+  "sourceEntries": 431,
+  "artifacts": {
+    "source.tar.gz.enc": "1aa97c8f098f740b627096b5736a5a770d354e6dbe070209f3e06db0f0d2fb75",
+    "repository.bundle.enc": "92a7c157a117b98d8465c903bf4fbcdc322024c5a7bd36f7b37af944970ee34f"
+  },
+  "verification": "isolated encrypted source restoration and all file SHA256 matched; git bundle verify PASS",
+  "excluded": "ignored builds/artifacts/dependencies, environment secrets, customer data",
+  "database": "no QMS data/schema mutation; no DB restore claimed"
+}
