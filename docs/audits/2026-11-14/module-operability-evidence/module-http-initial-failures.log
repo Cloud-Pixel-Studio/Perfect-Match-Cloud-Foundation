@@ -1,0 +1,170 @@
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001_identity_multitenancy, Establish identity, sessions, tenant membership, and forced RLS.
+INFO  [alembic.runtime.migration] Running upgrade 0001_identity_multitenancy -> 0002_identity_binding, Bind login transactions and enforce valid session tenant membership.
+INFO  [alembic.runtime.migration] Running upgrade 0002_identity_binding -> 0003_audit_engine, Add immutable, tenant-scoped application audit events.
+INFO  [alembic.runtime.migration] Running upgrade 0003_audit_engine -> 0004_organization_structure, Add tenant-scoped organization structure and assignments.
+INFO  [alembic.runtime.migration] Running upgrade 0004_organization_structure -> 0005_workflow_engine, Add tenant-scoped workflow definitions, immutable versions, and instances.
+INFO  [alembic.runtime.migration] Running upgrade 0005_workflow_engine -> 0006_workflow_immutability, Protect the source version when workflow configuration is reassigned.
+INFO  [alembic.runtime.migration] Running upgrade 0006_workflow_immutability -> 0007_workflow_publication_lock, Serialize configuration edits against workflow publication.
+INFO  [alembic.runtime.migration] Running upgrade 0007_workflow_publication_lock -> 0008_qms_capabilities, Explicit unit-scoped QMS capability grants.
+INFO  [alembic.runtime.migration] Running upgrade 0008_qms_capabilities -> 0009_qms_processes, Scoped QMS processes with controlled hierarchy and audit.
+INFO  [alembic.runtime.migration] Running upgrade 0009_qms_processes -> 0010_qms_documents, Tenant-scoped document identities and immutable revision history.
+INFO  [alembic.runtime.migration] Running upgrade 0010_qms_documents -> 0011_qms_document_scope_guard, Prevent document scope changes and preserve capability on revision writes.
+INFO  [alembic.runtime.migration] Running upgrade 0011_qms_document_scope_guard -> 0012_document_quarantine, Add private object references for quarantined document files.
+INFO  [alembic.runtime.migration] Running upgrade 0012_document_quarantine -> 0013_document_obsolescence, Add explicit authority for controlled document obsolescence.
+INFO  [alembic.runtime.migration] Running upgrade 0013_document_obsolescence -> 0014_document_owner_scope, Validate document ownership and active process scope in PostgreSQL.
+INFO  [alembic.runtime.migration] Running upgrade 0014_document_owner_scope -> 0015_process_sites, Allow a process to apply to multiple active tenant sites.
+INFO  [alembic.runtime.migration] Running upgrade 0015_process_sites -> 0016_qms_controls, Tenant-scoped control catalog and per-process implementation records.
+INFO  [alembic.runtime.migration] Running upgrade 0016_qms_controls -> 0017_ctrl_applicability, Allow a justified not-applicable implementation at creation.
+INFO  [alembic.runtime.migration] Running upgrade 0017_ctrl_applicability -> 0018_control_definitions, Add reusable implementation activity and evidence requirement definitions.
+INFO  [alembic.runtime.migration] Running upgrade 0018_control_definitions -> 0019_instance_activities, Generate controlled activity tasks for each applicable implementation.
+INFO  [alembic.runtime.migration] Running upgrade 0019_instance_activities -> 0020_control_evidence_review, Add reviewed evidence records to each control implementation.
+INFO  [alembic.runtime.migration] Running upgrade 0020_control_evidence_review -> 0021_qms_risks, Tenant-scoped risks and opportunities with explicit review authority.
+INFO  [alembic.runtime.migration] Running upgrade 0021_qms_risks -> 0022_risk_links, Preserve scoped risk links to control implementations and document revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0022_risk_links -> 0023_qms_nonconformities, Tenant-scoped nonconformity intake, containment and controlled closure.
+INFO  [alembic.runtime.migration] Running upgrade 0023_qms_nonconformities -> 0024_ncr_links, Preserve scoped NCR references and immutable relationship history.
+INFO  [alembic.runtime.migration] Running upgrade 0024_ncr_links -> 0025_ncr_evidence_links, Connect NCRs to independently accepted implementation evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0025_ncr_evidence_links -> 0026_qms_capa_intake, CAPA draft intake with scoped NCR/risk provenance.
+INFO  [alembic.runtime.migration] Running upgrade 0026_qms_capa_intake -> 0027_qms_capa_analysis, Controlled CAPA analysis entry and fixed method scaffolds.
+INFO  [alembic.runtime.migration] Running upgrade 0027_qms_capa_analysis -> 0028_capa_analysis_payload, Allow bounded multibyte CAPA analysis text accepted by the API.
+INFO  [alembic.runtime.migration] Running upgrade 0028_capa_analysis_payload -> 0029_capa_fishbone_causes, Structured, confirmable Fishbone causes without rewriting historical analysis.
+INFO  [alembic.runtime.migration] Running upgrade 0029_capa_fishbone_causes -> 0030_capa_plan_gate, Gate CAPA action planning on completed, verified method evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0030_capa_plan_gate -> 0031_capa_action_register, Tenant-scoped CAPA action register with controlled parent versions.
+INFO  [alembic.runtime.migration] Running upgrade 0031_capa_action_register -> 0032_capa_action_execution, Controlled CAPA implementation and independently verified action transitions.
+INFO  [alembic.runtime.migration] Running upgrade 0032_capa_action_execution -> 0033_capa_review_start, Gate CAPA effectiveness review on completed or verified actions.
+INFO  [alembic.runtime.migration] Running upgrade 0033_capa_review_start -> 0034_capa_effectiveness, Append-only CAPA effectiveness decisions, rework cycles and controlled closure.
+INFO  [alembic.runtime.migration] Running upgrade 0034_capa_effectiveness -> 0035_capa_cancellation, Explicit reviewer-authorized CAPA cancellation with preserved stage history.
+INFO  [alembic.runtime.migration] Running upgrade 0035_capa_cancellation -> 0036_capa_source_reference, Preserve optional CAPA external source references as frozen provenance.
+INFO  [alembic.runtime.migration] Running upgrade 0036_capa_source_reference -> 0037_capa_draft_edit_command, Require a controlled command for CAPA draft edits.
+INFO  [alembic.runtime.migration] Running upgrade 0037_capa_draft_edit_command -> 0038_capa_document_links, Scoped CAPA references to released, clean document revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0038_capa_document_links -> 0039_capa_trace_links, Direct CAPA links to control implementations and accepted evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0039_capa_trace_links -> 0040_internal_audit_foundation, Tenant-scoped internal-audit programs and controlled planning.
+INFO  [alembic.runtime.migration] Running upgrade 0040_internal_audit_foundation -> 0042_internal_audit_scope, Structured audit scope; preserved0041 draft is not part of this chain.
+INFO  [alembic.runtime.migration] Running upgrade 0042_internal_audit_scope -> 0043_internal_audit_criteria, Versioned audit criteria with optional scope traceability.
+INFO  [alembic.runtime.migration] Running upgrade 0043_internal_audit_criteria -> 0044_internal_audit_team, Versioned audit planning team; assignment does not grant execution authority.
+INFO  [alembic.runtime.migration] Running upgrade 0044_internal_audit_team -> 0045_internal_audit_agenda, Controlled UTC agenda with participant, scope and planning-window guards.
+INFO  [alembic.runtime.migration] Running upgrade 0045_internal_audit_agenda -> 0046_audit_independence, Append-only independence decisions bound to a planning revision, not execution.
+INFO  [alembic.runtime.migration] Running upgrade 0046_audit_independence -> 0047_audit_execution_authority, Scoped execution-access counts, never grant visibility or execution permission.
+INFO  [alembic.runtime.migration] Running upgrade 0047_audit_execution_authority -> 0048_audit_competence, Append-only auditor competence assessments with controlled documentary support.
+INFO  [alembic.runtime.migration] Running upgrade 0048_audit_competence -> 0049_tenant_suspension, Deny legacy business access when a company or its actor is inactive.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running downgrade 0049_tenant_suspension -> 0048_audit_competence, Deny legacy business access when a company or its actor is inactive.
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade 0048_audit_competence -> 0049_tenant_suspension, Deny legacy business access when a company or its actor is inactive.
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_ test_document_http_reject_resubmit_independent_approval_release_and_stale_command _
+
+boundary = Boundary(admin=Engine(postgresql+pg8000://pmcloud_bootstrap:***@127.0.0.1:55475/pmcloud_tenant_suspension), runtime=En...03-bfd9-8cfba23f139c', instance='b76ada37-f7cf-4b1f-aed5-ed7cd2f3e6ea', process='caf96c3d-370f-4c41-a9ce-1bd2d33aec39')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x106609520>
+
+    def test_document_http_reject_resubmit_independent_approval_release_and_stale_command(
+        boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        doc, revision, storage = document(boundary, monkeypatch)
+        base = f"/documents/{doc['id']}/revisions/{revision['id']}"
+        revision = boundary.call(
+            "POST", base + "/submit", {"expected_version": revision["row_version"]}, role="member"
+        )
+>       revision = boundary.call(
+            "POST", base + "/reject", {"expected_version": revision["row_version"]}, role="admin"
+        )
+
+tests/test_module_operability_http_integrity.py:133:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Boundary(admin=Engine(postgresql+pg8000://pmcloud_bootstrap:***@127.0.0.1:55475/pmcloud_tenant_suspension), runtime=En...03-bfd9-8cfba23f139c', instance='b76ada37-f7cf-4b1f-aed5-ed7cd2f3e6ea', process='caf96c3d-370f-4c41-a9ce-1bd2d33aec39')
+method = 'POST'
+path = '/documents/082aa455-4636-44a3-9452-f24201af88bb/revisions/7a5dac9c-5518-40d6-9ae0-5365cd0ea8a1/reject'
+body = {'expected_version': 3}, role = 'admin', expected = 200
+
+    def call(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | None = None,
+        *,
+        role: str = "owner",
+        expected: int = 200,
+    ) -> Any:
+        response = self.clients[role].request(method, path, json=body)
+>       assert response.status_code == expected, (method, path, response.status_code, response.text)
+E       AssertionError: ('POST', '/documents/082aa455-4636-44a3-9452-f24201af88bb/revisions/7a5dac9c-5518-40d6-9ae0-5365cd0ea8a1/reject', 404, '{"detail":"document not found"}')
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests/test_tenant_suspension_integrity.py:110: AssertionError
+_________ test_document_http_failed_ledger_rolls_back_revision_command _________
+
+boundary = Boundary(admin=Engine(postgresql+pg8000://pmcloud_bootstrap:***@127.0.0.1:55475/pmcloud_tenant_suspension), runtime=En...bd-818b-2668b6ebcbc1', instance='b7cf47ca-fa4c-48ec-bb86-30eee0fe6bd4', process='6293bbb3-8b9f-445b-88cf-82e9be06bfc8')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1067771d0>
+
+    def test_document_http_failed_ledger_rolls_back_revision_command(
+        boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        doc, revision, _storage = document(boundary, monkeypatch)
+
+        def unavailable(*_args: object, **_kwargs: object) -> None:
+            raise RuntimeError("Synthetic ledger unavailable")
+
+>       monkeypatch.setattr(audit_service, "record_event", unavailable)
+E       AttributeError: <module 'pmc_api.audit_service' from '/Users/Gerdel_Garcia/.codex/worktrees/qms-module-audit/SaaS QMS PerfectMatchSystems/apps/api/src/pmc_api/audit_service.py'> has no attribute 'record_event'
+
+tests/test_module_operability_http_integrity.py:171: AttributeError
+_ test_action_center_http_sql_projects_all_existing_sources_and_review_authority _
+
+boundary = Boundary(admin=Engine(postgresql+pg8000://pmcloud_bootstrap:***@127.0.0.1:55475/pmcloud_tenant_suspension), runtime=En...ea-9a01-5a3d3dcd9c97', instance='d013e294-face-46f1-9628-cac2428c587a', process='312b1b8e-f8b8-4cfc-88a2-507e9f164ad8')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x106747860>
+
+    def test_action_center_http_sql_projects_all_existing_sources_and_review_authority(
+        boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        doc, revision, _storage = document(boundary, monkeypatch)
+>       revision = release(boundary, doc, revision)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_module_operability_http_integrity.py:199:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests/test_module_operability_http_integrity.py:117: in release
+    revision = case.call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Boundary(admin=Engine(postgresql+pg8000://pmcloud_bootstrap:***@127.0.0.1:55475/pmcloud_tenant_suspension), runtime=En...ea-9a01-5a3d3dcd9c97', instance='d013e294-face-46f1-9628-cac2428c587a', process='312b1b8e-f8b8-4cfc-88a2-507e9f164ad8')
+method = 'POST'
+path = '/documents/4248ca6c-aca8-48ed-a91e-43b22fc4aeb5/revisions/e20d60b7-f6fa-4f9d-93c5-f12e08209a9c/approve'
+body = {'expected_version': 3}, role = 'admin', expected = 200
+
+    def call(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | None = None,
+        *,
+        role: str = "owner",
+        expected: int = 200,
+    ) -> Any:
+        response = self.clients[role].request(method, path, json=body)
+>       assert response.status_code == expected, (method, path, response.status_code, response.text)
+E       AssertionError: ('POST', '/documents/4248ca6c-aca8-48ed-a91e-43b22fc4aeb5/revisions/e20d60b7-f6fa-4f9d-93c5-f12e08209a9c/approve', 404, '{"detail":"document not found"}')
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests/test_tenant_suspension_integrity.py:110: AssertionError
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /Users/Gerdel_Garcia/.codex/worktrees/qms-module-audit/SaaS QMS PerfectMatchSystems/apps/api/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+.venv/lib/python3.12/site-packages/starlette/testclient.py:53
+  /Users/Gerdel_Garcia/.codex/worktrees/qms-module-audit/SaaS QMS PerfectMatchSystems/apps/api/.venv/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_module_operability_http_integrity.py::test_document_http_reject_resubmit_independent_approval_release_and_stale_command
+FAILED tests/test_module_operability_http_integrity.py::test_document_http_failed_ledger_rolls_back_revision_command
+FAILED tests/test_module_operability_http_integrity.py::test_action_center_http_sql_projects_all_existing_sources_and_review_authority
+3 failed, 2 warnings in 5.03s
