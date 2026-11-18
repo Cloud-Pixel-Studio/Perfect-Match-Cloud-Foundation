@@ -24,7 +24,7 @@ Files: `apps/web/e2e/action-center.experience.spec.ts`; local fixture outside so
 - [x] Add browser regressions for populated→expired/denied/error, reauthentication link, context change and stale response. Use controlled fixtures, no credentials or business writes.
 - [x] Exercise the actual UI through CUA against an isolated loopback fixture; save screenshots. Do not claim a mocked login as a real OIDC test.
 - [x] Request a fresh whole-change reviewer, resolve material findings with regressions, run relevant checks and secret scan.
-- [ ] Create a final recovery checkpoint, commit only owned files and publish a draft PR against PR63. No merge or production deployment.
+- [x] Create a final recovery checkpoint, commit only owned files and publish a draft PR against PR63. PR64: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/64 . No merge or production deployment; CI/browser execution pending.
 
 Review focus: delayed previous-context responses; malformed200 bodies;401 must not look like lack of permissions;403 must not show previous tasks; changing companies must not preserve overview state. Browser automation runs in CI; local browser work uses CUA. Record any unavailable check as pending rather than PASS.
 

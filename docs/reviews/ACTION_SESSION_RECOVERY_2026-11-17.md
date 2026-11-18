@@ -25,3 +25,5 @@ CP-ACTION-RECOVERY-00-20261118T021932Z conserva732fuentes/Git y WIP anteriores, 
 Rama `codex/action-session-recovery`, base1672dd2/PR63. No merge ni despliegue a producción. **La demo pública aún conserva su imagen web anterior**; instalar este cambio requiere el siguiente paso de validación e integración de demo. No confundir las capturas del fixture con una actualización remota.
 
 Auditorías ready/start quedan para un slice independiente: API y trigger solo permiten draft→planned/cancelled y planned→cancelled. Sus revisiones humanas se vinculan a la versión exacta del plan; una transición ingenua invalidaría esos dictámenes. Deben diseñarse versión congelada y validación atómica antes de activar esos comandos.
+
+Publicado en [PR64](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/64), borrador contraPR63. CP-ACTION-RECOVERY-06-20261118T081525Z:737fuentes/Git restaurados conhashes/modos/bundle ydecrypt/tamperPASS. Commitlocaloriginalb8cd07f preservado yárbolpublicadoidéntico. No merge; CIexacto y10browserautomatizados pendientes.
