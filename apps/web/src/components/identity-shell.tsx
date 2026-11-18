@@ -267,8 +267,8 @@ export function IdentityShell() {
         {busy && <p className="qms-context-status" role="status">Updating your organization context…</p>}
         {!current ? <div className="qms-empty-context" id="qms-active-workspace" tabIndex={-1}><ShieldCheck aria-hidden="true" size={24} /><h1>Choose an organization</h1><p>Select an active organization to open its quality workspace. If none appears, contact its administrator.</p></div> : <fieldset className="context-workspaces qms-active-workspace" id="qms-active-workspace" disabled={busy} aria-busy={busy}>
           <legend className="sr-only">{selectedItem.label}</legend>
-          {presentedModule === "overview" && <WorkspaceOverview tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
-          {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "overview" && <WorkspaceOverview key={`overview-${identity.id}-${current.id}-${current.role}`} tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
+          {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${identity.id}-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}
