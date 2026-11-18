@@ -1,0 +1,5 @@
+# Apply after the demo and account-switch overrides. Isolated demo web only.
+# Set the image to the exact built/reviewed release; never use this for production.
+services:
+  web:
+    image: ${DEMO_GUIDED_WEB_IMAGE:?required}

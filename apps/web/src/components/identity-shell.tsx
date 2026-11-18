@@ -17,6 +17,7 @@ import { WorkspaceOverview } from "./workspace-overview";
 import { ActionCenterWorkspace } from "./action-center-workspace";
 import { AuditWorkspace } from "./audit-workspace";
 import { InternalAuditsWorkspace } from "./internal-audits-workspace";
+import { GuidedJourneyWorkspace } from "./guided-journey-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
@@ -33,6 +34,7 @@ const apiUrl = "/api/identity";
 const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   overview: LayoutDashboard,
   actions: ClipboardList,
+  "implementation-guide": ListChecks,
   processes: FolderKanban,
   documents: FileText,
   controls: ListChecks,
@@ -269,6 +271,7 @@ export function IdentityShell() {
           <legend className="sr-only">{selectedItem.label}</legend>
           {presentedModule === "overview" && <WorkspaceOverview key={`overview-${identity.id}-${current.id}-${current.role}`} tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
           {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${identity.id}-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}

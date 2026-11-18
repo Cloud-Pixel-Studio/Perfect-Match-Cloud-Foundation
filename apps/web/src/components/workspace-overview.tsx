@@ -31,6 +31,7 @@ const overviewIcons: Partial<Record<WorkspaceId, LucideIcon>> = {
   organization: Building2,
   permissions: KeyRound,
   workflows: Workflow,
+  "implementation-guide": ListChecks,
   audit: ScrollText,
 };
 
