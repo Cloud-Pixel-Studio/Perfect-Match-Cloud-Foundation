@@ -1,6 +1,7 @@
 export type WorkspaceId =
   | "overview"
   | "actions"
+  | "implementation-guide"
   | "processes"
   | "documents"
   | "controls"
@@ -45,6 +46,7 @@ export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
   {
     label: "Coordination",
     items: [
+      { id: "implementation-guide", label: "Implementation guide", description: "Follow the next steps and inspect existing records and gaps.", hash: "implementation-guide-heading" },
       { id: "workflows", label: "Workflows", description: "Complete controlled approvals and assigned tasks.", hash: "workflow-heading" },
     ],
   },
@@ -93,6 +95,7 @@ export function workspaceSectionsForContext(role: string, capabilities: Iterable
   const assurance = administration || role === "auditor";
   const visible = (id: WorkspaceId) => {
     if (id === "overview" || id === "actions" || id === "workflows" || id === "permissions") return true;
+    if (id === "implementation-guide") return administration;
     if (id === "organization" || id === "audit") return assurance;
     return (capabilityFamilies[id] ?? []).some((prefix) => assigned.some((capability) => capability.startsWith(prefix)));
   };

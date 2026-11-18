@@ -49,8 +49,15 @@ describe("persona-aware workspace navigation", () => {
 
   it("does not treat a tenant owner role as QMS operating authority", () => {
     expect(ids("owner", [])).toEqual([
-      "overview", "actions", "workflows", "organization", "permissions", "audit",
+      "overview", "actions", "implementation-guide", "workflows", "organization", "permissions", "audit",
     ]);
+  });
+
+  it("offers the company guide to coordinators without granting QMS record access", () => {
+    expect(ids("admin", [])).toContain("implementation-guide");
+    expect(ids("member", ["documents.read"])).not.toContain("implementation-guide");
+    expect(ids("auditor", ["documents.read"])).not.toContain("implementation-guide");
+    expect(workspaceFromHash("#implementation-guide-heading")).toBe("implementation-guide");
   });
 
   it("gives an auditor assurance navigation plus explicitly granted read areas", () => {
