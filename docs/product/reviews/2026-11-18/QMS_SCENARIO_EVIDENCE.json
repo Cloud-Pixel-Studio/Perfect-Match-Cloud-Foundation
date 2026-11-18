@@ -1,0 +1,142 @@
+{
+  "review_date": "2026-11-18",
+  "odoo": {
+    "repository": "Cloud-Pixel-Studio/perfect-match-qms",
+    "verified_main_commit": "d89330cc1a8e9a2ea16992c9b49394f1dc481b7f",
+    "method": "GitHub source inspection and JSON extraction; no Odoo runtime execution",
+    "scenario_codes": [
+      "ISO9001-2026-INITIAL",
+      "ISO9001-2026-TRANSITION-2015",
+      "ISO9001-2026-LEGACY",
+      "ISO9001-2026-RECERTIFICATION",
+      "ISO9001-2026-RECERTIFICATION-SAME-EDITION",
+      "ISO9001-2026-SCOPE-EXPANSION",
+      "ISO9001-2026-MULTI-SITE",
+      "ISO9001-2026-INTEGRATED",
+      "ISO9001-2026-PARTIAL"
+    ],
+    "scenario_types": 8,
+    "implementation_modes": 6,
+    "assessment_goals": 6,
+    "initial_blueprint": {
+      "version": "1.1",
+      "declared_state": "active",
+      "phases": 13,
+      "activity_entries": 37
+    },
+    "pack_2026": {
+      "declared_state": "draft_pending_competent_practitioner_review",
+      "activation_allowed": false,
+      "areas": 7,
+      "controls": 38
+    },
+    "sources": [
+      {
+        "path": "addons/pm_qms_iso9001/hooks.py",
+        "blob_sha": "2ec237d462c9bd9488df3bed4e18efe46ce605cf",
+        "lines": 1304
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/framework_pack.py",
+        "blob_sha": "3d34a4ba7895e2010891290e77c7467c07c93920",
+        "lines": 33
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/gap_assessment.py",
+        "blob_sha": "d5d89d5aab4d4aa10e4f8105169ead022b109b82",
+        "lines": 424
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/transition_action.py",
+        "blob_sha": "f55bf64365e3e336e256b8e7e3e295b6ceafbfba",
+        "lines": 307
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/transition_review.py",
+        "blob_sha": "cdcc0f26bef8267a172a490903a60918380a4a19",
+        "lines": 414
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/migration_package.py",
+        "blob_sha": "cb6b55c7cf4646a865dea6329a148f29cef7b20c",
+        "lines": 477
+      },
+      {
+        "path": "addons/pm_qms_iso9001/models/migration_execution.py",
+        "blob_sha": "92e7c56cfdbc8b2b98f50ae77723097eb0c9f987",
+        "lines": 530
+      },
+      {
+        "path": "addons/pm_qms_migration/wizard/document_import_wizard.py",
+        "blob_sha": "199d6ddb018efd951e7facb142099768e8c38881",
+        "lines": 210
+      },
+      {
+        "path": "addons/pm_qms_migration/wizard/evidence_import_wizard.py",
+        "blob_sha": "0e25beedf53231cd3a5cd8c3483ce850ecae962d",
+        "lines": 182
+      },
+      {
+        "path": "addons/pm_qms_iso9001/content/initial_implementation_v1_1.json",
+        "blob_sha": "81b033e7a0ef5da8d47ac6f7c9c5b42430568e2e",
+        "lines": 64
+      },
+      {
+        "path": "addons/pm_qms_iso9001/content/iso9001_2026_implementation_pack_v1_draft.json",
+        "blob_sha": "2fa882105ff1e2d07f87f4d9cb110061ae52e4be",
+        "lines": 1042
+      },
+      {
+        "path": "addons/pm_qms_implementation/models/readiness_assessment.py",
+        "blob_sha": "6ede9337153bca3f8875d372d83107ce90687ce2",
+        "lines": 187
+      },
+      {
+        "path": "addons/pm_qms_implementation/wizard/project_generator_wizard.py",
+        "blob_sha": "a826ffb9ed361996ca3d22c37b884d627be384ac",
+        "lines": 82
+      },
+      {
+        "path": "addons/pm_qms_iso9001/tests/test_transition_scenarios.py",
+        "blob_sha": "9161b7b428085e8d960f1b658a8fc80ce6d16d59",
+        "lines": 102
+      },
+      {
+        "path": "addons/pm_qms_iso9001/tests/test_initial_implementation.py",
+        "blob_sha": "d87655cc2b04314b77e87e417646d1e40053a673",
+        "lines": 150
+      },
+      {
+        "path": "addons/pm_qms_iso9001/tests/test_implementation_pack_2026.py",
+        "blob_sha": "f34e8e407cf5ad71a393d09dc63ff4cc9c9a992a",
+        "lines": 205
+      }
+    ]
+  },
+  "saas": {
+    "repository": "Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation",
+    "reviewed_commit": "7c206acbdd92808f72e776b0035ee3671d7ae6d5",
+    "method": "Local code/model/router inspection plus independent read-only code review",
+    "global_implementation_project": false,
+    "normative_catalog_and_edition_transition": false,
+    "customer_import_pipeline": false,
+    "control_level_implementation": true,
+    "record_level_changes_and_document_revisions": true,
+    "audit_planning": true,
+    "audit_execution": false
+  },
+  "official_standard": {
+    "source": "https://www.iso.org/standard/9001",
+    "verified_date": "2026-11-18",
+    "edition": "ISO 9001:2026",
+    "official_status": "Published, Edition6",
+    "distinction": "Official standard publication does not approve the Perfect Match authored implementation pack"
+  },
+  "verification_limits": [
+    "No new operational tests executed",
+    "No VM, business data or permissions changed",
+    "A catalog entry is not a fully executed customer scenario",
+    "Existing tests inspected as source, not reported as newly passed",
+    "Counts overlap and must not be summed as functions"
+  ]
+}
