@@ -1,0 +1,87 @@
+{
+  "classification": "DATOS FICTICIOS / DEMO",
+  "license": "Original Perfect Match QMS study materials; same repository license applies",
+  "documents": [
+    {
+      "code": "EST-DOC-001",
+      "title": "Procedimiento de recepción e inspección",
+      "sha256": "1d0cf77b3446075f4867b7bece8eff74a4a7ece11dc055edc86459f0359015f7",
+      "size": 6581,
+      "filename": "EST-DOC-001.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-002",
+      "title": "Lista de inspección del lote LOTE-DEMO-2411",
+      "sha256": "02210d3be74c61df80a7e5650a417979f017878448225cbe340eaf00c2890f11",
+      "size": 6509,
+      "filename": "EST-DOC-002.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-003",
+      "title": "Control documental y revisiones",
+      "sha256": "6bdf8e50b2fab66120d278467aaabc20d016354b429dc737bbb206a9ba0f9f24",
+      "size": 6508,
+      "filename": "EST-DOC-003.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-004",
+      "title": "Tratamiento de no conformidades y análisis de 5 porqués",
+      "sha256": "b5b8edfe2fa19013b953f3507e7250ac9273ce00d4ca32b9ac124196d28440fd",
+      "size": 6427,
+      "filename": "EST-DOC-004.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-005",
+      "title": "Plan de acción correctiva de proveedor EST-CAPA-001",
+      "sha256": "21eb6fc92bc5045131b49d8ce7b4bf8cbe77e8607deecad92b5b6bb900c60b90",
+      "size": 6541,
+      "filename": "EST-DOC-005.pdf",
+      "revision": "2.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-006",
+      "title": "Evaluación de riesgo de material recibido",
+      "sha256": "c625a1dc98859c5135a9b1e00c04dac3c4d61399a38ab01557f492ec86a57a13",
+      "size": 6482,
+      "filename": "EST-DOC-006.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-007",
+      "title": "Informe y evidencia ficticia de certificado del lote",
+      "sha256": "281814af34cc61c8c88b652f14834153766e9eb4068011b4456c187eaac19fba",
+      "size": 6305,
+      "filename": "EST-DOC-007.pdf",
+      "revision": "1.0",
+      "pages": 2
+    },
+    {
+      "code": "EST-DOC-008",
+      "title": "Competencia y programa de auditoría (solo planificación)",
+      "sha256": "ca13f3157f07daf1284879ae6a696f915a774b63a7bfbaae99e93d5cff2e3a89",
+      "size": 6539,
+      "filename": "EST-DOC-008.pdf",
+      "revision": "1.0",
+      "pages": 2
+    }
+  ],
+  "historical": [
+    {
+      "code": "EST-DOC-005",
+      "revision": "1.0",
+      "filename": "historical/EST-DOC-005-v1.pdf",
+      "sha256": "906ac1fd9c0d51d5ff5ef3f7c0247a49e097d5bcd0930e0aa6384008931fed60",
+      "size": 6554
+    }
+  ]
+}
