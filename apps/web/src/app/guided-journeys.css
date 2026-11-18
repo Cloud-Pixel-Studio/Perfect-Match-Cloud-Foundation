@@ -48,6 +48,7 @@
 .guide-step-navigation small { display: block; margin-top: var(--pm-space-1); color: var(--pm-warning); font-size: var(--pm-text-xs); font-weight: var(--pm-weight-regular); }
 .guide-step-note { padding: var(--pm-space-3) var(--pm-space-2) 0; color: var(--pm-text-muted); font-size: var(--pm-text-xs); }
 .guide-step-detail { min-width: 0; padding: var(--pm-space-6); }
+.guide-step-detail h4 { scroll-margin-block-start: 8rem; }
 .guide-detail-heading > p:first-child { margin: 0; }
 .guide-detail-heading h4 { margin: var(--pm-space-2) 0 var(--pm-space-3); font-size: var(--pm-text-xl); line-height: 1.35; letter-spacing: -.025em; }
 .guide-detail-heading > p:last-child { margin: 0; color: var(--pm-text-muted); }

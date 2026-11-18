@@ -32,10 +32,22 @@ La guía abre el módulo y conserva la unidad; no se afirma navegación al regis
 
 ## Demo y recuperación
 
-CP-GUIDED-QMS-00-20261118T141059Z conserva739fuentes/Git previos, restaurados por hashes/modos/bundle ydecrypt/tamper. La instalación web de la demo autorizada requiere un checkpoint separado de configuración, imagen anterior retenida y nueva imagen construida desde el commit publicado. **Instalación remota pendiente en este punto del registro.** No merge ni producción; persisten los6HIGH conocidos de Keycloak.
+CP-GUIDED-QMS-00-20261118T141059Z conserva739fuentes/Git previos, restaurados por hashes/modos/bundle ydecrypt/tamper. La instalación web de la demo autorizada requiere un checkpoint separado de configuración, imagen anterior retenida y nueva imagen construida desde el commit publicado. **Instalación remota retenida por el hallazgo sin parche de picomatch.** No merge ni producción; persisten los6HIGH conocidos de Keycloak.
 
 El override `infrastructure/demo/guided-web.override.yml` solo sustituye la imagenweb. Se aplica después de base, demo y account-switch, con `DEMO_GUIDED_WEB_IMAGE` fijado a la imagen exacta de la entrega. No usar `up` sobre todos los servicios ni reiniciar API/DB/IdP para este cambio. El informe de instalación posterior debe registrar SHA, imagen, verificación y rollback.
 
 ## Pendiente del producto completo
 
 Proyecto maestro persistente, relaciones explícitas de registros al proyecto y su baseline, evaluaciones/snapshots por proyecto, perfil/mappings ISO aprobados, transición, importación comercial, módulos de formación/KPI/revisión por dirección y ejecución de auditorías. Esta entrega hace navegable la orientación y muestra esas brechas; no las presenta como terminadas.
+
+## Publicación y estado final
+
+PR66: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/66 . Commit de código3aa7f95a45f07b08731b709875d09b950ed3b615, árbol idéntico al local50e3683, que se preservó. CP-GUIDED-QMS-06-20261118T144946Z restauró749archivos y Git con hashes/modos/bundle/tamper verificados antes de publicar.
+
+CI de ese commit: Foundation quality44328844659 yCodeQL44328844679 success. Seguridad falla antes de runtime por un HIGH de picomatch sin parche publicado, adicional a los bloqueos de imágenes previos. Las9pruebas browser/axe **no llegaron a ejecutarse**. Ver docs/security/GUIDED_JOURNEYS_RELEASE_BLOCK_2026-11-18.md. No alterar gates para presentar verde.
+
+La compilación Linux aislada de la imagen web terminó, pero no se instaló. CP-GUIDED-DEMO-CONFIG-00-20261118T145214Z verificó5archivos de configuración cifrados y la imagen anterior queda retenida. Los6contenedores existentes conservaron IDs e imágenes y siguen healthy. El público todavía ve la versión anterior; la captura de los6recorridos corresponde al build local con reproducción de respuestas sintéticas, no a una función ya disponible en la demo pública.
+
+Un último control visual detectó el título del paso tapado por la barra fija al recibir foco. Se conserva foco accesible y desplazamiento inmediato con margen superior, sin animación forzada. La regresión responsive comprueba que el título quede debajo de la barra; su ejecución automática está sujeta al mismo bloqueo browser indicado arriba.
+
+Verificación final del ajuste: CUA sobre el build recompilado confirmó foco y título completo bajo la barra en1280y375píxeles; capturas `guided-step-heading-desktop-verified.png` y `guided-step-heading-mobile-verified.png`. Inspección de6tarjetas en tema claro/oscuro, sin declaración de conformidadWCAG.208unit/lint/typecheck/build repetidos después del cambio:PASS. Revisión independiente estática del ajuste sin hallazgos materiales; no sustituye browser/axeCI.

@@ -182,7 +182,8 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
 
   function moveStep(index: number) {
     setStepIndex(index);
-    detailHeading.current?.focus();
+    detailHeading.current?.focus({ preventScroll: true });
+    detailHeading.current?.scrollIntoView({ block: "start", behavior: "instant" });
   }
 
   const observationLabel = step.productGap ? "Feature pending" : accessError ? "Access required" : snapshotLoading ? "Checking records…" : snapshotError ? "Could not verify" : observation.kind === "loaded" ? (observation.records.length ? "Records found" : "No records found") : observation.kind === "restricted" ? "Access required" : observation.kind === "unavailable" ? "Could not verify" : "Choose a unit";

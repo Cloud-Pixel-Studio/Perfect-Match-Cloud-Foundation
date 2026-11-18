@@ -142,6 +142,14 @@ for (const size of [{ width: 375, height: 812 }, { width: 1280, height: 900 }]) 
   await expect(guide.getByRole("tab", { name: /^Improve an existing/ })).toBeFocused();
   await guide.getByRole("tab", { name: /^Improve an existing/ }).press("Control+Home");
   await expect(guide.getByRole("tab", { name: /^Improve an existing/ })).toHaveAttribute("aria-selected", "true");
+  await guide.getByRole("button", { name: "Next step", exact: true }).click();
+  const detail = page.locator("#guide-step-heading");
+  await expect(detail).toBeFocused();
+  const headingBounds = await detail.boundingBox();
+  const topbarBounds = await page.locator(".qms-app-topbar").boundingBox();
+  expect(headingBounds).not.toBeNull();
+  expect(topbarBounds).not.toBeNull();
+  expect(headingBounds!.y).toBeGreaterThanOrEqual(topbarBounds!.y + topbarBounds!.height);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   const accessibility = await new AxeBuilder({ page }).include(".guided-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(accessibility.violations).toEqual([]);
