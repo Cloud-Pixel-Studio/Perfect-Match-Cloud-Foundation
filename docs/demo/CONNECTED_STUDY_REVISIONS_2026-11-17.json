@@ -1,0 +1,39 @@
+{
+  "synthetic": true,
+  "original_files_preserved": true,
+  "revisions": [
+    {
+      "document": "EST-DOC-005",
+      "current": "2.0",
+      "previous": "1.0",
+      "previous_state": "superseded",
+      "old_sha256": "906ac1fd9c0d51d5ff5ef3f7c0247a49e097d5bcd0930e0aa6384008931fed60",
+      "new_sha256": "21eb6fc92bc5045131b49d8ce7b4bf8cbe77e8607deecad92b5b6bb900c60b90"
+    },
+    {
+      "document": "EST-DOC-003",
+      "revision": "2.0",
+      "state": "under_review",
+      "prepared_by_operator": true,
+      "full_demo_can_review_other_actor": true
+    },
+    {
+      "document": "EST-DOC-004",
+      "revision": "2.0",
+      "state": "rejected",
+      "prepared_by_operator": true,
+      "full_demo_can_review_other_actor": true
+    },
+    {
+      "document": "EST-DOC-005",
+      "revision": "3.0",
+      "state": "draft",
+      "file": "missing; ready for user upload"
+    }
+  ],
+  "capa_plan_history": {
+    "open_case_uses": "EST-DOC-005 revision2.0",
+    "withdrawn_old_link_preserved": true,
+    "closed_case_snapshot_keeps_revision1": true
+  }
+}

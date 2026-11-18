@@ -1,0 +1,191 @@
+{
+  "synthetic": true,
+  "company": "tenant-a",
+  "unit": "DEMO-PRACTICA",
+  "created": {},
+  "preserved": {},
+  "phases": [],
+  "inventory": {
+    "processes": {
+      "count": 6,
+      "states": {
+        "EST-PROC-001": "active",
+        "EST-PROC-002": "active",
+        "EST-PROC-003": "active",
+        "EST-PROC-004": "active",
+        "EST-PROC-005": "active",
+        "EST-PROC-006": "active"
+      }
+    },
+    "documents": {
+      "count": 8,
+      "states": {
+        "EST-DOC-001": "active",
+        "EST-DOC-002": "active",
+        "EST-DOC-003": "active",
+        "EST-DOC-004": "active",
+        "EST-DOC-005": "active",
+        "EST-DOC-006": "active",
+        "EST-DOC-007": "active",
+        "EST-DOC-008": "active"
+      }
+    },
+    "controls": {
+      "count": 6,
+      "states": {
+        "EST-CTL-001": "active",
+        "EST-CTL-002": "active",
+        "EST-CTL-003": "active",
+        "EST-CTL-004": "draft",
+        "EST-CTL-005": "draft",
+        "EST-CTL-006": "draft"
+      }
+    },
+    "control-instances": {
+      "count": 3,
+      "states": {
+        "EST-IMP-001": "implemented",
+        "EST-IMP-002": "implemented",
+        "EST-IMP-003": "in_progress"
+      }
+    },
+    "risks": {
+      "count": 8,
+      "states": {
+        "EST-RSK-001": "action_required",
+        "EST-RSK-002": "monitoring",
+        "EST-RSK-003": "assessed",
+        "EST-RSK-004": "draft",
+        "EST-RSK-005": "assessed",
+        "EST-RSK-006": "monitoring",
+        "EST-RSK-007": "closed",
+        "EST-RSK-008": "draft"
+      }
+    },
+    "nonconformities": {
+      "count": 6,
+      "states": {
+        "EST-NCR-001": "action_required",
+        "EST-NCR-002": "closed",
+        "EST-NCR-003": "draft",
+        "EST-NCR-004": "containment",
+        "EST-NCR-005": "investigation",
+        "EST-NCR-006": "cancelled"
+      }
+    },
+    "capas": {
+      "count": 4,
+      "states": {
+        "EST-CAPA-001": "implementation",
+        "EST-CAPA-002": "closed",
+        "EST-CAPA-003": "analysis",
+        "EST-CAPA-004": "action_planned"
+      }
+    },
+    "internal-audits/programs": {
+      "count": 3,
+      "states": {
+        "EST-PRG-003": "draft",
+        "EST-PRG-001": "active",
+        "EST-PRG-002": "active"
+      }
+    },
+    "internal-audits/audits": {
+      "count": 4,
+      "states": {
+        "EST-AUD-004": "draft",
+        "EST-AUD-003": "draft",
+        "EST-AUD-002": "planned",
+        "EST-AUD-001": "planned"
+      }
+    },
+    "workflow_states": {
+      "EST-WF-003": {
+        "version_status": "published",
+        "instance_states": [
+          "completed"
+        ]
+      },
+      "EST-WF-004": {
+        "version_status": "draft",
+        "instance_states": []
+      },
+      "EST-WF-002": {
+        "version_status": "published",
+        "instance_states": [
+          "active"
+        ]
+      },
+      "EST-WF-001": {
+        "version_status": "published",
+        "instance_states": [
+          "active"
+        ]
+      }
+    },
+    "structure": {
+      "activity_definitions": 12,
+      "evidence_requirements": 12,
+      "accepted_evidence": 4,
+      "active_links": 52,
+      "audit_children": 24,
+      "workflows": 4
+    },
+    "audits": [
+      {
+        "code": "EST-AUD-004",
+        "state": "draft",
+        "ready_for_execution": false,
+        "independence_reviews": 0,
+        "competence_reviews": 0,
+        "support_document": "EST-DOC-008"
+      },
+      {
+        "code": "EST-AUD-003",
+        "state": "draft",
+        "ready_for_execution": false,
+        "independence_reviews": 0,
+        "competence_reviews": 0,
+        "support_document": "EST-DOC-008"
+      },
+      {
+        "code": "EST-AUD-002",
+        "state": "planned",
+        "ready_for_execution": false,
+        "independence_reviews": 0,
+        "competence_reviews": 0,
+        "support_document": "EST-DOC-008"
+      },
+      {
+        "code": "EST-AUD-001",
+        "state": "planned",
+        "ready_for_execution": false,
+        "independence_reviews": 0,
+        "competence_reviews": 0,
+        "support_document": "EST-DOC-008"
+      }
+    ],
+    "verified_pdf_downloads": [
+      "EST-DOC-001",
+      "EST-DOC-002",
+      "EST-DOC-003",
+      "EST-DOC-004",
+      "EST-DOC-005",
+      "EST-DOC-006",
+      "EST-DOC-007",
+      "EST-DOC-008"
+    ],
+    "actions": {
+      "total": 8,
+      "overdue": 0,
+      "due_soon": 4,
+      "unassigned": 0,
+      "by_source": {
+        "capa": 4,
+        "workflow": 2,
+        "control_activity": 2
+      }
+    }
+  },
+  "status": "PASS"
+}

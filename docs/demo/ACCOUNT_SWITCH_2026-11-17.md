@@ -29,4 +29,4 @@ La solicitud **DEMO · Completar mi primera solicitud** está asignada a esta cu
 
 La creación inicial de identidades usa el procedimiento de fixture demo existente, no un onboarding comercial. No se cambiaron otras membresías, licencias, permisos de producción ni reglas de revisión. La guía privada y las capturas en artifacts/previews/2026-11-17-account-switch son locales, fuera de Git.
 
-La nueva petición del usuario es ampliar los datos y archivos con flujos conectados. Esa ampliación es trabajo separado, todavía no acreditado por las pruebas anteriores. Persisten los seis HIGH del Keycloak evaluado y la prohibición de promover producción sin resolver los gates.
+La nueva petición del usuario es ampliar los datos y archivos con flujos conectados. Esa ampliación fue cargada y verificada después; véase CONNECTED_STUDY_GUIDE.md y sus informes propios. Las pruebas anteriores de account-switch no sustituyen esa evidencia. Persisten los seis HIGH del Keycloak evaluado y la prohibición de promover producción sin resolver los gates.
