@@ -34,3 +34,5 @@ Auditorías: solo planificación; revisión humana de independencia/competencia 
 El manifiesto refleja las revisiones vigentes de esta demo. Una carga vacía crea una primera emisión; las revisiones pedagógicas adicionales se crearon por operaciones separadas y no las recrea este cargador. Los cambios de práctica posteriores pueden hacer fallar la comparación con el baseline sin justificar ningún reset.
 
 Persisten seis HIGH conocidos del Keycloak evaluado. No se reducen gates, no se autoriza producción y no se afirma paridad Odoo ni certificación ISO/NIST/WCAG. El PR se prepara contra `codex/demo-account-switch`, sin merge ni despliegue de producción.
+
+Publicación: [PR63](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/63), borrador, basePR62; árbol publicado idéntico al commit local probado. CP-CONNECTED-DEMO-06-20261118T010519Z conserva732fuentes/Git y14evidencias cifradas, restauración/hash/modos/bundle/tamper PASS. CI exacto nuevo pendiente; sin merge ni despliegue de producción.

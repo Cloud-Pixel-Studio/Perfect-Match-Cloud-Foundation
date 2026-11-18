@@ -14,7 +14,7 @@ Arquitectura: APIs HTTPS actuales y roles/capacidades existentes, sin modificar 
 - [x] Poblar workflows ejecutables y distintas etapas sin sustituir las aprobaciones QMS; mantener trabajo pendiente para el usuario.
 - [x] Verificar inventario persistido, relaciones, descargas/hash, transiciones, negativas y protección de otra empresa; recorrer navegador con la cuenta completa.
 - [x] Entregar mapa de estudio y archivos, actualizar checkpoint y preparar PR con evidencia saneada, conservar credenciales fuera de Git.
-- [ ] Publicar la rama y abrir el PR sin fusionar.
+- [x] Publicar la rama y abrir el PR sin fusionar: https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/63 (borrador; CI exacto pendiente).
 
 No se declara finalizada ninguna casilla hasta disponer de evidencia. Pruebas anteriores del despliegue o de account-switch no acreditan esta ampliación.
 
