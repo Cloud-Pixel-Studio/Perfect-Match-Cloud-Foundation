@@ -53,3 +53,16 @@ CodeQL44449858248:success. Calidad44449858162 detectó ocho retornosAny en helpe
 Navegador:190casos ejecutados en security44449858112,189PASS y un fallo nuevo por selector ambiguo mientras el formulario terminaba de guardar. El test ahora espera que el formulario cierre antes de buscar el badge. No cambia la lógica del producto y aún requiere la repetición exacta enCI. Los resultados de esa repetición deben quedar en CHECKPOINT y el informe de producto antes de cerrar la entrega.
 
 Repetición de código ba61137: [calidad44479633563](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44479633563) aprobó12jobs yCodeQL44479633561aprobó. [Security44479633585](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44479633585) ejecutó190browserPASS yZAP66PASS/2WARN/0FAIL; falló solo el control final de imágenes. ZIP14508592667 SHA256 `b4d18eb19b0d028941aaefa34ea3fc3bb645d27a62f9f780c563e88ba95f4e6b` verificado: Keycloak1CRITICAL+6HIGH, otras cinco imágenes0HIGH/CRITICAL. Esta CI precede al contrato de texto final: su propia ejecución se registra en el cuerpo dePR67 y checkpoint externo, sin extrapolar los resultados anteriores.
+
+
+## Cierre verificado del código506da8f
+
+[Calidad44535548505](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44535548505) aprobó sus12jobs;CodeQL44535548447aprobó. [Security44535548502](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44535548502) ejecutó191browserPASS, incluidos14casos del módulo y el flujoUnicode375px de lectura/edición/límites. ZAP66PASS/2WARN/0FAIL. Falló solo el control final de imágenes; no afirmar que toda la suite de seguridad aprobó. El job PostgreSQL repitió93PASS, guard de downgrade y restauración61tablas/hash/tamperPASS.
+
+Artefacto14536002806 descargado (enlace temporal renovado tras403 de caducidad), ZIP SHA256verificado:
+
+`610f75b6ad4594c79a9df3ae79a6264985de7e43b33940c7a22272b2cc1eafee`
+
+API/web/PostgreSQL/SeaweedFS/ClamAV:0HIGH/CRITICAL. Misma imagenKeycloak26.8.2/digestc68e286: **1CRITICAL +10HIGH**, once entradaspaquete/CVE. Frente al artefacto anterior aparecen además cuatroHIGH dejava-21-openjdk-headless: CVE-2026-114939, CVE-2026-114940, CVE-2026-114941 yCVE-2026-114942. El conteo cambia con la información del escáner; no hubo sustitución de imagen ni excepciones. No se comprobó alcanzabilidad/explotación. La consulta oficiallatest repetida el19nov sigue26.8.2. Merge/producción permanecen bloqueados.
+
+Este cierre es documentación posterior a la CI de506da8f. Los archivos de aplicación permanecen idénticos; el cuerpo dePR67 y el checkpoint externo recogen cualquier CI posterior, sin atribuir aprobaciones antes de ejecutarla.
