@@ -22,21 +22,24 @@ El catálogo congela identidades, orden y brechas del producto; no es una copia 
 
 |Comprobación|Resultado|
 |---|---|
-|Frontend unitario|268PASS,24archivos; baseline208|
-|API unitario|102PASS,629DBskip tras las seis regresiones nuevas; losskip no sonPASS|
-|PostgreSQL HTTP/SQL directo|56casos del módulo PASS después del fixSQL (50originales+6regresiones). Antes del fix:104PASS=50originales+54existentes de acceso/suspensión; no sumar reejecuciones|
+|Frontend unitario|282PASS,24archivos; baseline208|
+|API unitario|109PASS,666DBskip; losskip no sonPASS|
+|PostgreSQL HTTP/SQL directo|93casos del módulo PASS después del contrato de texto. Antes:56trasnamespace y104=50originales+54existentes de acceso/suspensión; no sumar reejecuciones|
 |Historial de permisos en fixture propio|42PASS; no sumarlos como funcionalidad nueva|
-|CI nueva|Job qms-project-integrity ejecuta56casos del módulo por defecto y restauración; los54existentes se probaron además localmente y tienen sus propios jobs|
+|CI nueva|Job qms-project-integrity ejecuta93casos del módulo por defecto y restauración; los54existentes se probaron además localmente y tienen sus propios jobs|
 |Migración0050vacía|up/down/upPASS; downgrade no vacío bloqueado|
 |Restauración antes/después|57/61tablas, hashes y rechazo de manipulaciónPASS en fixtures aislados|
 |Ruff/formato/mypy|PASS local; comprobación ampliada a85archivos src+tests después de corregir ocho retornosAny en helpers de tests|
 |SAST estricto1.29|124archivos,6reglas,0hallazgos/0errores; no cubre todo riesgo ni certifica seguridad|
 |Lint/typecheck/build web|PASS local después de correcciones|
-|Navegador en06275d2|190casos ejecutados:189PASS/1fallo por selector ambiguo en un caso nuevo; espera de cierre de formulario corregida, repeticiónCI pendiente|
+|CI deba61137|Calidad44479633563/12jobs yCodeQL44479633561PASS;190browserPASS yZAP66PASS/2WARN/0FAIL; solo gatefinal de imágenes falla|
+|Texto posterior a ba61137|14casos Playwright del módulo enumerados/typechecked; nuevo casoUnicode móvil/edición/límites requiere ejecuciónCI del próximo head. No atribuirle los190PASS anteriores|
 
 CUA sobre build local con backend de prueba/reproducción: creación y reapertura; trabajo reportado separado;409→500recarga con borrador conservado (RED observado antes del fix yGREEN después); bloqueo de salida por módulo; recarga/rebase explícitos y guardado; archivar/restaurar preservando notas; capturas claro/oscuro y375px sin desbordamiento horizontal. Es QA de interfaz con fixture, no prueba de OIDC ni persistencia PostgreSQL desde ese navegador. La persistencia real se verifica por las suites HTTP/SQL independientes del fixture visual. Capturas ignoradas en `artifacts/previews/2026-11-18-qms-projects`.
 
-Revisión frontend independiente encontró4P2 (borrador perdido tras recarga fallida,5xx ambiguo, salida por módulo, catálogo mal explicado): corregidos con regresiones unitarias y casosUI; seguimiento estático confirma correcciones. Un casoPlaywright que intentaba pulsar un enlace aria-disabled se cambió a activación forzada deliberada. Revisión backend reanudada encontróP1 en referencias SQL sin esquema que podían ocultarse mediante tablas temporales. Corregido con esquema explícito/search_path; seis regresionesRED→GREEN y56casos del móduloPASS. Ese revisor se detuvo por una restricción de herramienta; otro revisor independiente comprobó el fix y sus logs sin nuevosP0/P1/P2 en ese alcance, y está ampliando la lectura al backend completo. No afirmar aprobación final ni CI del nuevo head todavía. Detalle en docs/security/PERSISTENT_PROJECTS_REVIEW_2026-11-19.md.
+Revisión frontend independiente encontró4P2 (borrador perdido tras recarga fallida,5xx ambiguo, salida por módulo, catálogo mal explicado): corregidos con regresiones unitarias y casosUI. La revisión backend encontróP1 de relacionesSQL sin esquema; corregido con public explícito/pg_temp al final y seis regresionesRED→GREEN. Un segundo revisor completó lectura del backend y encontró3P2 de texto: notas invisibles, identidades vacías/sin normalización y límitesUTF-16. Corregidos y revisados por hashes de los diez archivos afectados; sinP0/P1/P2 restantes en ese alcance,93DBPASS y282webPASS. Inspeccionó código/logs sin repetir pruebas; no es revisión humanaGitHub ni certificación. CI del nuevo head queda pendiente al preparar este registro. Detalle en docs/security/PERSISTENT_PROJECTS_REVIEW_2026-11-19.md.
+
+Código/nombre/motivo normalizan solo sus extremos con el conjunto documentado de30caracteres. Las notas conservan todos sus caracteres; bloqueado/reportado requiere texto según el mismo conjunto. API, cinco predicadosSQL y cliente coinciden. El navegador cuenta puntos de código y valida antes de enviar sin perder el borrador. Pruebas cubren identidades invisibles, normalización antes de límites, espacios internos conservados y flujoHTTP con código40/nombre160/alcance4000/notas2000caracteres suplementarios. No se cambiaron rutas, campos ni límites numéricos.
 
 Fallos intermedios corregidos: primerSQLcompuesto de trigger no compilaba;403delector daba404 por SELECTFORUPDATE+RLS; faltaba no-store; GETpodía mezclar versiones padre/pasos; organización no leía SQLSTATEpg8000 y devolvía500en vez de409; test de suspensión fijaba0049comohead; ejecución de historial enDBequivocada produjo42errores de fixture, luego su harness propio pasó. Se mantienen avisos preexistentes de deprecaciónhttpx/TestClient/anyio; sin añadir dependencias.
 

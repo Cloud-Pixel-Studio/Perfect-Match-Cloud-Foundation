@@ -8,6 +8,18 @@ Clasificación: **P1 / integridad**, impacto en identidad de recorrido/paso y br
 
 La migración no está aplicada en demo ni en una base de cliente. No se revocan permisos globales de TEMP como sustituto de corregir las funciones; no se relaja RLS.
 
+## Contrato de texto entre API, SQL y navegador
+
+La revisión ampliada detectó tres problemasP2 del módulo: notas obligatorias compuestas por espacios Unicode/control que el CHECK inicial no rechazaba; identidades SQL de código/nombre vacías o sin normalización, capaces de invalidar una lista del cliente; y límites de texto contados como unidadesUTF-16 en el navegador, aunque API/PostgreSQL cuentan puntos de código. Al recorrer esas rutas también se confirmó una diferencia con U+FEFF y con el trim de NEL, que podía producir un recibo inesperado después de guardar.
+
+Decisión técnica acotada al proyecto: normalizar solo los extremos de código/nombre/motivo con los29caracteres whitespace de Python3.12 más U+FEFF, antes de validar longitud. SQL y cliente usan exactamente el mismo conjunto de30. Las notas conservan todos sus caracteres; el conjunto solo determina si un estado bloqueado/reportado tiene texto. Los límites numéricos y campos existentes se mantienen. El navegador cuenta puntos de código, admite su representaciónUTF-16 en los controles y verifica longitud antes de enviar, preservando el borrador si se excede.
+
+El contrato se precisa en docs/product/QMS_PROJECT_API_CONTRACT.json. Comparación estática de fuentes: conjuntoAPI=cliente=cinco literalesSQL,30caracteresPASS. Suite final PostgreSQL:93PASS; API109PASS/666DBskip, web282PASS, Ruff/formato135/mypy85 ySAST124/0hallazgos/0erroresPASS.0050up/down/up, guard de downgrade y restauración61tablas/hash/tamperPASS en CP-QMS-PROJECTS-DB-06-20261119T123805Z.
+
+Revisor independiente completó lectura del backend sobre043afbd y seguimiento de API/SQL/lector/formularios/testsposteriores: sinP0/P1/P2 restantes en ese alcance, ligado a SHA256 de diez archivos. Inspeccionó logs de ejecución; no repitió pruebas/payloads. No cubre toda la UI de nuevo, OIDC real, migración demo/cliente, carga, pentest autenticado ni restauraciónowners/ACL/S3/IdP. Preparado para actualizar PRborrador, no para merge/release.14casos Playwright del módulo incluyenUnicode375px/lectura/edición/límites; ejecución del nuevo head pendiente.
+
+Fallos intermedios conservados: notasSQL12FAIL/8PASS antes del fix, luego20PASS; identidad/BOM15FAIL/1PASS más1HTTPFAIL antes del fix, luego17PASS; APIunit7FAIL antes, luego9PASS en ese archivo; lectorUnicode2fallos de comportamiento yblank4fallos más2helper ausente, luego71clientPASS. Ruff detectó una constante demasiado larga; se dividió sin excepciones de estilo. No sumar estas reejecuciones a las93pruebas distintas del módulo.
+
 Logs locales protegidos: `/private/tmp/qms-project-temp-red-six.log`, `qms-project-temp-green.log` y `qms-project-temp-full-green.log`. El último registra0050up/down/up,56PASS, rechazo del downgrade con historial y CP-QMS-PROJECTS-DB-06-20261119T064946Z:restauración cifrada de61tablas con hashes y rechazo de manipulación. Nueva comprobación root de Ruff/formato/mypy85 y SAST124archivos/6reglas/0hallazgos/0erroresPASS. No equivale a una certificación de seguridad.
 
 ## Escaneo de imágenes: nuevo bloqueo crítico
@@ -39,3 +51,5 @@ La [última release oficial de Keycloak](https://github.com/keycloak/keycloak/re
 CodeQL44449858248:success. Calidad44449858162 detectó ocho retornosAny en helpers de tests y uso accidental de `rg` en el harness de PostgreSQL. Tipado explícito y comprobación portable con `grep` corregidos localmente; mypy sobre85archivos y harness50tests con restauración61tablas pasaron después. Falta CI del nuevo head.
 
 Navegador:190casos ejecutados en security44449858112,189PASS y un fallo nuevo por selector ambiguo mientras el formulario terminaba de guardar. El test ahora espera que el formulario cierre antes de buscar el badge. No cambia la lógica del producto y aún requiere la repetición exacta enCI. Los resultados de esa repetición deben quedar en CHECKPOINT y el informe de producto antes de cerrar la entrega.
+
+Repetición de código ba61137: [calidad44479633563](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44479633563) aprobó12jobs yCodeQL44479633561aprobó. [Security44479633585](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/actions/runs/44479633585) ejecutó190browserPASS yZAP66PASS/2WARN/0FAIL; falló solo el control final de imágenes. ZIP14508592667 SHA256 `b4d18eb19b0d028941aaefa34ea3fc3bb645d27a62f9f780c563e88ba95f4e6b` verificado: Keycloak1CRITICAL+6HIGH, otras cinco imágenes0HIGH/CRITICAL. Esta CI precede al contrato de texto final: su propia ejecución se registra en el cuerpo dePR67 y checkpoint externo, sin extrapolar los resultados anteriores.

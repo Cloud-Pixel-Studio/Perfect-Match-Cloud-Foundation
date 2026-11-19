@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, cast
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import text
@@ -1121,3 +1121,257 @@ def test_temporary_parent_and_steps_cannot_satisfy_deferred_completeness(
             )
             == 0
         )
+
+
+def _direct_versioned_step_notes(
+    case: Boundary, project: dict[str, Any], *, status: str, notes: str
+) -> None:
+    """Exercise the real note CHECK after satisfying parent/version/actor guards."""
+    step = project["steps"][0]
+    with case.runtime.begin() as db:
+        context(db, USERS["member"])
+        db.execute(
+            text(
+                "UPDATE public.qms_projects SET row_version=row_version+1,"
+                "step_write_id=:step,updated_at=clock_timestamp() WHERE id=:project"
+            ),
+            {"step": step["id"], "project": project["id"]},
+        )
+        db.execute(
+            text(
+                "UPDATE public.qms_project_steps SET status=:status,notes=:notes,"
+                "row_version=row_version+1,source_project_version=:version,"
+                "updated_by_user_id=:actor,updated_at=clock_timestamp() WHERE id=:step"
+            ),
+            {
+                "status": status,
+                "notes": notes,
+                "version": project["row_version"] + 1,
+                "actor": USERS["member"],
+                "step": step["id"],
+            },
+        )
+        db.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+
+
+@pytest.mark.parametrize("status", ["blocked", "reported"])
+@pytest.mark.parametrize(
+    "notes",
+    [
+        "",
+        " \t\n\r",
+        "\v",
+        "\f",
+        "\x1c\x1d\x1e\x1f",
+        "\x85\u00a0",
+        "\u1680\u2003\u2028\u2029\u202f\u205f\u3000",
+        "".join(chr(codepoint) for codepoint in range(0x110000) if chr(codepoint).isspace()),
+    ],
+    ids=[
+        "empty",
+        "ascii",
+        "vertical-tab",
+        "form-feed",
+        "controls",
+        "c1-nbsp",
+        "unicode",
+        "all-python-whitespace",
+    ],
+)
+def test_direct_sql_rejects_python_strip_empty_notes(
+    boundary: Boundary, status: str, notes: str
+) -> None:
+    # Python's current API runtime is an independent oracle for meaningful notes.
+    assert not notes.strip()
+    grant(boundary)
+    project = create(boundary)
+    with pytest.raises(DBAPIError) as rejected:
+        _direct_versioned_step_notes(boundary, project, status=status, notes=notes)
+    assert sqlstate(rejected.value) == "23514"
+    assert boundary.call("GET", f"/qms-projects/{project['id']}", role="member") == project
+
+
+@pytest.mark.parametrize("status", ["blocked", "reported"])
+@pytest.mark.parametrize(
+    "notes", ["Documented work pending verification", "\v\u00a0 Trabajo documentado \u3000\f"]
+)
+def test_direct_sql_preserves_meaningful_notes_and_versions(
+    boundary: Boundary, status: str, notes: str
+) -> None:
+    assert notes.strip()
+    grant(boundary)
+    project = create(boundary)
+    _direct_versioned_step_notes(boundary, project, status=status, notes=notes)
+    result = boundary.call("GET", f"/qms-projects/{project['id']}", role="member")
+    assert result["row_version"] == 2
+    assert result["steps"][0]["row_version"] == 2
+    assert result["steps"][0]["status"] == status
+    assert result["steps"][0]["notes"] == notes
+
+
+def _direct_complete_project_text(
+    case: Boundary, identifier: UUID, *, code: str, name: str
+) -> None:
+    with case.runtime.begin() as db:
+        context(db, USERS["member"])
+        db.execute(
+            text(
+                "INSERT INTO public.qms_projects(id,tenant_id,unit_id,code,name,journey_key,"
+                "catalog_version,scope_summary,status,row_version,created_by_user_id,created_at,updated_at) "
+                "VALUES(:id,:tenant,:unit,:code,:name,'initial','guided-qms-v1','','open',1,:actor,now(),now())"
+            ),
+            {
+                "id": identifier,
+                "tenant": A,
+                "unit": SITE,
+                "code": code,
+                "name": name,
+                "actor": USERS["member"],
+            },
+        )
+        db.execute(
+            text(
+                "INSERT INTO public.qms_project_steps(id,tenant_id,unit_id,project_id,step_key,position,"
+                "status,notes,row_version,source_project_version,updated_by_user_id,updated_at) "
+                "SELECT gen_random_uuid(),:tenant,:unit,:id,step_key,position,"
+                "CASE WHEN feature_pending THEN 'feature_pending' ELSE 'not_started' END,"
+                "'',1,1,:actor,now() FROM public.qms_project_catalog WHERE journey_key='initial' "
+                "AND catalog_version='guided-qms-v1'"
+            ),
+            {"id": identifier, "tenant": A, "unit": SITE, "actor": USERS["member"]},
+        )
+        db.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+
+
+@pytest.mark.parametrize("field", ["code", "name"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "\t",
+        "\u00a0\u2003",
+        "\ufeff",
+        "".join(chr(point) for point in range(0x110000) if chr(point).isspace()) + "\ufeff",
+        "\ufeffPlan",
+        "Plan\u3000",
+    ],
+    ids=["tab-blank", "unicode-blank", "bom-blank", "all-blank", "leading-bom", "trailing-unicode"],
+)
+def test_direct_sql_identity_requires_nonblank_normalized_project_text(
+    boundary: Boundary, field: str, value: str
+) -> None:
+    grant(boundary)
+    identifier = uuid4()
+    values = {"code": "DIRECT-PLAN", "name": "Direct project", field: value}
+    with pytest.raises(DBAPIError) as rejected:
+        _direct_complete_project_text(boundary, identifier, **values)
+    assert sqlstate(rejected.value) == "23514"
+    with boundary.admin.connect() as db:
+        assert (
+            db.scalar(
+                text("SELECT count(*) FROM public.qms_projects WHERE id=:id"), {"id": identifier}
+            )
+            == 0
+        )
+        assert (
+            db.scalar(
+                text("SELECT count(*) FROM public.qms_project_steps WHERE project_id=:id"),
+                {"id": identifier},
+            )
+            == 0
+        )
+
+
+def test_direct_sql_preserves_meaningful_internal_identity_characters(boundary: Boundary) -> None:
+    grant(boundary)
+    identifier = uuid4()
+    code, name = "A\ufeff \t\u2003B", "Plan \ufeff interno\tUnicode"
+    _direct_complete_project_text(boundary, identifier, code=code, name=name)
+    project = boundary.call("GET", f"/qms-projects/{identifier}", role="member")
+    assert project["code"] == code and project["name"] == name and len(project["steps"]) == 8
+
+
+@pytest.mark.parametrize("status", ["blocked", "reported"])
+def test_direct_sql_rejects_bom_only_required_notes(boundary: Boundary, status: str) -> None:
+    grant(boundary)
+    project = create(boundary)
+    with pytest.raises(DBAPIError) as rejected:
+        _direct_versioned_step_notes(boundary, project, status=status, notes="\ufeff")
+    assert sqlstate(rejected.value) == "23514"
+    assert boundary.call("GET", f"/qms-projects/{project['id']}", role="member") == project
+
+
+def test_http_normalization_and_supplementary_unicode_limits(boundary: Boundary) -> None:
+    grant(boundary)
+    code, name, scope, notes = (
+        "\U0001f9ed" * 40,
+        "\U0001f680" * 160,
+        "\U0001f9ea" * 4000,
+        "\U0001f4dd" * 2000,
+    )
+    project = boundary.call(
+        "POST",
+        "/qms-projects",
+        {
+            "unit_id": str(SITE),
+            "code": "\ufeff" + code + "\ufeff",
+            "name": "\u3000" + name + "\ufeff",
+            "scope_summary": scope,
+            "journey_key": "initial",
+        },
+        role="member",
+        expected=201,
+    )
+    assert project["code"] == code and project["name"] == name and project["scope_summary"] == scope
+    updated = boundary.call(
+        "PATCH",
+        f"/qms-projects/{project['id']}/steps/{project['steps'][0]['id']}",
+        step_patch(project, project["steps"][0], status="reported", notes=notes),
+        role="member",
+    )
+    assert updated["code"] == code and updated["name"] == name and updated["scope_summary"] == scope
+    assert updated["steps"][0]["notes"] == notes and updated["row_version"] == 2
+
+
+def test_http_rejects_bom_only_project_values_and_current_required_notes(
+    boundary: Boundary,
+) -> None:
+    grant(boundary)
+    body = {"unit_id": str(SITE), "code": "PLAN", "name": "Plan", "journey_key": "initial"}
+    for field in ("code", "name"):
+        boundary.call(
+            "POST", "/qms-projects", {**body, field: "\ufeff"}, role="member", expected=422
+        )
+    project = create(boundary)
+    path = f"/qms-projects/{project['id']}"
+    boundary.call(
+        "PATCH", path, {"expected_version": 1, "name": "\ufeff"}, role="member", expected=422
+    )
+    boundary.call(
+        "POST",
+        path + "/status",
+        {"expected_version": 1, "target_status": "archived", "reason": "\ufeff"},
+        role="member",
+        expected=422,
+    )
+    step = project["steps"][0]
+    boundary.call(
+        "PATCH",
+        path + f"/steps/{step['id']}",
+        step_patch(project, step, status="reported", notes="\ufeff"),
+        role="member",
+        expected=422,
+    )
+    reported = boundary.call(
+        "PATCH",
+        path + f"/steps/{step['id']}",
+        step_patch(project, step, status="reported", notes="Meaningful self report"),
+        role="member",
+    )
+    boundary.call(
+        "PATCH",
+        path + f"/steps/{step['id']}",
+        step_patch(reported, reported["steps"][0], notes="\ufeff"),
+        role="member",
+        expected=422,
+    )
+    assert boundary.call("GET", path, role="member") == reported

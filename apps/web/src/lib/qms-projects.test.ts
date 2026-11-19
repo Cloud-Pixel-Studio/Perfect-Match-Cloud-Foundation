@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { journeys } from "./guided-journeys";
 import { isAllowedIdentityPath } from "./identity-path";
-import { loadProjectIndex, loadProject, mutateProject, parseProjectDetail, ProjectError } from "./qms-projects";
+import { loadProjectIndex, loadProject, mutateProject, parseProjectDetail, ProjectError, trimProjectText } from "./qms-projects";
 
 const tenantId="10000000-0000-4000-8000-000000000001", userId="20000000-0000-4000-8000-000000000001", unitId="30000000-0000-4000-8000-000000000001", id="40000000-0000-4000-8000-000000000001", other="90000000-0000-4000-8000-000000000001";
 const context={tenantId,userId,unitId};
@@ -100,4 +100,39 @@ it.each([500,502,504])('treats HTTP%s mutation failure as uncertain and prevents
 it('identifies a catalog upgrade separately from revoked authority',()=>{
  try{parseProjectDetail({...detail(),catalog_version:'guided-qms-v2'},context);throw new Error('accepted unsupported version');}
  catch(error){expect(error).toMatchObject({catalogMismatch:true,contextLost:false});}
+});
+
+it('accepts API-valid Unicode project text at character limits without losing the index',async()=>{
+ const row={...base,code:'\u{1F9ED}'.repeat(40),name:'\u{1F9EA}'.repeat(160),scope_summary:'\u{1F30D}'.repeat(4000)};
+ const f=fixture({list:[row],members:[{id:userId,display_name:'\u{1F464}'.repeat(160),role:'owner'}]});
+ await expect(loadProjectIndex(context,undefined,f.request)).resolves.toMatchObject({kind:'loaded',projects:[row],members:[{display_name:'\u{1F464}'.repeat(160)}]});
+});
+
+it('preserves a Unicode step receipt at the API note limit',async()=>{
+ const d=detail();d.row_version=2;d.steps[0]={...d.steps[0],row_version:2,status:'reported',notes:'\u{1F4CB}'.repeat(2000)};
+ const f=fixture({mutation:d});
+ await expect(mutateProject(context,{kind:'step',id,stepId:d.steps[0].id,expectedVersion:1,expectedStepVersion:1,changes:{status:'reported',notes:d.steps[0].notes}},'x'.repeat(40),undefined,f.request)).resolves.toEqual(d);
+});
+
+it.each([{field:'code',limit:40},{field:'name',limit:160},{field:'scope_summary',limit:4000}])('rejects project %s beyond the Unicode character limit',async({field,limit})=>{
+ const f=fixture({list:[{...base,[field]:'\u{1F9ED}'.repeat(limit+1)}]});
+ await expect(loadProjectIndex(context,undefined,f.request)).rejects.toBeInstanceOf(ProjectError);
+});
+
+it('rejects a step note beyond the Unicode character limit',()=>{
+ const d=detail();d.steps[0].notes='\u{1F4CB}'.repeat(2001);
+ expect(()=>parseProjectDetail(d,context)).toThrow(ProjectError);
+});
+
+it('trims project identity boundaries consistently with the API without changing internal whitespace',()=>{
+ expect(trimProjectText('\uFEFF\u0085\u001C Quality\u00A0 \nAssurance \u3000\u001F\uFEFF')).toBe('Quality\u00A0 \nAssurance');
+});
+
+it('recognizes all project blank characters including the byte order mark',()=>{
+ expect(trimProjectText('\t\n\v\f\r\u001C\u001D\u001E\u001F \u0085\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF')).toBe('');
+});
+
+it.each(['blocked','reported'].flatMap(status=>['\u0085','\u001C\u001D\u001E\u001F','\uFEFF'].map(notes=>({status,notes}))))('rejects an invisible required note for %s',({status,notes})=>{
+ const d=detail();d.steps[0].status=status;d.steps[0].notes=notes;
+ expect(()=>parseProjectDetail(d,context)).toThrow(ProjectError);
 });

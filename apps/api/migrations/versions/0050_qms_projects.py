@@ -126,8 +126,8 @@ REVOKE ALL ON qms_project_catalog FROM PUBLIC,pmcloud_app;
 GRANT SELECT ON qms_project_catalog TO pmcloud_app;
 CREATE TABLE qms_projects (
  id uuid PRIMARY KEY, tenant_id uuid NOT NULL REFERENCES tenants(id) ON DELETE RESTRICT,
- unit_id uuid NOT NULL, code varchar(40) NOT NULL CHECK(length(btrim(code)) BETWEEN 1 AND 40 AND code=btrim(code)),
- name varchar(160) NOT NULL CHECK(length(btrim(name)) BETWEEN 1 AND 160 AND name=btrim(name)),
+ unit_id uuid NOT NULL, code varchar(40) NOT NULL CHECK(length(btrim(code,U&'\\0009\\000A\\000B\\000C\\000D\\001C\\001D\\001E\\001F\\0020\\0085\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF')) BETWEEN 1 AND 40 AND code=btrim(code,U&'\\0009\\000A\\000B\\000C\\000D\\001C\\001D\\001E\\001F\\0020\\0085\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF')),
+ name varchar(160) NOT NULL CHECK(length(btrim(name,U&'\\0009\\000A\\000B\\000C\\000D\\001C\\001D\\001E\\001F\\0020\\0085\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF')) BETWEEN 1 AND 160 AND name=btrim(name,U&'\\0009\\000A\\000B\\000C\\000D\\001C\\001D\\001E\\001F\\0020\\0085\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF')),
  journey_key varchar(20) NOT NULL, catalog_version varchar(40) NOT NULL,
  scope_summary text NOT NULL CHECK(length(scope_summary)<=4000),
  coordinator_user_id uuid REFERENCES users(id) ON DELETE RESTRICT, target_date date,
@@ -152,7 +152,8 @@ CREATE TABLE qms_project_steps (
  updated_at timestamptz NOT NULL,
  FOREIGN KEY(project_id,tenant_id,unit_id) REFERENCES qms_projects(id,tenant_id,unit_id) ON DELETE RESTRICT,
  UNIQUE(project_id,step_key), UNIQUE(project_id,position),
- CHECK(status NOT IN ('blocked','reported') OR length(btrim(notes,E' \\t\\n\\r'))>0)
+ -- Same30 blank characters as the project API/client: Python3.12 whitespace plus BOM.
+ CHECK(status NOT IN ('blocked','reported') OR length(btrim(notes,U&'\\0009\\000A\\000B\\000C\\000D\\001C\\001D\\001E\\001F\\0020\\0085\\00A0\\1680\\2000\\2001\\2002\\2003\\2004\\2005\\2006\\2007\\2008\\2009\\200A\\2028\\2029\\202F\\205F\\3000\\FEFF'))>0)
 );
 CREATE UNIQUE INDEX qms_project_step_parent_version ON qms_project_steps(project_id,source_project_version) WHERE row_version>1;
 CREATE INDEX qms_project_step_scope ON qms_project_steps(tenant_id,unit_id,project_id,position);

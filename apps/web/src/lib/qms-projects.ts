@@ -20,7 +20,17 @@ export class ProjectCatalogError extends ProjectError {
 const obj=(v:unknown):v is Record<string,unknown>=>v!==null&&typeof v==="object"&&!Array.isArray(v);
 const uuid=(v:unknown):v is string=>typeof v==="string"&&/^[a-f\d]{8}(-[a-f\d]{4}){3}-[a-f\d]{12}$/i.test(v);
 const positive=(v:unknown):v is number=>typeof v==="number"&&Number.isSafeInteger(v)&&v>0;
-const str=(v:unknown,max:number,min=0):v is string=>typeof v==="string"&&v.length<=max&&v.trim().length>=min;
+// Match the project's API/SQL blank set; keep internal whitespace and notes unchanged.
+const projectBlankPoints=new Set([9,10,11,12,13,28,29,30,31,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279]);
+export function trimProjectText(value:string){
+ let start=0,end=value.length;
+ while(start<end&&projectBlankPoints.has(value.charCodeAt(start)))start++;
+ while(end>start&&projectBlankPoints.has(value.charCodeAt(end-1)))end--;
+ return value.slice(start,end);
+}
+// API and PostgreSQL limits count Unicode characters, not UTF-16 code units.
+export const projectTextFits=(value:string,max:number)=>value.length<=max*2&&Array.from(value).length<=max;
+const str=(v:unknown,max:number,min=0):v is string=>typeof v==="string"&&projectTextFits(v,max)&&trimProjectText(v).length>=min;
 const nullableUuid=(v:unknown)=>v===null||uuid(v);
 const date=(v:unknown)=>v===null||typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString().slice(0,10)===v;
 const instant=(v:unknown)=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(v)&&Number.isFinite(Date.parse(v));
@@ -41,7 +51,7 @@ export function parseProjectDetail(v:unknown,c:ProjectContext):ProjectDetail{
     if(!obj(s)||!uuid(s.id)||s.tenant_id!==c.tenantId||s.unit_id!==c.unitId||s.project_id!==project.id||!positive(s.row_version)||!str(s.notes,2000)||!nullableUuid(s.assignee_user_id)||!date(s.target_date)||!uuid(s.updated_by_user_id)||!instant(s.updated_at)||typeof s.status!=="string")throw invalid();
     if(s.step_key!==catalog[i].id||s.position!==i+1)throw new ProjectCatalogError();
     if(catalog[i].productGap?s.status!=="feature_pending":!["not_started","in_progress","blocked","reported"].includes(s.status))throw invalid();
-    if(["blocked","reported"].includes(s.status)&&!s.notes.trim())throw invalid();
+    if(["blocked","reported"].includes(s.status)&&!trimProjectText(s.notes))throw invalid();
     return s as ProjectStep;
   });if(!unique(steps))throw invalid();return {...project,steps};
 }

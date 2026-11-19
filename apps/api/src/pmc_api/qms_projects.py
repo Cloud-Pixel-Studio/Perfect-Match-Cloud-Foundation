@@ -9,7 +9,14 @@ from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    model_validator,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
@@ -28,8 +35,27 @@ def _no_store(response: Response) -> None:
 
 router = APIRouter(prefix="/qms-projects", tags=["qms-projects"], dependencies=[Depends(_no_store)])
 DBSession = Annotated[Session, Depends(get_db)]
-Code = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
-Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
+# Scoped project text contract: Python3.12 whitespace plus BOM, matching the client/DB.
+_PROJECT_TEXT_BLANK_CHARACTERS = (
+    "\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u0020"
+    "\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006"
+    "\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
+
+
+def _trim_project_text(value: object) -> object:
+    return value.strip(_PROJECT_TEXT_BLANK_CHARACTERS) if isinstance(value, str) else value
+
+
+Code = Annotated[
+    str, StringConstraints(min_length=1, max_length=40), BeforeValidator(_trim_project_text)
+]
+Name = Annotated[
+    str, StringConstraints(min_length=1, max_length=160), BeforeValidator(_trim_project_text)
+]
+Reason = Annotated[
+    str, StringConstraints(min_length=1, max_length=500), BeforeValidator(_trim_project_text)
+]
 Version = Annotated[int, Field(strict=True, ge=1)]
 Journey = Literal["initial", "improve", "transition", "migrate", "audit", "expand"]
 StepStatus = Literal["not_started", "in_progress", "blocked", "reported", "feature_pending"]
@@ -94,7 +120,7 @@ class StatusCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
     expected_version: Version
     target_status: Literal["open", "archived"]
-    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    reason: Reason
 
 
 class StepPatch(BaseModel):
@@ -111,6 +137,12 @@ class StepPatch(BaseModel):
         changed = self.model_fields_set - {"expected_version", "expected_project_version"}
         if not changed or any(getattr(self, k) is None for k in changed & {"status", "notes"}):
             raise ValueError("provide non-null step changes")
+        if (
+            self.status in {"blocked", "reported"}
+            and self.notes is not None
+            and not self.notes.strip(_PROJECT_TEXT_BLANK_CHARACTERS)
+        ):
+            raise ValueError("blocked or reported work requires meaningful notes")
         return self
 
 
@@ -459,9 +491,8 @@ def update_step(
         step.status != "feature_pending" and target_status == "feature_pending"
     ):
         raise HTTPException(422, "product gap status is fixed by catalog")
-    if (
-        target_status in {"blocked", "reported"}
-        and not str(changes.get("notes", step.notes)).strip()
+    if target_status in {"blocked", "reported"} and not str(changes.get("notes", step.notes)).strip(
+        _PROJECT_TEXT_BLANK_CHARACTERS
     ):
         raise HTTPException(422, "blocked or reported work requires meaningful notes")
     before = _step_values(step, row)

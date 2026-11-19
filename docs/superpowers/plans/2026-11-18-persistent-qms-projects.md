@@ -38,8 +38,8 @@ Interfaces: QMS_PROJECT_API_CONTRACT.json, JSON catalog matches guide44steps. Pl
 - [x] Run web208baseline+new tests, lint/typecheck/build and frozen catalog equality check.
 
 ### Task 3: independent review, recovery and publication (root)
-- [ ] Independent read-only review of complete diff, focused RLS/history/access/concurrency/cross-context tests; correct material findings and verify scoped follow-up.
-- [ ] Update CHECKPOINT/product report, encrypted source/Git checkpoint, staged secret scan/diffcheck; publish dedicated branch/draft PR based on guided journeys. Local/remote tree equality and no force push.
-- [ ] Record actual tests, migration/restoration evidence, pending browser/security gates, no deployment. Preserve existing demo runtime.
+- [x] Independent read-only review of complete diff, focused RLS/history/access/concurrency/cross-context tests; correct material findings and verify scoped follow-up.
+- [x] Update CHECKPOINT/product report, encrypted source/Git checkpoint, staged secret scan/diffcheck; publish dedicated branch/draft PR based on guided journeys. Local/remote tree equality and no force push.
+- [x] Record actual tests, migration/restoration evidence, pending browser/security gates, no deployment. Preserve existing demo runtime.
 
 Ruling: user opted for autonomous delivery across session; no new approval cycle for reversible local implementation. Formal completion remains excluded until an explicit evidence/review engine exists.

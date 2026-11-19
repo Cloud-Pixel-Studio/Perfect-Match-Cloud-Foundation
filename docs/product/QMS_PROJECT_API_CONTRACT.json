@@ -3,6 +3,12 @@
   "prefix": "/qms-projects",
   "capabilities": ["projects.read", "projects.manage"],
   "authorization": "Reads require projects.read; writes require both for exact unit; no implicit owner access. Auditor read only. No grant bootstrap.",
+  "text_semantics": {
+    "length_unit": "Unicode code points, as Python len and PostgreSQL length; not UTF-16 code units or grapheme clusters",
+    "blank_code_points": [9,10,11,12,13,28,29,30,31,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279],
+    "identity": "Trim only boundary blank characters from code, name and status reason before validating length; reject empty results; retain internal whitespace.",
+    "notes": "Preserve all note characters. For blocked/reported, require a nonempty result after checking the same boundary blank set; do not replace the stored note with that result."
+  },
   "project": {
     "id": "uuid", "tenant_id": "uuid", "unit_id": "uuid", "code": "trimmed1..40", "name": "trimmed1..160",
     "journey_key": "initial|improve|transition|migrate|audit|expand", "catalog_version": "guided-qms-v1",
