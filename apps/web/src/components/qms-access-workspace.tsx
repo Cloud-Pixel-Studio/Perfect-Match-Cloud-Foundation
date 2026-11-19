@@ -28,6 +28,8 @@ const capabilities: Record<string, string> = {
   "ncr.review": "Review and close nonconformities",
   "capa.read": "Read corrective actions", "capa.manage": "Manage corrective action drafts",
   "capa.review": "Review corrective actions",
+  "projects.read": "Read saved QMS projects",
+  "projects.manage": "Manage QMS project planning",
   "audits.read": "Read internal-audit programs and schedules",
   "audits.manage": "Manage internal-audit planning",
   "audits.execute": "Internal-audit execution responsibility",

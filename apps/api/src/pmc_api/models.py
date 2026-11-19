@@ -38,6 +38,46 @@ class QMSAccessGrant(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class QMSProject(Base):
+    __tablename__ = "qms_projects"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    name: Mapped[str] = mapped_column(String(160), nullable=False)
+    journey_key: Mapped[str] = mapped_column(String(20), nullable=False)
+    catalog_version: Mapped[str] = mapped_column(String(40), nullable=False)
+    step_write_id: Mapped[UUID | None] = mapped_column()
+    scope_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    coordinator_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    target_date: Mapped[date | None] = mapped_column(Date)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class QMSProjectStep(Base):
+    __tablename__ = "qms_project_steps"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(ForeignKey("tenants.id"), nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    project_id: Mapped[UUID] = mapped_column(nullable=False)
+    step_key: Mapped[str] = mapped_column(String(50), nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=False)
+    assignee_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
+    target_date: Mapped[date | None] = mapped_column(Date)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_project_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    updated_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class QMSAuditProgram(Base):
     __tablename__ = "qms_audit_programs"
 

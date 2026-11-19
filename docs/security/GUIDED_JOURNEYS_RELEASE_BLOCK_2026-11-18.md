@@ -27,3 +27,7 @@ CP-GUIDED-DEMO-CONFIG-00-20261118T145214Z conserva cifrados fuera del árbol los
 4. Construir una imagen nueva desde el código aprobado, renovar checkpoint de configuración y verificar solo el cambio web en la demo autorizada. La imagen preparada aquí no se instala automáticamente al resolver otro PR.
 
 La demo existente también requiere seguimiento de dependencias; mantenerla sin actualizar no es una afirmación de que esté libre de vulnerabilidades. Este informe no sustituye evaluación de exposición o pentest.
+
+## Actualización posterior del18noviembre2026
+
+GitHub retiró GHSA-fc5q-39xc-vjpf. El registro sigue4.0.7; repetir la auditoría devolvió exit0,0HIGH/0CRITICAL/1moderate sin modificar dependencias ni gates. El bloqueo documentado arriba representa la evidencia histórica de3aa7f95, no el estado actual del aviso. Esto permite volver a ejecutar runtime/browser enCI; no resuelve los6HIGHKeycloak ni constituye aprobación de producción. La imagen antigua preparada sigue sin instalarse. Véase docs/product/PERSISTENT_QMS_PROJECTS_2026-11-18.md.

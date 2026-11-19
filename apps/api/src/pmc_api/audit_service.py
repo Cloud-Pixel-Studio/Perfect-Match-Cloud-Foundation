@@ -11,6 +11,18 @@ from sqlalchemy.orm import Session
 from pmc_api.models import AuditEvent
 
 AUDIT_SCHEMA_VERSION = 1
+QMS_PROJECT_ACTIONS = {
+    **{
+        action: "qms_project"
+        for action in (
+            "qms_project.created",
+            "qms_project.updated",
+            "qms_project.archived",
+            "qms_project.restored",
+        )
+    },
+    "qms_project_step.updated": "qms_project_step",
+}
 PROCESS_ACTIONS = {
     action: "qms_process"
     for action in (
@@ -685,6 +697,7 @@ def _record(
         **QMS_ACCESS_ACTIONS,
         **INTERNAL_AUDIT_ACTIONS,
         **PROCESS_ACTIONS,
+        **QMS_PROJECT_ACTIONS,
         **CONTROL_ACTIONS,
         **RISK_ACTIONS,
         **NCR_ACTIONS,
@@ -894,6 +907,54 @@ def record_internal_audit(db: Session, **kwargs: object) -> AuditEvent:
             not isinstance(payload, dict) or not set(payload).issubset(allowed)
         ):
             raise AuditPayloadError("internal-audit payload fields are invalid")
+    return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
+
+
+def record_qms_project(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    resource_type = QMS_PROJECT_ACTIONS.get(action)
+    if resource_type is None:
+        raise AuditPayloadError("unsupported QMS project action")
+    allowed = (
+        {
+            "unit_id",
+            "code",
+            "name_hash",
+            "journey_key",
+            "catalog_version",
+            "scope_summary_hash",
+            "coordinator_user_id",
+            "target_date",
+            "status",
+            "row_version",
+        }
+        if resource_type == "qms_project"
+        else {
+            "unit_id",
+            "project_id",
+            "project_row_version",
+            "step_key",
+            "position",
+            "status",
+            "row_version",
+            "notes_hash",
+            "assignee_user_id",
+            "target_date",
+        }
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if field == "old_values" and action == "qms_project.created":
+            if payload is not None:
+                raise AuditPayloadError("new QMS projects cannot have previous values")
+            continue
+        expected = allowed | (
+            {"reason_hash"}
+            if field == "new_values" and action in {"qms_project.archived", "qms_project.restored"}
+            else set()
+        )
+        if not isinstance(payload, dict) or set(payload) != expected:
+            raise AuditPayloadError("QMS project payload fields are invalid")
     return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
 
 

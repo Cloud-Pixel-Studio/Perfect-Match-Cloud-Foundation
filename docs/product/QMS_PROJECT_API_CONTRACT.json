@@ -1,0 +1,43 @@
+{
+  "version": "guided-qms-v1",
+  "prefix": "/qms-projects",
+  "capabilities": ["projects.read", "projects.manage"],
+  "authorization": "Reads require projects.read; writes require both for exact unit; no implicit owner access. Auditor read only. No grant bootstrap.",
+  "text_semantics": {
+    "length_unit": "Unicode code points, as Python len and PostgreSQL length; not UTF-16 code units or grapheme clusters",
+    "blank_code_points": [9,10,11,12,13,28,29,30,31,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279],
+    "identity": "Trim only boundary blank characters from code, name and status reason before validating length; reject empty results; retain internal whitespace.",
+    "notes": "Preserve all note characters. For blocked/reported, require a nonempty result after checking the same boundary blank set; do not replace the stored note with that result."
+  },
+  "project": {
+    "id": "uuid", "tenant_id": "uuid", "unit_id": "uuid", "code": "trimmed1..40", "name": "trimmed1..160",
+    "journey_key": "initial|improve|transition|migrate|audit|expand", "catalog_version": "guided-qms-v1",
+    "scope_summary": "string max4000", "coordinator_user_id": "uuid|null", "target_date": "ISOdate|null",
+    "status": "open|archived", "row_version": "strict positive integer", "created_by_user_id": "uuid",
+    "created_at": "ISOdatetime", "updated_at": "ISOdatetime"
+  },
+  "step": {
+    "id": "uuid", "tenant_id": "uuid", "unit_id": "uuid", "project_id": "uuid",
+    "step_key": "catalog key", "position": "positive integer", "status": "not_started|in_progress|blocked|reported|feature_pending",
+    "notes": "string max2000; trimmed nonempty required blocked/reported", "assignee_user_id": "uuid|null",
+    "target_date": "ISOdate|null", "row_version": "strict positive integer", "updated_by_user_id": "uuid", "updated_at": "ISOdatetime"
+  },
+  "routes": [
+    {"method":"GET","path":"","query":"unit_id required UUID; limit default50 max50; offset default0","response":"Project[] <=limit; exact-unit read capability required, includes archived; ordered code/id"},
+    {"method":"POST","path":"","body":{"unit_id":"uuid","code":"string","name":"string","journey_key":"catalog journey","scope_summary":"string default empty","coordinator_user_id":"uuid|null default null","target_date":"ISOdate|null default null"},"response":"201 ProjectDetail = project fields + steps:Step[]; all steps atomically generated server-side"},
+    {"method":"GET","path":"/{project_id}","response":"ProjectDetail; unknown/inaccessible404"},
+    {"method":"PATCH","path":"/{project_id}","body":"expected_version positive int plus at least one of name,scope_summary,coordinator_user_id(nullable),target_date(nullable); extra keys forbidden","response":"ProjectDetail; row_version+1"},
+    {"method":"POST","path":"/{project_id}/status","body":{"expected_version":"positive int","target_status":"archived|open","reason":"trimmed1..500"},"response":"ProjectDetail; actual status change only, row_version+1"},
+    {"method":"PATCH","path":"/{project_id}/steps/{step_id}","body":"expected_project_version AND expected_version positive int; at least one of status,notes,assignee_user_id(nullable),target_date(nullable); extra keys forbidden","response":"ProjectDetail; step version+1 AND project version+1 atomically"}
+  ],
+  "constraints": [
+    "Project id/tenant/unit/code/journey/catalog/creator/timestamp immutable; version increments once.",
+    "Step key/id/scope/parent/position immutable and all rows match frozen journey; feature_pending status cannot change.",
+    "A reported step is NOT approved/completed/ISO compliance. No project completion endpoint or percentage.",
+    "Active same-company member assignments only; assignment never grants authority. No requirement for assignee unit assignment in first release; explain this in UI.",
+    "Active unit and actor required; scope lock serializes archiving. Parent lock serializes all metadata/status/step writes.",
+    "Archived project cannot edit steps/metadata; restore requires current capabilities/reason. No DELETE.",
+    "All mutations CSRF; audit event required same transaction. 409 stale/DBscope conflicts, 403 capability, 404 inaccessible row, 422 invalid body.",
+    "Pending catalog/UI mismatch must refuse edits rather than discard records. Reads cache:no-store/include; mutation no auto retry."
+  ]
+}

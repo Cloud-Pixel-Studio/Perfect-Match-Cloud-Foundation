@@ -1,0 +1,31 @@
+.qms-project-planner { margin: var(--pm-space-6) 0; padding: var(--pm-space-5); border: 1px solid var(--pm-border); border-radius: var(--pm-radius-lg); background: var(--pm-surface); box-shadow: var(--pm-shadow-sm); }
+.project-panel-heading { display:flex; gap:var(--pm-space-4); justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.project-panel-heading .eyebrow { margin:0 0 var(--pm-space-2); }
+.project-panel-heading h3 { display:flex; align-items:center; gap:var(--pm-space-2); margin:0; font-size:var(--pm-text-lg); }
+.project-help { color:var(--pm-text-muted); font-size:var(--pm-text-xs); line-height:1.7; }
+.project-toolbar { display:flex; flex-wrap:wrap; gap:var(--pm-space-4); align-items:end; margin-top:var(--pm-space-4); }
+.project-toolbar > label { flex:1; min-width:min(100%,18rem); }
+.qms-project-planner label,.project-step-plan label { display:grid; gap:var(--pm-space-2); color:var(--pm-text-muted); font-size:var(--pm-text-xs); font-weight:var(--pm-weight-semibold); }
+:is(.qms-project-planner,.project-step-plan) :is(input,select,textarea) { width:100%; min-width:0; min-height:44px; padding:var(--pm-space-3); border:1px solid var(--pm-border-strong); border-radius:var(--pm-radius-md); color:var(--pm-text); background:var(--pm-bg); font:inherit; font-size:var(--pm-text-sm); }
+:is(.qms-project-planner,.project-step-plan) textarea { resize:vertical; line-height:1.6; }
+.project-summary { margin-top:var(--pm-space-5); padding:var(--pm-space-4); border-inline-start:3px solid var(--pm-primary); border-radius:var(--pm-radius-md); background:var(--pm-bg); overflow-wrap:anywhere; }
+.project-summary h4 { margin:var(--pm-space-2) 0; font-size:var(--pm-text-lg); }
+.project-summary p { white-space:pre-wrap; }
+.project-summary dl,.project-step-values { display:flex; flex-wrap:wrap; gap:var(--pm-space-4) var(--pm-space-6); }
+.project-summary dt,.project-step-values dt { color:var(--pm-text-muted); font-size:var(--pm-text-xs); }
+.project-summary dd,.project-step-values dd { margin:var(--pm-space-1) 0 0; font-size:var(--pm-text-sm); }
+.project-actions { display:flex; flex-wrap:wrap; gap:var(--pm-space-3); margin-top:var(--pm-space-4); }
+.project-form { display:grid; gap:var(--pm-space-4); margin-top:var(--pm-space-4); padding:var(--pm-space-4); border:1px solid var(--pm-border); border-radius:var(--pm-radius-md); background:var(--pm-surface); }
+.project-form h4 { margin:0; }
+.project-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--pm-space-4); }
+.project-reconcile,.project-access-note { padding:var(--pm-space-3); border:1px solid var(--pm-border); border-inline-start:3px solid var(--pm-info); border-radius:var(--pm-radius-sm); font-size:var(--pm-text-xs); overflow-wrap:anywhere; }
+.project-step-plan { margin-top:var(--pm-space-6); padding:var(--pm-space-4); border:1px solid var(--pm-border); border-radius:var(--pm-radius-md); background:var(--pm-bg); }
+.project-observation-title { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--pm-space-2); }
+.project-observation-title h5 { margin:0; }
+.project-label { display:inline-block; color:var(--pm-primary-strong); font-size:var(--pm-text-xs); font-weight:var(--pm-weight-semibold); }
+.project-notes { white-space:pre-wrap; overflow-wrap:anywhere; font-size:var(--pm-text-sm); }
+.project-feedback { padding:var(--pm-space-3); border-inline-start:3px solid var(--pm-info); font-size:var(--pm-text-sm); }
+.project-skeleton span { display:block; height:20px; margin-top:var(--pm-space-2); background:var(--pm-surface-muted); border-radius:var(--pm-radius-sm); }
+.project-skeleton span:last-child { width:60%; }
+:is(.qms-project-planner,.project-step-plan) :is(button,input,textarea,select):focus-visible { outline:3px solid var(--pm-focus); outline-offset:3px; }
+@media(max-width:640px) { .qms-project-planner { padding:var(--pm-space-4); } .project-fields { grid-template-columns:minmax(0,1fr); } .project-toolbar > button,.project-panel-heading > button { width:100%; justify-content:center; } .project-actions > button { flex:1 1 10rem; justify-content:center; } }

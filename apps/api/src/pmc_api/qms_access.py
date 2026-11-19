@@ -32,6 +32,8 @@ CAPABILITIES = frozenset(
         "evidence.read",
         "evidence.create",
         "evidence.review",
+        "projects.read",
+        "projects.manage",
         "processes.read",
         "processes.manage",
         "controls.read",

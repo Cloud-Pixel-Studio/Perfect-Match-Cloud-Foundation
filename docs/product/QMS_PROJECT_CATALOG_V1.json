@@ -1,0 +1,255 @@
+{
+  "version": "guided-qms-v1",
+  "journeys": [
+    {
+      "key": "initial",
+      "steps": [
+        {
+          "key": "process-map",
+          "position": 1,
+          "feature_pending": false
+        },
+        {
+          "key": "normative-profile",
+          "position": 2,
+          "feature_pending": true
+        },
+        {
+          "key": "document-control",
+          "position": 3,
+          "feature_pending": false
+        },
+        {
+          "key": "control-implementation",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "risk-response",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "people-and-performance",
+          "position": 6,
+          "feature_pending": true
+        },
+        {
+          "key": "audit-plan",
+          "position": 7,
+          "feature_pending": false
+        },
+        {
+          "key": "management-review",
+          "position": 8,
+          "feature_pending": true
+        }
+      ]
+    },
+    {
+      "key": "improve",
+      "steps": [
+        {
+          "key": "existing-baseline",
+          "position": 1,
+          "feature_pending": false
+        },
+        {
+          "key": "change-impact",
+          "position": 2,
+          "feature_pending": true
+        },
+        {
+          "key": "document-control",
+          "position": 3,
+          "feature_pending": false
+        },
+        {
+          "key": "control-implementation",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "risk-response",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "corrective-follow-up",
+          "position": 6,
+          "feature_pending": false
+        },
+        {
+          "key": "accept-change",
+          "position": 7,
+          "feature_pending": true
+        }
+      ]
+    },
+    {
+      "key": "transition",
+      "steps": [
+        {
+          "key": "source-baseline",
+          "position": 1,
+          "feature_pending": true
+        },
+        {
+          "key": "normative-profile",
+          "position": 2,
+          "feature_pending": true
+        },
+        {
+          "key": "edition-comparison",
+          "position": 3,
+          "feature_pending": true
+        },
+        {
+          "key": "control-implementation",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "document-control",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "risk-response",
+          "position": 6,
+          "feature_pending": false
+        },
+        {
+          "key": "audit-plan",
+          "position": 7,
+          "feature_pending": false
+        },
+        {
+          "key": "transition-decision",
+          "position": 8,
+          "feature_pending": true
+        }
+      ]
+    },
+    {
+      "key": "migrate",
+      "steps": [
+        {
+          "key": "source-inventory",
+          "position": 1,
+          "feature_pending": true
+        },
+        {
+          "key": "process-map",
+          "position": 2,
+          "feature_pending": false
+        },
+        {
+          "key": "trial-import",
+          "position": 3,
+          "feature_pending": true
+        },
+        {
+          "key": "manual-document-entry",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "control-implementation",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "reconcile-migration",
+          "position": 6,
+          "feature_pending": true
+        }
+      ]
+    },
+    {
+      "key": "audit",
+      "steps": [
+        {
+          "key": "audit-plan",
+          "position": 1,
+          "feature_pending": false
+        },
+        {
+          "key": "audit-information",
+          "position": 2,
+          "feature_pending": false
+        },
+        {
+          "key": "control-implementation",
+          "position": 3,
+          "feature_pending": false
+        },
+        {
+          "key": "risk-response",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "nonconformity-follow-up",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "corrective-follow-up",
+          "position": 6,
+          "feature_pending": false
+        },
+        {
+          "key": "management-review",
+          "position": 7,
+          "feature_pending": true
+        },
+        {
+          "key": "execute-audit",
+          "position": 8,
+          "feature_pending": true
+        }
+      ]
+    },
+    {
+      "key": "expand",
+      "steps": [
+        {
+          "key": "new-boundaries",
+          "position": 1,
+          "feature_pending": false
+        },
+        {
+          "key": "normative-profile",
+          "position": 2,
+          "feature_pending": true
+        },
+        {
+          "key": "risk-response",
+          "position": 3,
+          "feature_pending": false
+        },
+        {
+          "key": "document-control",
+          "position": 4,
+          "feature_pending": false
+        },
+        {
+          "key": "control-implementation",
+          "position": 5,
+          "feature_pending": false
+        },
+        {
+          "key": "audit-plan",
+          "position": 6,
+          "feature_pending": false
+        },
+        {
+          "key": "scope-acceptance",
+          "position": 7,
+          "feature_pending": true
+        }
+      ]
+    }
+  ]
+}

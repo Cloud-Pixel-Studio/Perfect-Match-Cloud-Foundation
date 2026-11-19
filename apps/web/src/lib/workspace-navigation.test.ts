@@ -82,3 +82,12 @@ describe("persona-aware workspace navigation", () => {
     expect(workspaceFromHash("#audit-heading")).toBe("audit");
   });
 });
+
+it("offers project readers the guide without granting any other QMS family",()=>{
+ for(const role of ['member','auditor']){
+  const sections=workspaceSectionsForContext(role,['projects.read']);
+  expect(sections.flatMap(s=>s.items.map(i=>i.id))).toContain('implementation-guide');
+  expect(sections.flatMap(s=>s.items.map(i=>i.id))).not.toContain('controls');
+ }
+ expect(workspaceSectionsForContext('member',['projects.manage']).flatMap(s=>s.items.map(i=>i.id))).not.toContain('implementation-guide');
+});

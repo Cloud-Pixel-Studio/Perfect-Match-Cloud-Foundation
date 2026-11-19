@@ -204,3 +204,10 @@ describe("guide snapshots", () => {
     }
   });
 });
+
+it("recognizes project capabilities without granting operational module reads", async () => {
+  const f = fixture({caps:{unit_id:unitId,capabilities:["projects.read","projects.manage"]}});
+  const result = await loadGuideSnapshot(context,undefined,f.request);
+  expect(Object.values(result.resources).every(r=>r.kind==="restricted")).toBe(true);
+  expect(f.calls.some(c=>c.url.includes("/qms-projects"))).toBe(false);
+});
