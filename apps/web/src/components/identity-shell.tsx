@@ -59,6 +59,9 @@ export function IdentityShell() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [busy, setBusy] = useState(false);
   const [capabilities, setCapabilities] = useState<string[]>([]);
+  const [guideDraft,setGuideDraft] = useState(false);
+  const guideDraftRef = useRef(false);
+  const onGuideDraftChange = useCallback((value:boolean)=>{guideDraftRef.current=value;setGuideDraft(value);},[]);
   const [activeModule, setActiveModule] = useState<WorkspaceId>("overview");
   const [activeTarget, setActiveTarget] = useState<WorkspaceTarget | null>(null);
   const [unitByTenant, setUnitByTenant] = useState<Record<string, string>>({});
@@ -103,6 +106,11 @@ export function IdentityShell() {
 
   useEffect(() => {
     const sync = () => {
+      if(guideDraftRef.current && workspaceFromHash(window.location.hash)!=="implementation-guide") {
+        const url=setWorkspaceTarget(new URL(window.location.href),null);url.hash="implementation-guide-heading";
+        window.history.replaceState(null,"",`${url.pathname}${url.search}${url.hash}`);
+        return;
+      }
       setActiveModule(workspaceFromHash(window.location.hash));
       setActiveTarget(workspaceTargetFromSearch(window.location.search));
     };
@@ -111,6 +119,12 @@ export function IdentityShell() {
     window.addEventListener("popstate", sync);
     return () => { window.cancelAnimationFrame(frame); window.removeEventListener("hashchange", sync); window.removeEventListener("popstate", sync); };
   }, []);
+
+  useEffect(()=>{
+    if(!guideDraft)return;
+    const guard=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue="";};
+    window.addEventListener("beforeunload",guard);return()=>window.removeEventListener("beforeunload",guard);
+  },[guideDraft]);
 
   const current = identity ? tenants.find((tenant) => tenant.id === identity.current_tenant_id) : undefined;
   const canAudit = ["owner", "admin", "auditor"].includes(current?.role ?? "");
@@ -133,7 +147,7 @@ export function IdentityShell() {
   }, [activeModuleVisible, current, view]);
 
   function navigateWorkspace(id: WorkspaceId, target: WorkspaceTarget | null = null) {
-    if (busy) return;
+    if (busy || guideDraftRef.current) return;
     const item = workspaceItems.find((entry) => entry.id === id);
     if (!item) return;
     const url = setWorkspaceTarget(new URL(window.location.pathname, window.location.origin), target);
@@ -148,6 +162,7 @@ export function IdentityShell() {
   }
 
   async function selectTenant(tenantId: string) {
+    if(guideDraftRef.current) return;
     contextRevision.current += 1;
     setBusy(true);
     const response = await fetch(`${apiUrl}/auth/tenant`, {
@@ -236,7 +251,7 @@ export function IdentityShell() {
       <aside className="qms-app-sidebar" aria-label="Main navigation">
         <div className="qms-sidebar-intro"><span className="qms-sidebar-kicker">Perfect Match</span><strong>Quality workspace</strong><small>{current?.name ?? "Select an organization"}</small></div>
         <label className="qms-mobile-navigation">Module
-          <select value={presentedModule} disabled={busy} onChange={(event) => navigateWorkspace(event.target.value as WorkspaceId)}>
+          <select value={presentedModule} disabled={busy||guideDraft} onChange={(event) => navigateWorkspace(event.target.value as WorkspaceId)}>
             {navigationSections.map((section) => <optgroup key={section.label} label={section.label}>
               {section.items.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}
             </optgroup>)}
@@ -247,9 +262,9 @@ export function IdentityShell() {
             <p>{section.label}</p>
             {section.items.map((item) => {
               const Icon = workspaceIcons[item.id];
-              return <a key={item.id} href={`#${item.hash}`} aria-current={presentedModule === item.id ? "page" : undefined} aria-disabled={busy} onClick={(event) => {
+              return <a key={item.id} href={`#${item.hash}`} aria-current={presentedModule === item.id ? "page" : undefined} aria-disabled={busy||guideDraft} onClick={(event) => {
                 event.preventDefault();
-                if (busy) return;
+                if (busy||guideDraftRef.current) return;
                 navigateWorkspace(item.id);
               }}><Icon aria-hidden="true" size={18} /><span>{item.label}</span></a>;
             })}
@@ -261,7 +276,7 @@ export function IdentityShell() {
         <header className="qms-app-topbar">
           <div className="qms-topbar-location"><p>{selectedSection?.label ?? "Workspace"} / Perfect Match QMS</p><strong>{selectedItem.label}</strong></div>
           <div className="qms-topbar-actions">
-            {tenants.length > 0 && <label className="tenant-select qms-topbar-tenant"><span>Organization</span><div><select aria-label="Current organization" disabled={busy} onChange={(event) => void selectTenant(event.target.value)} value={identity.current_tenant_id ?? ""}><option disabled value="">Select organization</option>{tenants.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.name} · {tenant.role}</option>)}</select><ChevronDown aria-hidden="true" size={18} /></div></label>}
+            {tenants.length > 0 && <label className="tenant-select qms-topbar-tenant"><span>Organization</span><div><select aria-label="Current organization" disabled={busy||guideDraft} onChange={(event) => void selectTenant(event.target.value)} value={identity.current_tenant_id ?? ""}><option disabled value="">Select organization</option>{tenants.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.name} · {tenant.role}</option>)}</select><ChevronDown aria-hidden="true" size={18} /></div></label>}
             <ThemeToggle />
             <div className="user-menu"><span className="avatar"><UserRound aria-hidden="true" size={18} /></span><span><strong>{identity.display_name}</strong><small>{identity.email ?? "Verified identity"}</small></span><button aria-label="Log out" disabled={busy} onClick={() => void logout()} title="Log out" type="button"><LogOut aria-hidden="true" size={18} /></button></div>
           </div>
@@ -271,7 +286,7 @@ export function IdentityShell() {
           <legend className="sr-only">{selectedItem.label}</legend>
           {presentedModule === "overview" && <WorkspaceOverview key={`overview-${identity.id}-${current.id}-${current.role}`} tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
           {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${identity.id}-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
-          {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} />}
+          {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} onDraftChange={onGuideDraftChange} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}
           {presentedModule === "processes" && <ProcessWorkspace key={`processes-${current.id}-${current.role}`} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} />}

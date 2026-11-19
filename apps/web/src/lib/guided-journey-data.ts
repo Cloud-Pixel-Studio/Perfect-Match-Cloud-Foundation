@@ -16,7 +16,7 @@ const uniqueIds = (rows: { id: string }[]) => new Set(rows.map(row => row.id.toL
 const invalid = () => new GuideAccessError(409);
 const unavailable = () => new Error("Guide data could not be verified.");
 const documentCapabilities = ["documents.read", "documents.author", "documents.review", "documents.approve", "documents.release", "documents.obsolete"];
-const knownCapabilities = new Set([...documentCapabilities, "evidence.read", "evidence.create", "evidence.review", "processes.read", "processes.manage", "controls.read", "controls.manage", "control_instances.read", "control_instances.manage", "risks.read", "risks.manage", "risks.review", "ncr.read", "ncr.manage", "ncr.review", "capa.read", "capa.manage", "capa.review", "audits.read", "audits.manage", "audits.execute", "audits.review"]);
+const knownCapabilities = new Set([...documentCapabilities, "evidence.read", "evidence.create", "evidence.review", "processes.read", "processes.manage", "controls.read", "controls.manage", "control_instances.read", "control_instances.manage", "risks.read", "risks.manage", "risks.review", "ncr.read", "ncr.manage", "ncr.review", "capa.read", "capa.manage", "capa.review", "audits.read", "audits.manage", "audits.execute", "audits.review", "projects.read", "projects.manage"]);
 
 function checkAbort(signal?: AbortSignal): void {
   if (signal?.aborted) throw new DOMException("The guide read was cancelled.", "AbortError");

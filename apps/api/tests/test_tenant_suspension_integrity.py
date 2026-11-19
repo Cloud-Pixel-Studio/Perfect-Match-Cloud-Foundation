@@ -495,15 +495,15 @@ def migrate(target: str, direction: str = "upgrade") -> subprocess.CompletedProc
 
 
 def test_downgrade_refuses_disabled_companies_and_rolls_back_ddl(boundary: Boundary) -> None:
+    with boundary.admin.connect() as db:
+        starting_revision = db.scalar(text("SELECT version_num FROM alembic_version"))
     boundary.change("tenant", False)
     result = migrate("0048_audit_competence", "downgrade")
     assert result.returncode != 0
     assert "cannot remove tenant suspension guards with disabled companies" in result.stderr
     assert "55000" in result.stderr
     with boundary.admin.begin() as db:
-        assert (
-            db.scalar(text("SELECT version_num FROM alembic_version")) == "0049_tenant_suspension"
-        )
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == starting_revision
         assert db.scalar(
             text("SELECT relforcerowsecurity FROM pg_class WHERE oid='tenants'::regclass")
         )

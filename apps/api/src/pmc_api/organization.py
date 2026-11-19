@@ -126,6 +126,10 @@ def _assignment_or_404(
 
 def _conflict(exc: DBAPIError) -> HTTPException:
     sqlstate = getattr(exc.orig, "sqlstate", None) or getattr(exc.orig, "pgcode", None)
+    if sqlstate is None and exc.orig is not None and exc.orig.args:
+        detail = exc.orig.args[0]
+        if isinstance(detail, dict):
+            sqlstate = detail.get("C")
     if sqlstate not in {"23503", "23505", "23514"}:
         raise exc
     return HTTPException(status.HTTP_409_CONFLICT, "organization constraint rejected the change")

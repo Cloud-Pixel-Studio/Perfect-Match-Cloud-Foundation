@@ -1,10 +1,12 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, ArrowRightLeft, BookOpen, Building2, ChevronRight, ClipboardCheck, FolderInput, Info, Layers3, LockKeyhole, LogIn, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import { journeys, observeGuideStep } from "../lib/guided-journeys";
 import { GuideAccessError, loadGuideSnapshot, loadGuideUnits, type GuideResource, type GuideSnapshot, type GuideUnit } from "../lib/guided-journey-data";
+import { QMSProjectPlanner, ProjectStepPlan } from "./qms-project-planner";
+import type { ProjectDetail, ProjectMember } from "../lib/qms-projects";
 import type { WorkspaceId } from "../lib/workspace-navigation";
 
 type Props = {
@@ -13,6 +15,7 @@ type Props = {
   preferredUnitId?: string;
   onUnitChange?: (unitId: string) => void;
   onNavigate: (id: WorkspaceId) => void;
+  onDraftChange?: (active:boolean) => void;
 };
 
 const journeyIcons = [BookOpen, Layers3, ArrowRightLeft, FolderInput, ClipboardCheck, Building2];
@@ -36,12 +39,19 @@ export function GuidedJourneyWorkspace(props: Props) {
   return <GuideScope key={JSON.stringify([props.tenantId, props.userId, props.preferredUnitId ?? ""])} {...props} journeyId={journeyId} setJourneyId={setJourneyId} stepIndex={stepIndex} setStepIndex={setStepIndex} />;
 }
 
-function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigate, journeyId, setJourneyId, stepIndex, setStepIndex }: Props & {
+function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigate, onDraftChange, journeyId, setJourneyId, stepIndex, setStepIndex }: Props & {
   journeyId: (typeof journeys)[number]["id"];
   setJourneyId: (value: (typeof journeys)[number]["id"]) => void;
   stepIndex: number;
   setStepIndex: (value: number) => void;
 }) {
+  const [project, setProject] = useState<ProjectDetail|null>(null);
+  const [projectEditing,setProjectEditing] = useState(false);
+  const [stepEditing,setStepEditing] = useState(false);
+  const editingProject = projectEditing || stepEditing;
+  useEffect(()=>{onDraftChange?.(editingProject);return()=>onDraftChange?.(false);},[editingProject,onDraftChange]);
+  const [projectCanManage, setProjectCanManage] = useState(false);
+  const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
   const [units, setUnits] = useState<GuideUnit[]>([]);
   const [unitsLimited, setUnitsLimited] = useState(false);
   const [unitsLoading, setUnitsLoading] = useState(true);
@@ -56,6 +66,10 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
   const unitsRequest = useRef<AbortController | null>(null);
   const snapshotRequest = useRef<AbortController | null>(null);
   const snapshotSequence = useRef(0);
+  const projectSelection = useRef<string|null>(null);
+  const projectContext = useMemo(() => ({tenantId,userId,unitId}),[tenantId,userId,unitId]);
+  const changeProject = useCallback((value:ProjectDetail|null) => {setProject(value);if(value&&value.id!==projectSelection.current){setJourneyId(value.journey_key);setStepIndex(0);}projectSelection.current=value?.id??null;},[setJourneyId,setStepIndex]);
+  const updateProject = useCallback((value:ProjectDetail|null) => {setProject(value);projectSelection.current=value?.id??null;},[]);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const detailHeading = useRef<HTMLHeadingElement | null>(null);
 
@@ -70,6 +84,7 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
     unitsRequest.current?.abort();
     snapshotRequest.current?.abort();
     setSnapshot(null);
+    setProject(null); setProjectCanManage(false); setProjectMembers([]); projectSelection.current=null;
     setUnits([]);
     setUnitsLimited(false);
     setUnitId("");
@@ -138,6 +153,7 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
 
   function changeUnit(value: string) {
     clearSnapshot();
+    setProject(null); setProjectCanManage(false); setProjectMembers([]); projectSelection.current=null;
     setUnitId(value);
     setSnapshotLoading(Boolean(value));
     onUnitChange?.(value);
@@ -151,6 +167,7 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
 
   function reloadAccess() {
     clearSnapshot();
+    setProject(null); setProjectCanManage(false); setProjectMembers([]); projectSelection.current=null;
     unitsRequest.current?.abort();
     setUnits([]);
     setUnitsLimited(false);
@@ -163,13 +180,14 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
   }
 
   function selectJourney(index: number, focus = false) {
+    if(project && project.journey_key!==journeys[index].id) return;
     setJourneyId(journeys[index].id);
     setStepIndex(0);
     if (focus) tabRefs.current[index]?.focus();
   }
 
   function journeyKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.altKey || event.ctrlKey || event.metaKey || project || editingProject) return;
     let next = index;
     if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % journeys.length;
     else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index + journeys.length - 1) % journeys.length;
@@ -195,7 +213,7 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
     </header>
 
     <div className="guide-scope">
-      <div className="guide-unit-control"><label htmlFor="guide-unit">Organizational unit</label><select id="guide-unit" value={unitId} disabled={unitsLoading || Boolean(accessError)} onChange={(event) => changeUnit(event.target.value)} aria-describedby="guide-scope-explanation"><option value="">{unitsLoading ? "Loading units…" : "Select a unit"}</option>{units.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></div>
+      <div className="guide-unit-control"><label htmlFor="guide-unit">Organizational unit</label><select id="guide-unit" value={unitId} disabled={unitsLoading || Boolean(accessError) || editingProject} onChange={(event) => changeUnit(event.target.value)} aria-describedby="guide-scope-explanation"><option value="">{unitsLoading ? "Loading units…" : "Select a unit"}</option>{units.map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></div>
       <div className="guide-scope-description"><strong>{unit ? `${unit.code} · ${unit.name}` : "Read the guide at your own pace"}</strong><p id="guide-scope-explanation">{unit ? "Observations cover this unit’s records. They are not linked to a project and do not evaluate compliance or complete a step." : "Select a unit to inspect authorized records. All journey instructions remain available without record access."}</p>{snapshot && <p className="guide-timestamp">Snapshot updated <time dateTime={snapshot.fetchedAt}>{new Date(snapshot.fetchedAt).toLocaleString()}</time></p>}</div>
       <button className="secondary-action compact-action guide-refresh" disabled={!unit || snapshotLoading || Boolean(accessError)} type="button" onClick={refreshSnapshot}><RefreshCw aria-hidden="true" size={16} />Refresh snapshot</button>
     </div>
@@ -208,22 +226,26 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
       <a className="primary-action compact-action" href="/api/identity/auth/login"><LogIn aria-hidden="true" size={16} />Sign in again</a>
     </> : <button className="secondary-action compact-action" onClick={reloadAccess} type="button">Reload access</button>}</div></div>}
 
+    {unit && !accessError && <QMSProjectPlanner key={JSON.stringify([tenantId,userId,unitId])} context={projectContext} project={project} onChange={changeProject} onAccessLost={invalidateAccess} onManageChange={setProjectCanManage} onMembersChange={setProjectMembers} onEditingChange={setProjectEditing} locked={stepEditing} journeyId={journey.id} />}
+    {editingProject && <p className="guide-inline-note" role="status">Save or cancel your draft before changing unit, project or step.</p>}
+    {project && <p className="guide-inline-note">The saved project fixes this journey. Choose “Browse guides without a project” to explore another case.</p>}
     <div className="guide-case-heading"><h3>What brings you here?</h3><p>Six journeys, built around your starting point.</p></div>
     <div className="guide-cases" role="tablist" aria-label="QMS journeys">{journeys.map((item, index) => {
       const Icon = journeyIcons[index] ?? BookOpen;
-      return <button key={item.id} ref={(element) => { tabRefs.current[index] = element; }} id={`guide-tab-${item.id}`} role="tab" aria-selected={journey.id === item.id} aria-controls="guide-journey-panel" tabIndex={journey.id === item.id ? 0 : -1} type="button" onClick={() => selectJourney(index)} onKeyDown={(event) => journeyKey(event, index)}><span className="guide-case-icon"><Icon aria-hidden="true" size={19} /></span><strong>{item.title}</strong><span>{item.summary}</span><small>{item.steps.length} guided steps <ChevronRight aria-hidden="true" size={14} /></small></button>;
+      return <button key={item.id} ref={(element) => { tabRefs.current[index] = element; }} id={`guide-tab-${item.id}`} role="tab" disabled={editingProject || Boolean(project && project.journey_key !== item.id)} aria-selected={journey.id === item.id} aria-controls="guide-journey-panel" tabIndex={journey.id === item.id ? 0 : -1} type="button" onClick={() => selectJourney(index)} onKeyDown={(event) => journeyKey(event, index)}><span className="guide-case-icon"><Icon aria-hidden="true" size={19} /></span><strong>{item.title}</strong><span>{item.summary}</span><small>{item.steps.length} guided steps <ChevronRight aria-hidden="true" size={14} /></small></button>;
     })}</div>
 
     <div id="guide-journey-panel" role="tabpanel" aria-labelledby={`guide-tab-${journey.id}`} className="guide-journey-panel" tabIndex={0}>
       <div className="guide-journey-heading"><div><p className="eyebrow">Your selected journey</p><h3>{journey.title}</h3><p>{journey.outcome}</p></div><span className="guide-step-counter">Step {stepIndex + 1} of {journey.steps.length}</span></div>
       <div className="guide-body">
-        <nav className="guide-step-navigation" aria-label={`${journey.title} steps`}><p className="guide-small-label">Follow the sequence</p><ol>{journey.steps.map((item, index) => <li key={item.id}><button type="button" aria-current={index === stepIndex ? "step" : undefined} onClick={() => moveStep(index)}><span className="guide-step-number" aria-hidden="true">{index + 1}</span><span>{item.title}{item.productGap && <small>Feature pending</small>}</span>{index === stepIndex && <ChevronRight aria-hidden="true" size={16} />}</button></li>)}</ol><p className="guide-step-note">Steps are guidance. Browsing a step does not mark work as complete.</p></nav>
+        <nav className="guide-step-navigation" aria-label={`${journey.title} steps`}><p className="guide-small-label">Follow the sequence</p><ol>{journey.steps.map((item, index) => <li key={item.id}><button type="button" aria-current={index === stepIndex ? "step" : undefined} disabled={editingProject} onClick={() => moveStep(index)}><span className="guide-step-number" aria-hidden="true">{index + 1}</span><span>{item.title}{item.productGap && <small>Feature pending</small>}</span>{index === stepIndex && <ChevronRight aria-hidden="true" size={16} />}</button></li>)}</ol><p className="guide-step-note">Steps are guidance. Browsing a step does not mark work as complete.</p></nav>
         <article className="guide-step-detail" aria-labelledby="guide-step-heading">
           <div className="guide-detail-heading"><p className="guide-small-label">Step {stepIndex + 1}</p><h4 id="guide-step-heading" ref={detailHeading} tabIndex={-1}>{step.title}</h4><h5>Why this matters</h5><p>{step.why}</p></div>
           <section className="guide-instructions" aria-labelledby="guide-instructions-heading"><h5 id="guide-instructions-heading">What to do</h5><ol>{step.instructions.map((instruction, index) => <li key={`${step.id}-${index}`}>{instruction}</li>)}</ol></section>
           <dl className="guide-outputs"><div><dt>Expected output</dt><dd>{step.expected}</dd></div><div><dt>Review before moving on</dt><dd>{step.doneWhen}</dd></div></dl>
           {step.limitation && <p className="guide-limitation"><Info aria-hidden="true" size={17} />{step.limitation}</p>}
 
+          {project && <ProjectStepPlan context={projectContext} project={project} canManage={projectCanManage && !projectEditing} onChange={updateProject} onAccessLost={invalidateAccess} stepKey={step.id} members={projectMembers} onEditingChange={setStepEditing} />}
           <section className="guide-observation" aria-labelledby="guide-observation-heading" aria-busy={snapshotLoading && !step.productGap}>
             <div className="guide-observation-heading"><h5 id="guide-observation-heading">Current unit observations</h5><span className={`guide-observation-badge${step.productGap ? " is-pending" : ""}`}>{observationLabel}</span></div>
             {step.productGap ? <p>{step.productGap}</p> : accessError ? <p>Records were cleared. {accessError === 401 ? "Sign in again to verify your session." : "Reload access to verify current responsibilities."}</p> : snapshotLoading ? <p role="status">Checking the selected unit’s current records…</p> : snapshotError ? <p role="status">The snapshot could not be verified. Refresh the snapshot to try again; previous observations have been cleared.</p> : <>
@@ -233,9 +255,9 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
                 {observation.records.length > 0 && <><p className="guide-qualified-count">{observation.records.length} {observation.limited ? "sampled " : ""}records · {observation.qualified} meet the observed record-state condition. Review relevance and evidence separately.</p><details className="guide-records"><summary>Inspect {observation.records.length} {observation.limited ? "sampled " : ""}records</summary><ul tabIndex={0} aria-label="Observed unit records">{observation.records.map((record) => <li key={record.id}><div><strong>{record.code}</strong><span>{record.name}</span></div><span className="guide-record-state">{readable(record.state)}<small>{record.qualified ? "Meets record-state condition" : "Review record state"}</small></span></li>)}</ul></details></>}
               </>}
             </>}
-            {canOpen && step.workspace && <button className="primary-action compact-action guide-open-module" type="button" onClick={() => { if (!canOpen || !step.workspace) return; onUnitChange?.(unitId); onNavigate(step.workspace); }}>Open {workspaceLabels[step.workspace] ?? readable(step.workspace)}<ArrowRight aria-hidden="true" size={16} /></button>}
+            {canOpen && step.workspace && <button className="primary-action compact-action guide-open-module" type="button" disabled={editingProject} onClick={() => { if (editingProject || !canOpen || !step.workspace) return; onUnitChange?.(unitId); onNavigate(step.workspace); }}>Open {workspaceLabels[step.workspace] ?? readable(step.workspace)}<ArrowRight aria-hidden="true" size={16} /></button>}
           </section>
-          <nav className="guide-step-pagination" aria-label="Journey step navigation"><button className="secondary-action compact-action" disabled={stepIndex === 0} onClick={() => moveStep(stepIndex - 1)} type="button"><ArrowLeft aria-hidden="true" size={16} />Previous step</button><span>{stepIndex + 1} / {journey.steps.length}</span><button className="secondary-action compact-action" disabled={stepIndex === journey.steps.length - 1} onClick={() => moveStep(stepIndex + 1)} type="button">Next step<ArrowRight aria-hidden="true" size={16} /></button></nav>
+          <nav className="guide-step-pagination" aria-label="Journey step navigation"><button className="secondary-action compact-action" disabled={editingProject || stepIndex === 0} onClick={() => moveStep(stepIndex - 1)} type="button"><ArrowLeft aria-hidden="true" size={16} />Previous step</button><span>{stepIndex + 1} / {journey.steps.length}</span><button className="secondary-action compact-action" disabled={editingProject || stepIndex === journey.steps.length - 1} onClick={() => moveStep(stepIndex + 1)} type="button">Next step<ArrowRight aria-hidden="true" size={16} /></button></nav>
         </article>
       </div>
     </div>

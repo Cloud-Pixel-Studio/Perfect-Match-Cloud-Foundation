@@ -4,6 +4,7 @@ import "@fontsource-variable/inter";
 import "@perfect-match/design-system/tokens.css";
 import "./styles.css";
 import "./guided-journeys.css";
+import "./qms-projects.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
