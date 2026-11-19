@@ -1,4 +1,12 @@
-# Perfect Match QMS — continuidad ·17 noviembre2026
+# Perfect Match QMS — continuidad ·19 noviembre2026
+
+## Validación en curso ·19 noviembre2026
+- PR67/head06275d2: CodeQL44449858248PASS. Calidad44449858162 detectó8erroresmypy en helpers de pruebas y dependencia accidental de `rg` en harness; corregidos localmente (mypy85PASS,50DBPASS con restauración61tablas CP-QMS-PROJECTS-DB-06-20261119T040858Z). Sin publicar aún.
+- Security44449858112 ejecutó190casos browser:189PASS/1fallo nuevo por selector ambiguo tras guardado; test corregido esperando cierre del formulario. Falta repetirCI exacto; no afirmar190PASS.
+- RevisorDB reanudado detectóP1: referencias SQL sin esquema en0050 podían ocultar catálogo/completitud mediante tablasTEMP bajo rol runtime. Corregido con public explícito/pg_temp al final de5funciones;6regresionesRED→GREEN y56DBPASS,0050up/down/up y guarddowngradePASS,61tablas restauradas/hash/tamperPASS enCP-QMS-PROJECTS-DB-06-20261119T064946Z. Otro revisor independiente confirmó fix/logs sin nuevosP0/P1/P2 acotados; revisión ampliada backend en curso. No explotaciónHTTP demostrada, ni migración demo/cliente/grants.
+- Artefacto14495218547 de security44449858112 descargado y SHA256verificado: Keycloak26.8.2/digestc68e286 tiene ahora1CRITICAL(CVE-2026-114938/OpenJDK)+6HIGH; otras5imágenes0HIGH/CRITICAL. Sustituye conteo anterior de6como estado actual; no modifica evidencia histórica. Release oficiallatest sigue26.8.2 al19nov. No excepción ni despliegue.
+- Root fresco:102APIunit/629DBskip,135Ruff/formato,85mypy ySAST124archivos/6reglas/0hallazgos/0erroresPASS. Los6skip nuevos se ejecutaron en la suiteDB; no contarlos comoPASS en pytestunitario. Puertos propios3103/18103 de fixturevisual detenidos tras capturas; demo intacta. Informe de revisión docs/security/PERSISTENT_PROJECTS_REVIEW_2026-11-19.md.
+- CP-QMS-PROJECTS-REVIEW-06-20261119T070746Z:768fuentes/Git restaurados hash/modos/bundle/AESGCMtamperPASS antes de publicar corrección. CI/revisión ampliada del nuevo head se registrarán en el cuerpo dePR67 y checkpoint externo dehandoff; no extrapolar resultados de06275d2.
 
 ## Proyecto persistente ·18 noviembre2026
 - Rama `codex/persistent-qms-projects`, base043afbd/PR66. Proyectos de planificación por empresa/unidad + pasos persistidos del catálogo44entradas/6recorridos: crear/reabrir/editar/archivar/restaurar; responsable/fechas/notas y estados no iniciado/en curso/bloqueado/reportado. Reportado siempre no verificado; product gaps fijos. Sin cierreISO/evidencias enlazadas ni snapshots formales. Informe docs/product/PERSISTENT_QMS_PROJECTS_2026-11-18.md.

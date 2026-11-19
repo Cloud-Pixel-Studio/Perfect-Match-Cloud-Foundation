@@ -23,20 +23,20 @@ El catálogo congela identidades, orden y brechas del producto; no es una copia 
 |Comprobación|Resultado|
 |---|---|
 |Frontend unitario|268PASS,24archivos; baseline208|
-|API unitario|102PASS,623DBskip; losskip no sonPASS|
-|PostgreSQL HTTP/SQL directo|104PASS =50casos nuevos de proyectos +54existentes de acceso/suspensión|
+|API unitario|102PASS,629DBskip tras las seis regresiones nuevas; losskip no sonPASS|
+|PostgreSQL HTTP/SQL directo|56casos del módulo PASS después del fixSQL (50originales+6regresiones). Antes del fix:104PASS=50originales+54existentes de acceso/suspensión; no sumar reejecuciones|
 |Historial de permisos en fixture propio|42PASS; no sumarlos como funcionalidad nueva|
-|CI nueva|Job qms-project-integrity conecta el harness de104checks y restauración; ejecución del head publicado pendiente|
+|CI nueva|Job qms-project-integrity ejecuta56casos del módulo por defecto y restauración; los54existentes se probaron además localmente y tienen sus propios jobs|
 |Migración0050vacía|up/down/upPASS; downgrade no vacío bloqueado|
 |Restauración antes/después|57/61tablas, hashes y rechazo de manipulaciónPASS en fixtures aislados|
-|Ruff/formato/mypy|PASS;45fuentes API tipadas;135archivos formateados según evidencia del implementador|
+|Ruff/formato/mypy|PASS local; comprobación ampliada a85archivos src+tests después de corregir ocho retornosAny en helpers de tests|
 |SAST estricto1.29|124archivos,6reglas,0hallazgos/0errores; no cubre todo riesgo ni certifica seguridad|
 |Lint/typecheck/build web|PASS local después de correcciones|
-|Nuevos Playwright|13casos enumerados/typechecked; ejecuciónCI pendiente al preparar el PR|
+|Navegador en06275d2|190casos ejecutados:189PASS/1fallo por selector ambiguo en un caso nuevo; espera de cierre de formulario corregida, repeticiónCI pendiente|
 
-CUA sobre build local con backend de prueba/reproducción: creación y reapertura; trabajo reportado separado;409→500recarga con borrador conservado (RED observado antes del fix yGREEN después); bloqueo de salida por módulo; recarga/rebase explícitos y guardado; archivar/restaurar preservando notas; capturas claro/oscuro y375px sin desbordamiento horizontal. Es QA de interfaz con fixture, no prueba de OIDC ni persistencia PostgreSQL desde ese navegador. La persistencia real se verifica por los104tests HTTP/SQL independientes del fixture visual. Capturas ignoradas en `artifacts/previews/2026-11-18-qms-projects`.
+CUA sobre build local con backend de prueba/reproducción: creación y reapertura; trabajo reportado separado;409→500recarga con borrador conservado (RED observado antes del fix yGREEN después); bloqueo de salida por módulo; recarga/rebase explícitos y guardado; archivar/restaurar preservando notas; capturas claro/oscuro y375px sin desbordamiento horizontal. Es QA de interfaz con fixture, no prueba de OIDC ni persistencia PostgreSQL desde ese navegador. La persistencia real se verifica por las suites HTTP/SQL independientes del fixture visual. Capturas ignoradas en `artifacts/previews/2026-11-18-qms-projects`.
 
-Revisión frontend independiente encontró4P2 (borrador perdido tras recarga fallida,5xx ambiguo, salida por módulo, catálogo mal explicado): corregidos con regresiones unitarias y casosUI; seguimiento estático confirma correcciones. Un casoPlaywright que intentaba pulsar un enlace aria-disabled se cambió a activación forzada deliberada. Revisión backend independiente comprobó RLS/catálogo/lineaje/tests, sinP0/P1 confirmados en su avance; **se interrumpió por límite de uso antes del veredicto final**. Root completó lectura de API/migración y evidencia, pero esto no sustituye su veredicto independiente final.
+Revisión frontend independiente encontró4P2 (borrador perdido tras recarga fallida,5xx ambiguo, salida por módulo, catálogo mal explicado): corregidos con regresiones unitarias y casosUI; seguimiento estático confirma correcciones. Un casoPlaywright que intentaba pulsar un enlace aria-disabled se cambió a activación forzada deliberada. Revisión backend reanudada encontróP1 en referencias SQL sin esquema que podían ocultarse mediante tablas temporales. Corregido con esquema explícito/search_path; seis regresionesRED→GREEN y56casos del móduloPASS. Ese revisor se detuvo por una restricción de herramienta; otro revisor independiente comprobó el fix y sus logs sin nuevosP0/P1/P2 en ese alcance, y está ampliando la lectura al backend completo. No afirmar aprobación final ni CI del nuevo head todavía. Detalle en docs/security/PERSISTENT_PROJECTS_REVIEW_2026-11-19.md.
 
 Fallos intermedios corregidos: primerSQLcompuesto de trigger no compilaba;403delector daba404 por SELECTFORUPDATE+RLS; faltaba no-store; GETpodía mezclar versiones padre/pasos; organización no leía SQLSTATEpg8000 y devolvía500en vez de409; test de suspensión fijaba0049comohead; ejecución de historial enDBequivocada produjo42errores de fixture, luego su harness propio pasó. Se mantienen avisos preexistentes de deprecaciónhttpx/TestClient/anyio; sin añadir dependencias.
 
@@ -46,7 +46,7 @@ CP-QMS-PROJECTS-00-20261118T195326Z:750fuentes/Git restaurados por hashes/modos/
 
 No se cambió la demo ni producción, ni se concedieron las nuevas capacidades a cuentas existentes. Para instalar0050en una base real se requiere un checkpointDB independiente y procedimiento de restauración de esa base, además de revisión/CI de la entrega. No aplicar downgrade sobre datos para hacer rollback; retener esquema y volver a imagen compatible.
 
-El avisoGHSA-fc5q-39xc-vjpf fue retirado por GitHub el18noviembre2026. La repetición de `pnpm audit --audit-level high` pasó con0HIGH/0CRITICAL/1moderate, sin cambio de paquetes/lockfile/umbral. Esto no prueba ausencia de riesgo de globs; la edición actual del aviso es [fuente primaria](https://github.com/advisories/GHSA-fc5q-39xc-vjpf). Persisten los6HIGH conocidos deKeycloak y el requisito de CI/revisión antes de merge/producción.
+El avisoGHSA-fc5q-39xc-vjpf fue retirado por GitHub el18noviembre2026. La repetición de `pnpm audit --audit-level high` pasó con0HIGH/0CRITICAL/1moderate, sin cambio de paquetes/lockfile/umbral. Esto no prueba ausencia de riesgo de globs; la edición actual del aviso es [fuente primaria](https://github.com/advisories/GHSA-fc5q-39xc-vjpf). El artefacto verificado de security44449858112 detecta ahora **1CRITICAL +6HIGH enKeycloak**; las otras cinco imágenes tienen0HIGH/CRITICAL. No hay excepción ni autorización de producción.
 
 ## Pendiente
 

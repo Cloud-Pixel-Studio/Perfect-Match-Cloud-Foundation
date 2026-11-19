@@ -179,17 +179,17 @@ CREATE POLICY project_update ON {table} FOR UPDATE USING(
 """)
     op.execute("""
 CREATE FUNCTION validate_qms_project() RETURNS trigger
-LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public AS $$
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
 DECLARE actor uuid;
 BEGIN
  actor:=NULLIF(current_setting('app.user_id',true),'')::uuid;
- IF NOT qms_has_capability('projects.read',NEW.unit_id) OR NOT qms_has_capability('projects.manage',NEW.unit_id) THEN
+ IF NOT public.qms_has_capability('projects.read',NEW.unit_id) OR NOT public.qms_has_capability('projects.manage',NEW.unit_id) THEN
   RAISE EXCEPTION 'project read and manage authority required' USING ERRCODE='42501'; END IF;
  PERFORM public.lock_qms_site_scope(NEW.unit_id,NEW.tenant_id);
  IF TG_OP='INSERT' THEN
   IF NEW.status<>'open' OR NEW.row_version<>1 OR NEW.step_write_id IS NOT NULL OR NEW.created_by_user_id IS DISTINCT FROM actor
    OR NEW.created_at IS DISTINCT FROM NEW.updated_at OR NOT EXISTS(
-    SELECT 1 FROM qms_project_catalog WHERE catalog_version=NEW.catalog_version AND journey_key=NEW.journey_key) THEN
+    SELECT 1 FROM public.qms_project_catalog WHERE catalog_version=NEW.catalog_version AND journey_key=NEW.journey_key) THEN
    RAISE EXCEPTION 'project must start with current actor and frozen catalog' USING ERRCODE='23514'; END IF;
  ELSE
   IF ROW(NEW.id,NEW.tenant_id,NEW.unit_id,NEW.code,NEW.journey_key,NEW.catalog_version,NEW.created_by_user_id,NEW.created_at)
@@ -207,7 +207,7 @@ BEGIN
    RAISE EXCEPTION 'step mutation cannot edit project metadata' USING ERRCODE='23514'; END IF;
  END IF;
  IF NEW.coordinator_user_id IS NOT NULL AND (TG_OP='INSERT' OR NEW.coordinator_user_id IS DISTINCT FROM OLD.coordinator_user_id)
-  AND NOT EXISTS(SELECT 1 FROM organization_member_directory() WHERE user_id=NEW.coordinator_user_id) THEN
+  AND NOT EXISTS(SELECT 1 FROM public.organization_member_directory() WHERE user_id=NEW.coordinator_user_id) THEN
   RAISE EXCEPTION 'project coordinator must be an active company member' USING ERRCODE='23514'; END IF;
  RETURN NEW;
 END; $$;
@@ -215,18 +215,18 @@ REVOKE ALL ON FUNCTION validate_qms_project() FROM PUBLIC,pmcloud_app;
 CREATE TRIGGER qms_project_validate BEFORE INSERT OR UPDATE ON qms_projects FOR EACH ROW EXECUTE FUNCTION validate_qms_project();
 
 CREATE FUNCTION validate_qms_project_step() RETURNS trigger
-LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public AS $$
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
 DECLARE parent public.qms_projects%ROWTYPE; pending boolean; parent_xid xid; actor uuid;
 BEGIN
  actor:=NULLIF(current_setting('app.user_id',true),'')::uuid;
- IF NOT qms_has_capability('projects.read',NEW.unit_id) OR NOT qms_has_capability('projects.manage',NEW.unit_id) THEN
+ IF NOT public.qms_has_capability('projects.read',NEW.unit_id) OR NOT public.qms_has_capability('projects.manage',NEW.unit_id) THEN
   RAISE EXCEPTION 'project read and manage authority required' USING ERRCODE='42501'; END IF;
  SELECT p.* INTO parent FROM public.qms_projects p
   WHERE p.id=NEW.project_id AND p.tenant_id=NEW.tenant_id AND p.unit_id=NEW.unit_id FOR UPDATE;
  SELECT xmin INTO parent_xid FROM public.qms_projects WHERE id=parent.id;
  IF parent.id IS NULL OR parent.status<>'open' THEN RAISE EXCEPTION 'step requires an open scoped project' USING ERRCODE='23514'; END IF;
  PERFORM public.lock_qms_site_scope(NEW.unit_id,NEW.tenant_id);
- SELECT feature_pending INTO pending FROM qms_project_catalog WHERE catalog_version=parent.catalog_version
+ SELECT feature_pending INTO pending FROM public.qms_project_catalog WHERE catalog_version=parent.catalog_version
   AND journey_key=parent.journey_key AND step_key=NEW.step_key AND position=NEW.position;
  IF pending IS NULL OR (NEW.status='feature_pending') IS DISTINCT FROM pending OR NEW.updated_by_user_id IS DISTINCT FROM actor THEN
   RAISE EXCEPTION 'step catalog, product gap or actor is invalid' USING ERRCODE='23514'; END IF;
@@ -244,7 +244,7 @@ BEGIN
    RAISE EXCEPTION 'step identity or atomic parent version is invalid' USING ERRCODE='23514'; END IF;
  END IF;
  IF NEW.assignee_user_id IS NOT NULL AND (TG_OP='INSERT' OR NEW.assignee_user_id IS DISTINCT FROM OLD.assignee_user_id)
-  AND NOT EXISTS(SELECT 1 FROM organization_member_directory() WHERE user_id=NEW.assignee_user_id) THEN
+  AND NOT EXISTS(SELECT 1 FROM public.organization_member_directory() WHERE user_id=NEW.assignee_user_id) THEN
   RAISE EXCEPTION 'step assignee must be an active company member' USING ERRCODE='23514'; END IF;
  RETURN NEW;
 END; $$;
@@ -252,18 +252,18 @@ REVOKE ALL ON FUNCTION validate_qms_project_step() FROM PUBLIC,pmcloud_app;
 CREATE TRIGGER qms_project_step_validate BEFORE INSERT OR UPDATE ON qms_project_steps FOR EACH ROW EXECUTE FUNCTION validate_qms_project_step();
 
 CREATE FUNCTION check_qms_project_catalog_complete() RETURNS trigger
-LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public AS $$
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
 DECLARE target uuid; parent public.qms_projects%ROWTYPE;
 BEGIN
  IF TG_TABLE_NAME='qms_projects' THEN target:=NEW.id; ELSE target:=NEW.project_id; END IF;
- SELECT * INTO parent FROM qms_projects WHERE id=target;
+ SELECT * INTO parent FROM public.qms_projects WHERE id=target;
  IF parent.id IS NULL OR
-  (SELECT count(*) FROM qms_project_steps WHERE project_id=target) <>
-  (SELECT count(*) FROM qms_project_catalog WHERE catalog_version=parent.catalog_version AND journey_key=parent.journey_key) THEN
+  (SELECT count(*) FROM public.qms_project_steps WHERE project_id=target) <>
+  (SELECT count(*) FROM public.qms_project_catalog WHERE catalog_version=parent.catalog_version AND journey_key=parent.journey_key) THEN
   RAISE EXCEPTION 'project requires its entire frozen catalog step set' USING ERRCODE='23514'; END IF;
  IF TG_TABLE_NAME='qms_projects' THEN
  IF NEW.step_write_id IS NOT NULL AND NOT EXISTS(
-  SELECT 1 FROM qms_project_steps WHERE id=NEW.step_write_id AND project_id=target AND row_version>1 AND source_project_version=NEW.row_version) THEN
+  SELECT 1 FROM public.qms_project_steps WHERE id=NEW.step_write_id AND project_id=target AND row_version>1 AND source_project_version=NEW.row_version) THEN
   RAISE EXCEPTION 'parent step version must match atomic child mutation' USING ERRCODE='23514'; END IF;
  END IF;
  RETURN NULL;
@@ -280,7 +280,7 @@ CREATE INDEX qms_project_dependency_scope ON qms_project_dependency_projection(u
 REVOKE ALL ON qms_project_dependency_projection FROM PUBLIC,pmcloud_app;
 ALTER TABLE qms_project_dependency_projection ENABLE ROW LEVEL SECURITY;
 CREATE FUNCTION sync_qms_project_dependencies() RETURNS trigger
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
 BEGIN
  INSERT INTO public.qms_project_dependency_projection(id,tenant_id,unit_id,status) VALUES(NEW.id,NEW.tenant_id,NEW.unit_id,NEW.status)
  ON CONFLICT(id) DO UPDATE SET status=EXCLUDED.status;
@@ -289,7 +289,7 @@ END; $$;
 REVOKE ALL ON FUNCTION sync_qms_project_dependencies() FROM PUBLIC,pmcloud_app;
 CREATE TRIGGER qms_project_dependencies AFTER INSERT OR UPDATE ON qms_projects FOR EACH ROW EXECUTE FUNCTION sync_qms_project_dependencies();
 CREATE FUNCTION protect_unit_with_qms_projects() RETURNS trigger
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
 BEGIN
  IF NEW.status='archived' AND OLD.status<>'archived' THEN
   PERFORM id FROM public.organization_unit_integrity_projection WHERE id=NEW.id FOR UPDATE;

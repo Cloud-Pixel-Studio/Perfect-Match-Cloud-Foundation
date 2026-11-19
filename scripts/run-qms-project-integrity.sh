@@ -128,7 +128,7 @@ fi
     echo "Project history downgrade unexpectedly succeeded" >&2
     exit 1
   fi
-  if ! rg -q 'cannot discard QMS project history' "$downgrade_log"; then
+  if ! grep -q 'cannot discard QMS project history' "$downgrade_log"; then
     echo "Project downgrade failed for an unexpected reason" >&2
     exit 1
   fi

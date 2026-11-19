@@ -5,13 +5,13 @@ from __future__ import annotations
 
 import os
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, cast
 from uuid import uuid4
 
 import pytest
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
-from test_tenant_suspension_integrity import B_SITE, SITE, USERS, A, B, Boundary, context
+from test_tenant_suspension_integrity import B_SITE, SITE, USERS, A, B, Boundary, context, sqlstate
 from test_tenant_suspension_integrity import boundary as boundary
 
 from pmc_api import audit_service
@@ -37,12 +37,15 @@ def grant(
 def create(
     case: Boundary, *, code: str = "PLAN-001", journey: str = "initial", unit: str = str(SITE)
 ) -> dict[str, Any]:
-    return case.call(
-        "POST",
-        "/qms-projects",
-        {"unit_id": unit, "code": code, "name": "Synthetic project", "journey_key": journey},
-        role="member",
-        expected=201,
+    return cast(
+        dict[str, Any],
+        case.call(
+            "POST",
+            "/qms-projects",
+            {"unit_id": unit, "code": code, "name": "Synthetic project", "journey_key": journey},
+            role="member",
+            expected=201,
+        ),
     )
 
 
@@ -306,23 +309,25 @@ def test_concurrent_metadata_and_step_reject_stale_parent_without_partial_write(
     p = create(boundary)
 
     def metadata() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .patch(
                 f"/qms-projects/{p['id']}",
                 json={"expected_version": 1, "name": "Concurrent metadata"},
             )
-            .status_code
+            .status_code,
         )
 
     def step() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .patch(
                 f"/qms-projects/{p['id']}/steps/{p['steps'][0]['id']}",
                 json=step_patch(p, p["steps"][0], notes="Concurrent step"),
             )
-            .status_code
+            .status_code,
         )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -687,7 +692,8 @@ def test_unit_archive_and_project_creation_interleavings_use_scope_lock(
     monkeypatch.setattr(audit_service, writer, pause)
 
     def project() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .post(
                 "/qms-projects",
@@ -698,11 +704,13 @@ def test_unit_archive_and_project_creation_interleavings_use_scope_lock(
                     "journey_key": "initial",
                 },
             )
-            .status_code
+            .status_code,
         )
 
     def archive() -> int:
-        return boundary.clients["owner"].post(f"/organization/units/{unit}/archive").status_code
+        return cast(
+            int, boundary.clients["owner"].post(f"/organization/units/{unit}/archive").status_code
+        )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         first_task = pool.submit(project if first == "project" else archive)
@@ -771,17 +779,19 @@ def test_project_archive_and_step_edit_serialize_on_parent(
     monkeypatch.setattr(audit_service, "record_qms_project", pause)
 
     def step() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .patch(
                 f"/qms-projects/{p['id']}/steps/{p['steps'][0]['id']}",
                 json=step_patch(p, p["steps"][0], notes="Concurrent step draft"),
             )
-            .status_code
+            .status_code,
         )
 
     def archive() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .post(
                 f"/qms-projects/{p['id']}/status",
@@ -791,7 +801,7 @@ def test_project_archive_and_step_edit_serialize_on_parent(
                     "reason": "Concurrent archive",
                 },
             )
-            .status_code
+            .status_code,
         )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -947,7 +957,8 @@ def test_concurrent_duplicate_create_inserts_catalog_once_and_one_audit(boundary
     grant(boundary)
 
     def request() -> int:
-        return (
+        return cast(
+            int,
             boundary.clients["member"]
             .post(
                 "/qms-projects",
@@ -958,7 +969,7 @@ def test_concurrent_duplicate_create_inserts_catalog_once_and_one_audit(boundary
                     "journey_key": "initial",
                 },
             )
-            .status_code
+            .status_code,
         )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
@@ -970,4 +981,143 @@ def test_concurrent_duplicate_create_inserts_catalog_once_and_one_audit(boundary
         assert (
             db.scalar(text("SELECT count(*) FROM audit_events WHERE action='qms_project.created'"))
             == 1
+        )
+
+
+@pytest.mark.parametrize(
+    "tampering", ["fake_journey", "fake_step", "gap_relabel", "partial_catalog", "wrong_order"]
+)
+def test_temporary_catalog_cannot_override_frozen_project_templates(
+    boundary: Boundary, tampering: str
+) -> None:
+    """Runtime TEMP permission must never replace the trusted public catalog."""
+    grant(boundary)
+    identifier = uuid4()
+    journey = "forged" if tampering == "fake_journey" else "initial"
+    # These writes must fail even though each supplied temporary template is
+    # internally consistent. The public frozen catalog is the only authority.
+    with pytest.raises(DBAPIError) as rejected, boundary.runtime.begin() as db:
+        context(db, USERS["member"])
+        db.execute(
+            text(
+                "CREATE TEMP TABLE qms_project_catalog ON COMMIT DROP AS "
+                "SELECT * FROM public.qms_project_catalog WITH NO DATA"
+            )
+        )
+        if tampering == "gap_relabel":
+            db.execute(
+                text(
+                    "INSERT INTO pg_temp.qms_project_catalog "
+                    "SELECT catalog_version,journey_key,step_key,position,false "
+                    "FROM public.qms_project_catalog WHERE journey_key='initial'"
+                )
+            )
+        elif tampering in {"partial_catalog", "wrong_order"}:
+            db.execute(
+                text(
+                    "INSERT INTO pg_temp.qms_project_catalog "
+                    "SELECT catalog_version,journey_key,step_key,:position,feature_pending "
+                    "FROM public.qms_project_catalog WHERE journey_key='initial' "
+                    "AND step_key='process-map'"
+                ),
+                {"position": 9 if tampering == "wrong_order" else 1},
+            )
+        else:
+            db.execute(
+                text(
+                    "INSERT INTO pg_temp.qms_project_catalog "
+                    "VALUES('guided-qms-v1',:journey,'forged-step',1,false)"
+                ),
+                {"journey": journey},
+            )
+        db.execute(
+            text(
+                "INSERT INTO public.qms_projects("
+                "id,tenant_id,unit_id,code,name,journey_key,catalog_version,scope_summary,"
+                "status,row_version,created_by_user_id,created_at,updated_at) "
+                "VALUES(:id,:tenant,:unit,'TEMP-CATALOG','Synthetic tampering',:journey,"
+                "'guided-qms-v1','','open',1,:actor,now(),now())"
+            ),
+            {
+                "id": identifier,
+                "tenant": A,
+                "unit": SITE,
+                "journey": journey,
+                "actor": USERS["member"],
+            },
+        )
+        db.execute(
+            text(
+                "INSERT INTO public.qms_project_steps("
+                "id,tenant_id,unit_id,project_id,step_key,position,status,notes,"
+                "row_version,source_project_version,updated_by_user_id,updated_at) "
+                "SELECT gen_random_uuid(),:tenant,:unit,:id,step_key,position,"
+                "'not_started','',1,1,:actor,now() FROM pg_temp.qms_project_catalog"
+            ),
+            {"id": identifier, "tenant": A, "unit": SITE, "actor": USERS["member"]},
+        )
+        db.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+    assert sqlstate(rejected.value) == "23514"
+    with boundary.admin.connect() as db:
+        assert (
+            db.scalar(
+                text("SELECT count(*) FROM public.qms_projects WHERE id=:id"), {"id": identifier}
+            )
+            == 0
+        )
+        assert (
+            db.scalar(
+                text("SELECT count(*) FROM public.qms_project_steps WHERE project_id=:id"),
+                {"id": identifier},
+            )
+            == 0
+        )
+
+
+def test_temporary_parent_and_steps_cannot_satisfy_deferred_completeness(
+    boundary: Boundary,
+) -> None:
+    """Eight fake temporary children cannot justify a real childless project."""
+    grant(boundary)
+    identifier = uuid4()
+    with pytest.raises(DBAPIError) as rejected, boundary.runtime.begin() as db:
+        context(db, USERS["member"])
+        db.execute(
+            text(
+                "INSERT INTO public.qms_projects("
+                "id,tenant_id,unit_id,code,name,journey_key,catalog_version,scope_summary,"
+                "status,row_version,created_by_user_id,created_at,updated_at) "
+                "VALUES(:id,:tenant,:unit,'TEMP-COMPLETE','Synthetic tampering','initial',"
+                "'guided-qms-v1','','open',1,:actor,now(),now())"
+            ),
+            {"id": identifier, "tenant": A, "unit": SITE, "actor": USERS["member"]},
+        )
+        db.execute(
+            text(
+                "CREATE TEMP TABLE qms_projects ON COMMIT DROP AS "
+                "SELECT * FROM public.qms_projects WHERE id=:id"
+            ),
+            {"id": identifier},
+        )
+        db.execute(
+            text(
+                "CREATE TEMP TABLE qms_project_steps ON COMMIT DROP AS "
+                "SELECT * FROM public.qms_project_steps WITH NO DATA"
+            )
+        )
+        db.execute(
+            text(
+                "INSERT INTO pg_temp.qms_project_steps(project_id) "
+                "SELECT :id FROM generate_series(1,8)"
+            ),
+            {"id": identifier},
+        )
+        db.execute(text("SET CONSTRAINTS ALL IMMEDIATE"))
+    assert sqlstate(rejected.value) == "23514"
+    with boundary.admin.connect() as db:
+        assert (
+            db.scalar(
+                text("SELECT count(*) FROM public.qms_projects WHERE id=:id"), {"id": identifier}
+            )
+            == 0
         )
