@@ -51,3 +51,5 @@ El avisoGHSA-fc5q-39xc-vjpf fue retirado por GitHub el18noviembre2026. La repeti
 ## Pendiente
 
 Vincular evidencias concretas al proyecto/paso, revisiones independientes y snapshots formales, historial narrativo completo, perfiles/mappings y transiciónISO aprobados, importación comercial, ejecución de auditorías y módulos de formación/KPI/revisión por dirección. Esta entrega guarda el plan y trabajo reportado; no presenta esos motores como terminados.
+
+Publicación: [PR67](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/67), rama `codex/persistent-qms-projects` sobrePR66. Códigob69500fa24b3e3e6067f455418ed55b94f93dd2f; árbol idéntico al local31fc68f preservado. CP-QMS-PROJECTS-06-20261119T030942Z verificó767fuentes/Git antes de publicar. CI del head y revisión independiente final siguen pendientes en este registro.
