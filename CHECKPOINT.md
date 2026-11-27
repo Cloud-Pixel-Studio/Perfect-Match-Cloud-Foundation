@@ -4,6 +4,7 @@
 - Rama `codex/iso-context-register` sobre `a6b6aa7`. Respaldo cifrado `CP-ISO-PARTY-RISKS-00-20261126T214049Z` descifrado y cotejado por SHA-256, con bundle Git verificado.
 - La ficha permite vincular riesgos y oportunidades evaluados de su unidad. Conserva la versión y el estado citados, muestra el estado actual y registra retiros con motivo. Exige lectura de contexto y riesgos, más gestión de contexto para cambiar vínculos. Cada cambio devuelve la ficha a revisión independiente.
 - `0057_qms_party_risk_links` completó aplicación, reversión en vacío y verificación del veto a perder historial. Pasaron 196 pruebas API/PostgreSQL, incluida la actualización desde `0051` con datos existentes. Pasaron 360 unitarias web, lint, TypeScript, compilación, Ruff, mypy y 14 recorridos de navegador con API simulada.
+- Publicado mediante el conector en el [PR #69](https://github.com/Cloud-Pixel-Studio/Perfect-Match-Cloud-Foundation/pull/69), borrador sobre la rama de PR #67. El árbol de `fd86bfe` coincide con el local `59bde1e`. Los commits de trabajo se conservan localmente y la publicación agrupa el mismo contenido en tres hitos. CI remota y revisión independiente pendientes al abrir el PR.
 - Siguen pendientes los vínculos a objetivos y el trabajo de contexto 4.1 y alcance 4.3. La actualización de AWS requiere validar la recuperación del esquema actual y el artefacto de la entrega.
 
 ## Evidencia operativa de requisitos ISO 4.2 · 26 noviembre 2026
