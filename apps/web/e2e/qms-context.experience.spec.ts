@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import type { ContextFields, ContextRecord, PartyProcessLink, PartyRequirement } from "../src/lib/qms-context";
+import type { ContextFields, ContextRecord, PartyRequirement, PartySource, PartySourceLink } from "../src/lib/qms-context";
 
 const tenant = "10000000-0000-4000-8000-000000000001";
 const author = "20000000-0000-4000-8000-000000000001";
@@ -10,6 +10,20 @@ const secondUnit = "30000000-0000-4000-8000-000000000002";
 const recordId = "40000000-0000-4000-8000-000000000001";
 const csrf = "synthetic-test-csrf-token";
 const process = { id: "50000000-0000-4000-8000-000000000001", code: "RECV-01", name: "Receiving inspection", row_version: 7 };
+const candidateDocument = {
+  id: "50000000-0000-4000-8000-000000000002", document_id: "50000000-0000-4000-8000-000000000003",
+  code: "SOP-01", name: "Receiving procedure", row_version: 3, document_version: 4, revision: "B",
+};
+const candidateEvidence = {
+  id: "50000000-0000-4000-8000-000000000004", control_instance_id: "50000000-0000-4000-8000-000000000005",
+  code: "CTRL-01", name: "Lot check record", row_version: 3, instance_version: 4, evidence_type: "record",
+};
+const candidateRisk = {
+  id: "50000000-0000-4000-8000-000000000006", code: "OPP-01", name: "Earlier certificate confirmation",
+  row_version: 2, state: "assessed", risk_type: "opportunity",
+} as const;
+const candidatesBySource = { process, document: candidateDocument, evidence: candidateEvidence, risk: candidateRisk };
+const sourcePermissions = { process: "processes.read", document: "documents.read", evidence: "control_instances.read", risk: "risks.read" };
 const linkId = "60000000-0000-4000-8000-000000000001";
 const purchaseRequirement: PartyRequirement = {
   id: "70000000-0000-4000-8000-000000000001", statement: "Match each received lot to its certificate.",
@@ -26,14 +40,14 @@ const seededParty: ContextRecord = {
   party_requirements: [purchaseRequirement], no_requirements_reason: "",
 };
 
-async function fixture(page: Page, withProcess = false) {
+async function fixture(page: Page, source?: PartySource) {
   let actor = author;
   let foreignPayload = false;
-  let link: PartyProcessLink | null = null;
-  let phases: Array<{ command: string; snapshot: ContextRecord }> = withProcess ? [{ command: "reviewed", snapshot: seededParty }] : [];
+  let link: PartySourceLink | null = null;
+  let phases: Array<{ command: string; snapshot: ContextRecord }> = source ? [{ command: "reviewed", snapshot: seededParty }] : [];
   const capabilities = () => [
     "context.read", actor === author ? "context.manage" : "context.review",
-    ...(withProcess && actor === author ? ["processes.read"] : []),
+    ...(source && actor === author ? [sourcePermissions[source]] : []),
   ];
   const units = [firstUnit, secondUnit].map((id, i) => ({
     id, tenant_id: tenant, code: `SITE-${i + 1}`, name: "Synthetic site", status: "active", unit_type: "site",
@@ -56,7 +70,7 @@ async function fixture(page: Page, withProcess = false) {
       summary: { total: 0, overdue: 0, due_soon: 0, unassigned: 0, by_source: {} }, items: [],
     });
     if (path === "/context/members") return ok([{ user_id: reviewer, display_name: "Synthetic reviewer" }]);
-    if (path === "/processes") return ok([]);
+    if (path === "/processes" || path === "/documents") return ok([]);
     if (path === "/context/issues") return ok([]);
     if (path === "/context/interested-parties" && method === "POST") {
       expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
@@ -90,12 +104,12 @@ async function fixture(page: Page, withProcess = false) {
       return ok(snapshot);
     }
     if (path.endsWith("/history")) return ok(phases);
-    if (withProcess && path.startsWith(`/context/interested-parties/${recordId}/process-`)) {
+    if (source && path.startsWith(`/context/interested-parties/${recordId}/${source}-`)) {
       const current = phases[0].snapshot;
       const envelope = { party_id: recordId, tenant_id: tenant, unit_id: firstUnit, party_version: current.row_version };
       expect(unit).toBe(firstUnit);
       expect(actor).toBe(author);
-      if (path.endsWith("/process-candidates")) return ok({ ...envelope, items: [process], has_more: false });
+      if (path.endsWith("-candidates")) return ok({ ...envelope, items: [candidatesBySource[source]], has_more: false });
       if (method === "GET") return ok({ ...envelope, items: link ? [link] : [], has_more: false });
       expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
       const input = route.request().postDataJSON();
@@ -109,16 +123,52 @@ async function fixture(page: Page, withProcess = false) {
         link = { ...link, removed_party_version: version, removed_at: "2026-11-26T12:02:00Z", removal_reason: input.reason };
         return ok({ ...envelope, party_version: version, link_id: linkId, action: "removed" });
       }
-      expect(input.process_id).toBe(process.id);
       expect(input.requirement_id).toBe(purchaseRequirement.id);
-      expect(input.expected_process_version).toBe(process.row_version);
-      link = {
-        id: linkId, requirement_id: purchaseRequirement.id, process_id: process.id,
-        requirement_snapshot: purchaseRequirement, process_code: process.code, process_name: process.name,
-        process_version: process.row_version, linked_party_version: version, rationale: input.rationale,
+      const common = {
+        id: linkId, requirement_id: purchaseRequirement.id, requirement_snapshot: purchaseRequirement,
+        linked_party_version: version, rationale: input.rationale,
         created_at: "2026-11-26T12:01:00Z", removed_party_version: null, removed_at: null, removal_reason: "",
-        requirement_current: true, process_state: "current",
+        requirement_current: true,
       };
+      if (source === "risk") {
+        expect(input.risk_id).toBe(candidateRisk.id);
+        expect(input.expected_risk_version).toBe(candidateRisk.row_version);
+        link = {
+          ...common, risk_id: candidateRisk.id, risk_code: candidateRisk.code, risk_name: candidateRisk.name,
+          risk_type: candidateRisk.risk_type, linked_risk_state: candidateRisk.state,
+          risk_version: candidateRisk.row_version, risk_state: "closed", risk_changed: true,
+        };
+      } else if (source === "evidence") {
+        expect(input.evidence_id).toBe(candidateEvidence.id);
+        expect(input.control_instance_id).toBe(candidateEvidence.control_instance_id);
+        expect(input.expected_evidence_version).toBe(candidateEvidence.row_version);
+        expect(input.expected_instance_version).toBe(candidateEvidence.instance_version);
+        link = {
+          ...common, evidence_id: candidateEvidence.id, control_instance_id: candidateEvidence.control_instance_id,
+          control_code: candidateEvidence.code, evidence_name: candidateEvidence.name,
+          evidence_type: candidateEvidence.evidence_type, accepted_at: "2026-11-25T10:00:00Z",
+          evidence_version: candidateEvidence.row_version, instance_version: candidateEvidence.instance_version,
+          evidence_state: "current",
+        };
+      } else if (source === "document") {
+        expect(input.document_id).toBe(candidateDocument.document_id);
+        expect(input.document_revision_id).toBe(candidateDocument.id);
+        expect(input.expected_document_version).toBe(candidateDocument.document_version);
+        expect(input.expected_revision_version).toBe(candidateDocument.row_version);
+        link = {
+          ...common, document_id: candidateDocument.document_id, document_revision_id: candidateDocument.id,
+          document_code: candidateDocument.code, document_title: candidateDocument.name, revision: candidateDocument.revision,
+          file_sha256: "a".repeat(64), document_version: candidateDocument.document_version,
+          revision_version: candidateDocument.row_version, document_state: "current",
+        };
+      } else {
+        expect(input.process_id).toBe(process.id);
+        expect(input.expected_process_version).toBe(process.row_version);
+        link = {
+          ...common, process_id: process.id, process_code: process.code, process_name: process.name,
+          process_version: process.row_version, process_state: "current",
+        };
+      }
       return ok({ ...envelope, party_version: version, link_id: linkId, action: "linked" }, 201);
     }
     if (path === "/context/interested-parties") {
@@ -193,7 +243,7 @@ test("author and independent reviewer use the guided register at mobile width", 
 });
 
 test("an authorized author links and withdraws a process while readers without source access see no reference", async ({ page }) => {
-  const state = await fixture(page, true);
+  const state = await fixture(page, "process");
   await page.setViewportSize({ width: 375, height: 812 });
   let register = await openRegister(page);
   await register.getByRole("button", { name: "View process links" }).click();
@@ -220,4 +270,88 @@ test("an authorized author links and withdraws a process while readers without s
   await expect(register.getByRole("button", { name: "Review PARTY-01" })).toBeVisible();
   await expect(register.getByRole("button", { name: "View process links" })).toHaveCount(0);
   await expect(register.getByText("RECV-01 · Receiving inspection")).toHaveCount(0);
+});
+
+test("an author cites the exact released document revision and source permission protects its history", async ({ page }) => {
+  const state = await fixture(page, "document");
+  await page.setViewportSize({ width: 375, height: 812 });
+  let register = await openRegister(page);
+  await expect(register.getByRole("button", { name: "View process links" })).toHaveCount(0);
+  await register.getByRole("button", { name: "View document links" }).click();
+  const links = register.getByRole("region", { name: "Document links", exact: true });
+  await links.getByRole("button", { name: "Link a document" }).click();
+  await links.getByRole("combobox", { name: "Document", exact: true }).selectOption(candidateDocument.id);
+  await links.getByLabel("How this document addresses the requirement").fill("Specifies certificate checks before release.");
+  await links.getByRole("button", { name: "Save document link" }).click();
+  await expect(register.getByText("Document linked and party version updated.")).toBeVisible();
+  await expect(links.getByText("Current released revision · Linked revision B")).toBeVisible();
+  await links.getByText("Document fingerprint", { exact: true }).click();
+  await expect(links.getByText("a".repeat(64), { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+  await links.getByRole("button", { name: "Withdraw SOP-01" }).click();
+  await links.getByLabel("Reason for withdrawal").fill("Replaced by a different released procedure.");
+  await links.getByRole("button", { name: "Withdraw link", exact: true }).click();
+  await expect(links.getByText(/^Withdrawn at party version 4/)).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include(".party-document-links")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
+  state.useReviewer();
+  register = await openRegister(page);
+  await expect(register.getByRole("button", { name: "Review PARTY-01" })).toBeVisible();
+  await expect(register.getByRole("button", { name: "View document links" })).toHaveCount(0);
+});
+
+test("accepted evidence keeps a dated historical citation and requires evidence source access", async ({ page }) => {
+  const state = await fixture(page, "evidence");
+  await page.setViewportSize({ width: 375, height: 812 });
+  let register = await openRegister(page);
+  await expect(register.getByRole("button", { name: "View document links" })).toHaveCount(0);
+  await register.getByRole("button", { name: "View evidence links" }).click();
+  const links = register.getByRole("region", { name: "Evidence links", exact: true });
+  await links.getByRole("button", { name: "Link evidence", exact: true }).click();
+  await links.getByRole("combobox", { name: "Evidence", exact: true }).selectOption(candidateEvidence.id);
+  await links.getByLabel("How this evidence addresses the requirement").fill("Shows the lot was examined before release.");
+  await links.getByRole("button", { name: "Save evidence link" }).click();
+  await expect(register.getByText("Evidence linked and party version updated.")).toBeVisible();
+  await expect(links.getByText("Accepted evidence · Linked evidence version 3")).toBeVisible();
+  await expect(links.locator("time")).toHaveAttribute("datetime", "2026-11-25T10:00:00Z");
+  await links.getByRole("button", { name: "Withdraw CTRL-01" }).click();
+  await links.getByLabel("Reason for withdrawal").fill("The receiving example is replaced.");
+  await links.getByRole("button", { name: "Withdraw link", exact: true }).click();
+  await expect(links.getByText("Withdrawn at party version 4 · The receiving example is replaced.")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include(".party-evidence-links")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
+  state.useReviewer();
+  register = await openRegister(page);
+  await expect(register.getByRole("button", { name: "Review PARTY-01" })).toBeVisible();
+  await expect(register.getByRole("button", { name: "View evidence links" })).toHaveCount(0);
+});
+
+test("the current opportunity state and the cited state are both visible to authorized users", async ({ page }) => {
+  const state = await fixture(page, "risk");
+  await page.setViewportSize({ width: 375, height: 812 });
+  let register = await openRegister(page);
+  await register.getByRole("button", { name: "View risk links" }).click();
+  const links = register.getByRole("region", { name: "Risk links", exact: true });
+  await links.getByRole("button", { name: "Link a risk or opportunity", exact: true }).click();
+  const source = links.getByRole("combobox", { name: "Risk or opportunity", exact: true });
+  await expect(source.getByRole("option", { name: /Opportunity · Assessed/ })).toHaveCount(1);
+  await source.selectOption(candidateRisk.id);
+  await links.getByLabel("How this risk or opportunity relates to the requirement").fill("Confirms the certificate before the lot arrives.");
+  await links.getByRole("button", { name: "Save risk link" }).click();
+  await expect(register.getByText("Risk or opportunity linked and party version updated.")).toBeVisible();
+  await expect(links.getByText("Closed · Linked risk register version 2")).toBeVisible();
+  await expect(links.getByText("Opportunity · State when linked: Assessed · Register has changed")).toBeVisible();
+  await links.getByRole("button", { name: "Withdraw OPP-01" }).click();
+  await links.getByLabel("Reason for withdrawal").fill("Review completed for this opportunity.");
+  await links.getByRole("button", { name: "Withdraw link", exact: true }).click();
+  await expect(links.getByText("Withdrawn at party version 4 · Review completed for this opportunity.")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include(".party-risk-links")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
+  state.useReviewer();
+  register = await openRegister(page);
+  await expect(register.getByRole("button", { name: "Review PARTY-01" })).toBeVisible();
+  await expect(register.getByRole("button", { name: "View risk links" })).toHaveCount(0);
 });

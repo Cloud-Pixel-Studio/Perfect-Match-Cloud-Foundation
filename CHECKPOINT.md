@@ -1,5 +1,23 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Riesgos y oportunidades para requisitos ISO 4.2 · 26 noviembre 2026
+- Rama `codex/iso-context-register` sobre `a6b6aa7`. Respaldo cifrado `CP-ISO-PARTY-RISKS-00-20261126T214049Z` descifrado y cotejado por SHA-256, con bundle Git verificado.
+- La ficha permite vincular riesgos y oportunidades evaluados de su unidad. Conserva la versión y el estado citados, muestra el estado actual y registra retiros con motivo. Exige lectura de contexto y riesgos, más gestión de contexto para cambiar vínculos. Cada cambio devuelve la ficha a revisión independiente.
+- `0057_qms_party_risk_links` completó aplicación, reversión en vacío y verificación del veto a perder historial. Pasaron 196 pruebas API/PostgreSQL, incluida la actualización desde `0051` con datos existentes. Pasaron 360 unitarias web, lint, TypeScript, compilación, Ruff, mypy y 14 recorridos de navegador con API simulada.
+- Siguen pendientes los vínculos a objetivos y el trabajo de contexto 4.1 y alcance 4.3. La actualización de AWS requiere validar la recuperación del esquema actual y el artefacto de la entrega.
+
+## Evidencia operativa de requisitos ISO 4.2 · 26 noviembre 2026
+- Rama `codex/iso-context-register` sobre `f84dd7a`. Respaldo cifrado `CP-ISO-PARTY-EVIDENCE-00-20261126T212649Z` descifrado y cotejado por SHA-256, con bundle Git verificado.
+- La Guía de implementación permite citar evidencia aceptada de una implementación activa en la misma unidad. Registra fecha de aceptación, versiones, motivo y retiro histórico. Leer exige `context.read` y `control_instances.read`. Gestionar exige además `context.manage`.
+- `0056_qms_party_evidence_links` se aplicó y revirtió en PostgreSQL desechable sin citas y se comprobó que protege el historial poblado. Pasaron 193 integraciones, incluido el ensayo desde `0051` con conservación de tablas anteriores y alta de las tres fuentes. Web: 360 unitarias, lint, TypeScript, build y 13 recorridos de navegador con API simulada.
+- Pendiente: vínculos con riesgos y objetivos, enlaces para temas de contexto, decisión climática global y alcance 4.3. Esta actualización sigue local. GitHub CLI no detecta una sesión y la demo conserva la versión instalada.
+
+## Evidencia documental de requisitos ISO 4.2 · 26 noviembre 2026
+- Rama `codex/iso-context-register` sobre `acfa372`. Respaldo externo `CP-ISO-PARTY-DOCUMENTS-00-20261126T211209Z` cifrado, cotejado por SHA-256 y con bundle Git verificado.
+- En la ficha de partes interesadas se puede citar una revisión documental vigente, liberada y limpia de la misma unidad. Se guarda código, título, revisión, huella y motivo. El retiro conserva el historial. Leer la cita exige lectura de contexto y de documentos. Gestionarla vuelve a abrir la revisión de la ficha.
+- `0055_qms_party_document_links` verificada en PostgreSQL desechable. Pasaron 191 integraciones, 360 unitarias web y 12 recorridos de navegador sobre standalone con API simulada. Lint, TypeScript, build, Ruff y mypy pasaron. Se extendió el ensayo de migración desde `0051` al nuevo esquema.
+- Pendiente: evidencia operativa aceptada, vínculos con riesgos y objetivos, decisión climática global y alcance 4.3. La demo no recibió esta actualización. La publicación en GitHub sigue pendiente de autenticación.
+
 ## Ensayo de actualización ISO · 26 noviembre 2026
 - Respaldo de código externo `CP-ISO-MIGRATION-REHEARSAL-00-20261126T210247Z` sobre `83a2d24`, descifrado, cotejado por SHA-256 y con bundle Git verificado.
 - La demo activa se comprobó de solo lectura. API, web y PostgreSQL saludables. Alembic sigue en `0051_qms_project_references`.

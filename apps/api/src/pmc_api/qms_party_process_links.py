@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import TextClause
 
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.models import QMSContextRecord, QMSProcess
@@ -104,9 +105,11 @@ def _scope(party: QMSContextRecord) -> dict[str, UUID | int]:
     }
 
 
-def _authority(db: Session, unit: UUID, *, write: bool = False) -> None:
+def _authority(
+    db: Session, unit: UUID, *, write: bool = False, source: str = "processes.read"
+) -> None:
     require_capability(db, "context.read", unit)
-    require_capability(db, "processes.read", unit)
+    require_capability(db, source, unit)
     if write:
         require_capability(db, "context.manage", unit)
 
@@ -117,9 +120,11 @@ def _finish_read(
     actor: OrganizationActor,
     party: QMSContextRecord,
     response: Response,
+    *,
+    source: str = "processes.read",
 ) -> None:
     _verify(db, auth, actor, party.unit_id, "context.read")
-    require_capability(db, "processes.read", party.unit_id)
+    require_capability(db, source, party.unit_id)
     version = db.scalar(
         select(QMSContextRecord.row_version).where(
             QMSContextRecord.id == party.id,
@@ -128,7 +133,7 @@ def _finish_read(
         )
     )
     if version != party.row_version:
-        raise HTTPException(409, "party changed; refresh process links")
+        raise HTTPException(409, "party changed; refresh links")
     _headers(response, actor)
 
 
@@ -226,67 +231,52 @@ ORDER BY link.created_at DESC,link.id LIMIT :limit OFFSET :offset
     )
 
 
-def _change_link(
+def write_party_link(
     party_id: UUID,
     unit_id: UUID,
-    body: AddProcessLink | RemoveProcessLink,
     link_id: UUID,
     db: Session,
     auth: Authenticated,
     request: Request,
     response: Response,
+    *,
+    expected_version: int,
+    reason: str,
+    operation: Literal["link", "remove"],
+    source_kind: Literal["process", "document", "evidence", "risk"],
+    statement: TextClause,
+    source_values: dict[str, object] | None = None,
 ) -> LinkReceipt:
     actor = actor_context(db, auth)
-    _authority(db, unit_id, write=True)
-    adding = isinstance(body, AddProcessLink)
-    reason = body.rationale if isinstance(body, AddProcessLink) else body.reason
+    source_capability = {
+        "process": "processes.read",
+        "document": "documents.read",
+        "evidence": "control_instances.read",
+        "risk": "risks.read",
+    }[source_kind]
+    _authority(db, unit_id, write=True, source=source_capability)
     if not reason or INVALID_TEXT.search(reason):
         raise HTTPException(422, "a valid rationale is required")
     try:
         # Always lock the parent before changing a link. Parent edits use the same lock.
         party = _find(db, actor, "interested-parties", unit_id, party_id, lock=True)
-        if party.row_version != body.expected_party_version or party.status == "retired":
+        if party.row_version != expected_version or party.status == "retired":
             raise HTTPException(409, "party changed or was retired; refresh before editing links")
         before = _audit_values(party)
         _set_command(db, "updated")
         db.execute(
-            text("SELECT set_config('app.qms_party_process_command',:command,true)"),
-            {"command": "link" if adding else "remove"},
+            text("SELECT set_config(:setting,:command,true)"),
+            {"setting": f"app.qms_party_{source_kind}_command", "command": operation},
         )
         parameters = {
             **_scope(party),
             "id": link_id,
             "new_version": party.row_version + 1,
             "reason": reason,
+            **(source_values or {}),
         }
-        if isinstance(body, AddProcessLink):
-            db.execute(
-                text("""
-INSERT INTO public.qms_party_process_links(
- id,tenant_id,unit_id,party_id,requirement_id,process_id,
- linked_party_version,process_version,rationale
-) VALUES (
- :id,:tenant_id,:unit_id,:party_id,:requirement_id,:process_id,:new_version,:process_version,:reason
-)
-"""),
-                {
-                    **parameters,
-                    "requirement_id": body.requirement_id,
-                    "process_id": body.process_id,
-                    "process_version": body.expected_process_version,
-                },
-            )
-        else:
-            removed = db.scalar(
-                text("""
-UPDATE public.qms_party_process_links SET removed_party_version=:new_version,removal_reason=:reason
-WHERE id=:id AND tenant_id=:tenant_id AND unit_id=:unit_id AND party_id=:party_id
-AND removed_at IS NULL RETURNING id
-"""),
-                parameters,
-            )
-            if removed is None:
-                raise HTTPException(404, "active process link not found")
+        if db.scalar(statement, parameters) is None:
+            raise HTTPException(404, "active link not found")
         snapshot = _persist(
             db,
             actor,
@@ -295,7 +285,7 @@ AND removed_at IS NULL RETURNING id
             party,
             "updated",
             before,
-            source_capability="processes.read",
+            source_capability=source_capability,
         )
     except DBAPIError as error:
         db.rollback()
@@ -307,8 +297,23 @@ AND removed_at IS NULL RETURNING id
         party_id=party_id,
         party_version=snapshot.row_version,
         link_id=link_id,
-        action="linked" if adding else "removed",
+        action="linked" if operation == "link" else "removed",
     )
+
+
+_ADD_PROCESS = text("""
+INSERT INTO public.qms_party_process_links(
+ id,tenant_id,unit_id,party_id,requirement_id,process_id,
+ linked_party_version,process_version,rationale
+) VALUES (
+ :id,:tenant_id,:unit_id,:party_id,:requirement_id,:process_id,:new_version,:process_version,:reason
+) RETURNING id
+""")
+_REMOVE_PROCESS = text("""
+UPDATE public.qms_party_process_links SET removed_party_version=:new_version,removal_reason=:reason
+WHERE id=:id AND tenant_id=:tenant_id AND unit_id=:unit_id AND party_id=:party_id
+AND removed_at IS NULL RETURNING id
+""")
 
 
 @router.post(
@@ -326,7 +331,25 @@ def add(
     request: Request,
     response: Response,
 ) -> LinkReceipt:
-    return _change_link(party_id, unit_id, body, uuid4(), db, authenticated, request, response)
+    return write_party_link(
+        party_id,
+        unit_id,
+        uuid4(),
+        db,
+        authenticated,
+        request,
+        response,
+        expected_version=body.expected_party_version,
+        reason=body.rationale,
+        operation="link",
+        source_kind="process",
+        statement=_ADD_PROCESS,
+        source_values={
+            "requirement_id": body.requirement_id,
+            "process_id": body.process_id,
+            "process_version": body.expected_process_version,
+        },
+    )
 
 
 @router.post(
@@ -344,4 +367,17 @@ def remove(
     request: Request,
     response: Response,
 ) -> LinkReceipt:
-    return _change_link(party_id, unit_id, body, link_id, db, authenticated, request, response)
+    return write_party_link(
+        party_id,
+        unit_id,
+        link_id,
+        db,
+        authenticated,
+        request,
+        response,
+        expected_version=body.expected_party_version,
+        reason=body.reason,
+        operation="remove",
+        source_kind="process",
+        statement=_REMOVE_PROCESS,
+    )

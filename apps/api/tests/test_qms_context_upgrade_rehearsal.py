@@ -7,8 +7,16 @@ from datetime import datetime
 import pytest
 from sqlalchemy import Text, cast, func, inspect, literal_column, select, table, text
 from sqlalchemy.engine import Engine
+from test_qms_party_document_links_integrity import citation
+from test_qms_party_evidence_links_integrity import evidence_citation
 from test_qms_party_process_links_integrity import create_party, link_body
 from test_qms_party_requirements_integrity import ENDPOINT
+from test_qms_party_risk_links_integrity import (
+    allow_risk_access,
+    create_risk,
+    risk_citation,
+    transition_risk,
+)
 from test_qms_project_reference_integrity import path, payload, setup
 from test_tenant_suspension_integrity import SITE, Boundary, migrate
 from test_tenant_suspension_integrity import boundary as boundary
@@ -84,7 +92,14 @@ def test_iso_upgrade_preserves_existing_project_document_and_evidence(boundary: 
         assert db.scalar(text("SELECT version_num FROM public.alembic_version")) == expected_head
     upgraded_tables = table_fingerprints(boundary.admin)
     assert original == {name: upgraded_tables[name] for name in original}
-    for name in ("qms_context_records", "qms_context_revisions", "qms_party_process_links"):
+    for name in (
+        "qms_context_records",
+        "qms_context_revisions",
+        "qms_party_process_links",
+        "qms_party_document_links",
+        "qms_party_evidence_links",
+        "qms_party_risk_links",
+    ):
         assert upgraded_tables[name][0] == 0 and name not in original
 
     party = create_party(boundary)
@@ -93,6 +108,25 @@ def test_iso_upgrade_preserves_existing_project_document_and_evidence(boundary: 
     linked = boundary.call("GET", link_url, role="member")
     assert linked["party_version"] == 2
     assert linked["items"][0]["process_id"] == boundary.process
+    document_url = f"{ENDPOINT}/{party['id']}/document-links?unit_id={SITE}"
+    boundary.call("POST", document_url, citation(sources, 2), role="member", expected=201)
+    cited = boundary.call("GET", document_url, role="member")
+    assert cited["party_version"] == 3
+    assert cited["items"][0]["document_revision_id"] == sources["revision"]
+    evidence_url = f"{ENDPOINT}/{party['id']}/evidence-links?unit_id={SITE}"
+    boundary.call("POST", evidence_url, evidence_citation(sources, 3), role="member", expected=201)
+    evidence = boundary.call("GET", evidence_url, role="member")
+    assert (
+        evidence["party_version"] == 4
+        and evidence["items"][0]["evidence_id"] == sources["evidence"]
+    )
+    allow_risk_access(boundary, "member", "risks.read", "risks.manage", "risks.review")
+    risk = transition_risk(boundary, create_risk(boundary, "RECEIVING-RISK"), "assessed")
+    risk_url = f"{ENDPOINT}/{party['id']}/risk-links?unit_id={SITE}"
+    boundary.call("POST", risk_url, risk_citation(risk, 4), role="member", expected=201)
+    risk_links = boundary.call("GET", risk_url, role="member")
+    assert risk_links["party_version"] == 5
+    assert risk_links["items"][0]["risk_id"] == risk["id"]
     for kind, page in old_links.items():
         current = boundary.call("GET", path(project, kind), role="member")
         assert datetime.fromisoformat(current.pop("observed_at")) >= datetime.fromisoformat(

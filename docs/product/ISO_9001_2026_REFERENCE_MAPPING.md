@@ -11,13 +11,13 @@ Perfect Match QMS usa ISO 9001:2026 como referencia de diseño y trazabilidad. L
 | Cláusula | Intención operativa | Cobertura actual | Pendiente principal |
 | --- | --- | --- | --- |
 | 4.1 | Contexto, asuntos internos/externos y cambio climático relevante | Parcial. Registro por unidad con responsable, pertinencia climática del asunto, revisión e historial | Decisión climática consolidada y vínculos trazables a evidencias y procesos |
-| 4.2 | Partes interesadas y requisitos | Parcial. Registro por unidad, decisiones individuales e historial, con enlaces a procesos del QMS por versión | Vínculos trazables con evidencias, riesgos y objetivos |
+| 4.2 | Partes interesadas y requisitos | Parcial. Registro por unidad, decisiones individuales, historial y enlaces versionados a procesos, revisiones documentales liberadas, evidencia operativa aceptada y riesgos u oportunidades evaluados | Vínculos con objetivos |
 | 4.3 | Alcance documentado, productos/servicios y no aplicabilidad justificada | Parcial: alcance de proyectos y unidades | Registro aprobado de alcance, exclusiones justificadas y control de cambios |
 | 4.4 | Procesos, entradas/salidas, interacción, criterios, recursos y mejora | Parcial: procesos y responsabilidades | Mapa de interacción, indicadores por proceso y evaluación formal de resultados |
 | 5.1 | Liderazgo, integración, recursos, cultura y enfoque al cliente | Parcial: roles, permisos y workflow | Evidencia de liderazgo, decisiones, recursos, cultura y satisfacción del cliente |
 | 5.2 | Política de calidad disponible, comunicada y aplicada | Parcial: documentos controlados | Flujo de aprobación, comunicación, acuse/lectura y revisión de política |
 | 5.3 | Responsabilidades y autoridades comunicadas | Implementado parcialmente: RBAC, capacidades y asignaciones | Matriz de autoridad por proceso y evidencia de comunicación |
-| 6.1 | Riesgos y oportunidades | Parcial: riesgos y acciones existentes | Evaluación ligada a contexto/partes interesadas, tratamiento, eficacia y revisión |
+| 6.1 | Riesgos y oportunidades | Parcial. Registro de riesgos, acciones y vínculos versionados desde requisitos de partes interesadas | Vínculos con temas de contexto y verificación de eficacia |
 | 6.2 | Objetivos de calidad y planificación | Parcial: guía y referencias | Objetivos medibles, responsables, recursos, plazos y seguimiento |
 | 6.3 | Planificación de cambios | Parcial: proyectos y workflows | Evaluación de impacto, integridad del QMS, aprobaciones y reversión |
 | 7.1 | Recursos, personas, infraestructura, ambiente y conocimiento | Parcial: organización y registros | Inventario de recursos, competencias, ambiente, conocimiento y disponibilidad |
@@ -47,6 +47,6 @@ Perfect Match QMS usa ISO 9001:2026 como referencia de diseño y trazabilidad. L
 4. Las aprobaciones, liberaciones, acciones correctivas y revisiones deben conservar segregación de funciones y auditoría inmutable.
 5. Las capacidades pendientes de 7.2, 7.3, 8.2, 8.3, 8.6 y 9.3 deben entrar al roadmap antes de declarar paridad funcional o preparación completa para auditoría.
 
-## Próximo slice recomendado
+## Trabajo pendiente de contexto
 
-Completar las relaciones de los registros 4.1 y 4.2 con evidencias y riesgos, y vincular los temas de contexto con sus procesos. Reutilizar el patrón de revisión para alcance 4.3 y objetivos 6.2.
+Vincular los temas de contexto con sus procesos y riesgos. Reutilizar el patrón de revisión para alcance 4.3 y objetivos 6.2.

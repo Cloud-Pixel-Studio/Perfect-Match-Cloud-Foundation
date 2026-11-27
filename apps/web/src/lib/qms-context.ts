@@ -45,7 +45,9 @@ export type ContextRecord = ContextFields & {
   owner_display_name?: string | null;
 };
 export type ContextRevision = { command: string; snapshot: ContextRecord };
-export type ContextPermission = { read: boolean; manage: boolean; review: boolean; processRead: boolean };
+export type ContextPermission = {
+  read: boolean; manage: boolean; review: boolean; processRead: boolean; documentRead: boolean; evidenceRead: boolean; riskRead: boolean;
+};
 export type ResponsiblePerson = { user_id: string; display_name: string };
 export const contextPageSize = 25;
 export const contextStates = ["draft", "active", "retired"] as const;
@@ -105,6 +107,9 @@ export async function getContextPermissions(scope: ContextScope, signal: AbortSi
     manage: value.capabilities.includes("context.manage"),
     review: value.capabilities.includes("context.review"),
     processRead: value.capabilities.includes("processes.read"),
+    documentRead: value.capabilities.includes("documents.read"),
+    evidenceRead: value.capabilities.includes("control_instances.read"),
+    riskRead: value.capabilities.includes("risks.read"),
   };
 }
 
@@ -201,6 +206,15 @@ export async function contextHistory(scope: ContextScope, entry: ContextRecord, 
 }
 
 type ProcessCandidate = { id: string; code: string; name: string; row_version: number };
+export const partySources = ["process", "document", "evidence", "risk"] as const;
+export type PartySource = typeof partySources[number];
+type DocumentCandidate = ProcessCandidate & { document_id: string; document_version: number; revision: string };
+type EvidenceCandidate = ProcessCandidate & { control_instance_id: string; instance_version: number; evidence_type: string };
+const assessedRiskStates = ["assessed", "action_required", "monitoring"] as const;
+type AssessedRiskState = typeof assessedRiskStates[number];
+type RiskType = "risk" | "opportunity";
+type RiskCandidate = ProcessCandidate & { risk_type: RiskType; state: AssessedRiskState };
+export type PartySourceCandidate = ProcessCandidate | DocumentCandidate | EvidenceCandidate | RiskCandidate;
 export type PartyProcessLink = {
   id: string;
   requirement_id: string;
@@ -218,6 +232,39 @@ export type PartyProcessLink = {
   requirement_current: boolean;
   process_state: "current" | "changed" | "archived" | "unavailable";
 };
+export type PartyDocumentLink = Omit<PartyProcessLink, "process_id" | "process_code" | "process_name" | "process_version" | "process_state"> & {
+  document_id: string;
+  document_revision_id: string;
+  document_code: string;
+  document_title: string;
+  revision: string;
+  file_sha256: string;
+  document_version: number;
+  revision_version: number;
+  document_state: "current" | "changed" | "obsolete" | "superseded" | "unavailable";
+};
+export type PartyEvidenceLink = Omit<PartyProcessLink, "process_id" | "process_code" | "process_name" | "process_version" | "process_state"> & {
+  control_instance_id: string;
+  evidence_id: string;
+  control_code: string;
+  evidence_name: string;
+  evidence_type: string;
+  accepted_at: string;
+  instance_version: number;
+  evidence_version: number;
+  evidence_state: "current" | "changed" | "implementation_archived" | "unavailable";
+};
+export type PartyRiskLink = Omit<PartyProcessLink, "process_id" | "process_code" | "process_name" | "process_version" | "process_state"> & {
+  risk_id: string;
+  risk_code: string;
+  risk_name: string;
+  risk_type: RiskType;
+  risk_version: number;
+  linked_risk_state: AssessedRiskState;
+  risk_state: AssessedRiskState | "closed" | "unavailable";
+  risk_changed: boolean;
+};
+export type PartySourceLink = PartyProcessLink | PartyDocumentLink | PartyEvidenceLink | PartyRiskLink;
 const processStates = ["current", "changed", "archived", "unavailable"];
 const validUuid = (id: unknown): id is string => typeof id === "string" && uuid.test(id);
 const positiveVersion = (value: unknown): value is number =>
@@ -225,6 +272,20 @@ const positiveVersion = (value: unknown): value is number =>
 const processLabel = (value: unknown, limit: number) =>
   typeof value === "string" && value.length > 0 && [...value].length <= limit;
 const processDate = (value: unknown) => typeof value === "string" && Number.isFinite(Date.parse(value));
+const isRiskType = (value: unknown): value is RiskType => value === "risk" || value === "opportunity";
+
+function validPartyLink(item: unknown, version: number): item is Record<string, unknown> {
+  if (!isObject(item) || !validUuid(item.id) || !validUuid(item.requirement_id)
+    || !isPartyRequirement(item.requirement_snapshot) || item.requirement_snapshot.id !== item.requirement_id
+    || item.requirement_snapshot.disposition !== "addressed_by_qms"
+    || !positiveVersion(item.linked_party_version) || item.linked_party_version > version
+    || !processDate(item.created_at) || !processLabel(item.rationale, 600)
+    || typeof item.requirement_current !== "boolean") return false;
+  if (item.removed_at === null) return item.removed_party_version === null && item.removal_reason === "";
+  return processDate(item.removed_at) && positiveVersion(item.removed_party_version)
+    && item.removed_party_version > item.linked_party_version && item.removed_party_version <= version
+    && processLabel(item.removal_reason, 600);
+}
 
 function processEnvelope(value: unknown, scope: ContextScope, record: ContextRecord, expectedVersion: number) {
   if (!isObject(value) || value.tenant_id !== scope.tenantId || value.unit_id !== scope.unitId || value.party_id !== record.id) {
@@ -277,20 +338,11 @@ export async function partyProcessLinks(
 ) {
   const query = new URLSearchParams({ limit: String(contextPageSize), offset: String(offset) });
   const result = await processRequest(scope, record, "process-links", query, signal, record.row_version);
-  return processPage<PartyProcessLink>(result, item => {
-    if (!isObject(item) || !validUuid(item.id) || !validUuid(item.requirement_id) || !validUuid(item.process_id)
-      || !isPartyRequirement(item.requirement_snapshot) || item.requirement_snapshot.id !== item.requirement_id
-      || item.requirement_snapshot.disposition !== "addressed_by_qms"
-      || !processLabel(item.process_code, 40) || !processLabel(item.process_name, 160)
-      || !positiveVersion(item.process_version) || !positiveVersion(item.linked_party_version)
-      || item.linked_party_version > record.row_version || !processDate(item.created_at)
-      || !processLabel(item.rationale, 600) || typeof item.requirement_current !== "boolean"
-      || !processStates.some(state => state === item.process_state)) return false;
-    if (item.removed_at === null) return item.removed_party_version === null && item.removal_reason === "";
-    return processDate(item.removed_at) && positiveVersion(item.removed_party_version)
-      && item.removed_party_version > item.linked_party_version && item.removed_party_version <= record.row_version
-      && processLabel(item.removal_reason, 600);
-  });
+  return processPage<PartyProcessLink>(result, item =>
+    validPartyLink(item, record.row_version) && validUuid(item.process_id)
+    && processLabel(item.process_code, 40) && processLabel(item.process_name, 160)
+    && positiveVersion(item.process_version) && processStates.some(state => state === item.process_state),
+  );
 }
 
 export type PartyProcessCommand =
@@ -307,6 +359,106 @@ export async function changePartyProcessLink(
     requirement_id: command.requirementId, process_id: command.candidate.id,
     expected_process_version: command.candidate.row_version, rationale: command.rationale,
   } : { reason: command.reason };
+  const result = await processRequest(scope, record, path, new URLSearchParams(), signal, record.row_version + 1, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
+    body: JSON.stringify({ ...body, expected_party_version: record.row_version }),
+  });
+  if (!validUuid(result.link_id) || result.action !== (command.kind === "link" ? "linked" : "removed")
+    || (command.kind === "remove" && result.link_id !== command.linkId)) throw new ContextError(502);
+}
+
+export async function partySourceCandidates(
+  source: PartySource, scope: ContextScope, record: ContextRecord, search: string, offset: number, signal: AbortSignal,
+): Promise<{ items: PartySourceCandidate[]; hasMore: boolean }> {
+  if (source === "process") return partyProcessCandidates(scope, record, search, offset, signal);
+  const query = new URLSearchParams({ limit: String(contextPageSize), offset: String(offset), q: search });
+  const result = await processRequest(scope, record, `${source}-candidates`, query, signal, record.row_version);
+  if (source === "risk") return processPage<RiskCandidate>(result, item =>
+    isObject(item) && validUuid(item.id) && processLabel(item.code, 40)
+    && processLabel(item.name, 160) && isRiskType(item.risk_type)
+    && assessedRiskStates.some(state => state === item.state) && positiveVersion(item.row_version),
+  );
+  if (source === "evidence") return processPage<EvidenceCandidate>(result, item =>
+    isObject(item) && validUuid(item.id) && validUuid(item.control_instance_id)
+    && processLabel(item.code, 50) && processLabel(item.name, 160) && processLabel(item.evidence_type, 30)
+    && positiveVersion(item.row_version) && positiveVersion(item.instance_version),
+  );
+  return processPage<DocumentCandidate>(result, item =>
+    isObject(item) && validUuid(item.id) && validUuid(item.document_id) && processLabel(item.code, 40)
+    && processLabel(item.name, 200) && processLabel(item.revision, 40)
+    && positiveVersion(item.row_version) && positiveVersion(item.document_version),
+  );
+}
+
+export async function partySourceLinks(
+  source: PartySource, scope: ContextScope, record: ContextRecord, offset: number, signal: AbortSignal,
+): Promise<{ items: PartySourceLink[]; hasMore: boolean }> {
+  if (source === "process") return partyProcessLinks(scope, record, offset, signal);
+  const query = new URLSearchParams({ limit: String(contextPageSize), offset: String(offset) });
+  const result = await processRequest(scope, record, `${source}-links`, query, signal, record.row_version);
+  if (source === "risk") return processPage<PartyRiskLink>(result, item =>
+    validPartyLink(item, record.row_version) && validUuid(item.risk_id)
+    && processLabel(item.risk_code, 40) && processLabel(item.risk_name, 160)
+    && isRiskType(item.risk_type) && positiveVersion(item.risk_version)
+    && assessedRiskStates.some(state => state === item.linked_risk_state)
+    && [...assessedRiskStates, "closed", "unavailable"].some(state => state === item.risk_state)
+    && typeof item.risk_changed === "boolean",
+  );
+  if (source === "evidence") return processPage<PartyEvidenceLink>(result, item =>
+    validPartyLink(item, record.row_version) && validUuid(item.control_instance_id) && validUuid(item.evidence_id)
+    && processLabel(item.control_code, 50) && processLabel(item.evidence_name, 160)
+    && processLabel(item.evidence_type, 30) && processDate(item.accepted_at)
+    && positiveVersion(item.instance_version) && positiveVersion(item.evidence_version)
+    && ["current", "changed", "implementation_archived", "unavailable"].some(state => state === item.evidence_state),
+  );
+  return processPage<PartyDocumentLink>(result, item =>
+    validPartyLink(item, record.row_version) && validUuid(item.document_id) && validUuid(item.document_revision_id)
+    && processLabel(item.document_code, 40) && processLabel(item.document_title, 200)
+    && processLabel(item.revision, 40) && typeof item.file_sha256 === "string" && /^[0-9a-f]{64}$/.test(item.file_sha256)
+    && positiveVersion(item.document_version) && positiveVersion(item.revision_version)
+    && ["current", "changed", "obsolete", "superseded", "unavailable"].some(state => state === item.document_state),
+  );
+}
+
+export type PartySourceCommand =
+  | { kind: "link"; requirementId: string; candidate: PartySourceCandidate; rationale: string }
+  | { kind: "remove"; linkId: string; reason: string };
+
+export async function changePartySourceLink(
+  source: PartySource, scope: ContextScope, record: ContextRecord, command: PartySourceCommand,
+  csrf: string, signal: AbortSignal,
+) {
+  if (source === "process") return changePartyProcessLink(scope, record, command, csrf, signal);
+  if (!/^[A-Za-z0-9_-]{20,256}$/.test(csrf)) throw new ContextError(403);
+  let body: object;
+  let path = `${source}-links`;
+  if (command.kind === "link") {
+    const candidate = command.candidate;
+    if (source === "risk" && "risk_type" in candidate) {
+      body = {
+        requirement_id: command.requirementId, risk_id: candidate.id,
+        expected_risk_version: candidate.row_version, rationale: command.rationale,
+      };
+    } else if (source === "evidence" && "control_instance_id" in candidate) {
+      body = {
+        requirement_id: command.requirementId, evidence_id: candidate.id,
+        control_instance_id: candidate.control_instance_id,
+        expected_instance_version: candidate.instance_version,
+        expected_evidence_version: candidate.row_version, rationale: command.rationale,
+      };
+    } else if (source === "document" && "document_id" in candidate) {
+      body = {
+        requirement_id: command.requirementId, document_id: candidate.document_id,
+        document_revision_id: candidate.id, expected_document_version: candidate.document_version,
+        expected_revision_version: candidate.row_version, rationale: command.rationale,
+      };
+    } else throw new ContextError(422);
+  } else {
+    if (!validUuid(command.linkId)) throw new ContextError(422);
+    path += `/${command.linkId}/remove`;
+    body = { reason: command.reason };
+  }
   const result = await processRequest(scope, record, path, new URLSearchParams(), signal, record.row_version + 1, {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },

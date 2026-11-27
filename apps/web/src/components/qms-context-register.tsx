@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { PartyProcessLinks } from "./party-process-links";
+import { PartySourceLinks } from "./party-source-links";
 import {
   ContextError, contextCategories, contextHistory, contextPageSize, contextRelevance,
   contextStates, getContextPermissions, listContext, listResponsiblePeople, partyTypes, saveContext,
-  partyRequirementLimit, requirementDispositions, requirementReviewBlocker, trimRequirementText,
+  partyRequirementLimit, partySources, requirementDispositions, requirementReviewBlocker, trimRequirementText,
   type ContextCommand, type ContextFields, type ContextKind, type ContextPermission,
   type ContextRecord, type ContextRevision, type ContextScope, type ContextState, type ResponsiblePerson,
-  type PartyRequirement,
+  type PartyRequirement, type PartySource,
 } from "../lib/qms-context";
 
 const captions = { issues: "Context issues", "interested-parties": "Interested parties" };
@@ -19,6 +19,9 @@ const requirementLabels = {
   addressed_by_qms: "Address in the QMS",
   outside_qms: "Keep outside the QMS",
 };
+const partySourcePermission = {
+  process: "processRead", document: "documentRead", evidence: "evidenceRead", risk: "riskRead",
+} as const;
 const textLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 const today = () => new Date().toISOString().slice(0, 10);
 type Editor = { action: "create" } | { action: "edit" | "review" | "retire"; entry: ContextRecord };
@@ -286,7 +289,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
   const [page, setPage] = useState<Awaited<ReturnType<typeof listContext>> | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [historyId, setHistoryId] = useState("");
-  const [linksId, setLinksId] = useState("");
+  const [openLinks, setOpenLinks] = useState<{ partyId: string; source: PartySource } | null>(null);
   const [linkBusy, setLinkBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -302,7 +305,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
 
   const reportFailure = useCallback((cause: unknown) => {
     if (cause instanceof ContextError && (cause.status === 401 || cause.status === 403 || cause.scopeChanged)) {
-      setPage(null); setEditor(null); setPermission(null); setHistoryId(""); setLinksId("");
+      setPage(null); setEditor(null); setPermission(null); setHistoryId(""); setOpenLinks(null);
       setError("Your access or company changed. Refresh the register to verify access.");
     } else {
       setError("The register could not be loaded. Refresh to retry.");
@@ -326,7 +329,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
   function resetRead() {
     setPage(null); setPermission(null); setHistoryId(""); setError(""); setNotice(""); setStale(false);
     setEditor(null);
-    setLinksId("");
+    setOpenLinks(null);
   }
 
   async function mutate(command: ContextCommand) {
@@ -397,11 +400,14 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
             <button type="button" className="secondary-action compact-action" aria-expanded={historyId === record.id} onClick={() => setHistoryId(current => current === record.id ? "" : record.id)}>
               {historyId === record.id ? "Close history" : "Version history"}
             </button>
-            {record.kind === "interested-parties" && permission?.processRead &&
-              <button type="button" className="secondary-action compact-action" disabled={linkBusy} aria-expanded={linksId === record.id}
-                onClick={() => setLinksId(current => current === record.id ? "" : record.id)}>
-                {linksId === record.id ? "Hide process links" : "View process links"}
-              </button>}
+            {record.kind === "interested-parties" && partySources.map(source => {
+              if (!permission?.[partySourcePermission[source]]) return null;
+              const expanded = openLinks?.partyId === record.id && openLinks.source === source;
+              return <button key={source} type="button" className="secondary-action compact-action" disabled={linkBusy}
+                aria-expanded={expanded} onClick={() => setOpenLinks(expanded ? null : { partyId: record.id, source })}>
+                {expanded ? "Hide" : "View"} {source} links
+              </button>;
+            })}
             {permission?.manage && record.status !== "retired" && <>
               <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "edit", entry: record })}>Edit {record.code}</button>
               <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "retire", entry: record })}>Retire {record.code}</button>
@@ -411,13 +417,15 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
               <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "review", entry: record })}>Review {record.code}</button>}
           </div>
           {historyId === record.id && <History scope={scope} record={record} onError={reportFailure} />}
-          {linksId === record.id && permission?.processRead && <PartyProcessLinks key={record.row_version}
+          {openLinks?.partyId === record.id && permission?.[partySourcePermission[openLinks.source]] && <PartySourceLinks
+            key={`${record.row_version}:${openLinks.source}`} source={openLinks.source}
             scope={scope} record={record} canManage={permission.manage} locked={Boolean(editor) || locked}
             onBusy={setLinkBusy} onAccessFailure={reportFailure} onChanged={action => {
+              const source = openLinks.source === "risk" ? "Risk or opportunity" : textLabel(openLinks.source);
               resetRead();
-              setLinksId(record.id);
+              setOpenLinks(openLinks);
               setStatus(""); setOffset(0); setReload(current => current + 1);
-              setNotice(action === "link" ? "Process linked and party version updated." : "Process link withdrawn. The history was preserved.");
+              setNotice(action === "link" ? `${source} linked and party version updated.` : `${source} link withdrawn. The history was preserved.`);
             }} />}
         </li>)}
       </ul>}

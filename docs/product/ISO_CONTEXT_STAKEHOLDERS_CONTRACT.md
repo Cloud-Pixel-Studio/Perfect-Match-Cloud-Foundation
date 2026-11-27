@@ -10,7 +10,7 @@ El registro de la primera entrega está disponible en la guía de implementació
 - El historial conserva versiones con contenido, motivo y actor. La bitácora general recibe únicamente metadatos. El retiro exige motivo y conserva el historial. El rol de aplicación carece de permisos de escritura directa sobre la tabla de versiones y de borrado sobre el registro.
 - Las capacidades `context.read`, `context.manage` y `context.review` se otorgan por unidad. Gestionar o revisar exige también lectura. El rol de auditor admite la capacidad explícita de lectura. La asignación de un responsable carece de efecto sobre el acceso.
 - Las rutas de detalle, historial, edición, revisión y retiro reciben `unit_id` en la consulta. `PATCH` recibe los campos editables completos y la versión esperada. Se añadieron `GET /context/members`, `GET /context/{kind}/{id}/history` y `POST /context/{kind}/{id}/retire`. El listado filtra por estado y el historial pagina por versión.
-- Quedan pendientes la decisión climática consolidada para todo el QMS, los vínculos tipados a evidencias, riesgos y objetivos, y la conexión con el alcance 4.3.
+- Quedan pendientes la decisión climática consolidada para todo el QMS, los vínculos con objetivos y la conexión con el alcance 4.3.
 
 ## Requisitos individuales de partes interesadas
 
@@ -18,7 +18,7 @@ El registro de la primera entrega está disponible en la guía de implementació
 - La revisión independiente se habilita cuando todos los requisitos tienen decisión o se documentó por qué no se identificaron requisitos relevantes. Una parte marcada como no relevante no puede tener requisitos atendidos por el QMS en una versión revisada.
 - La ficha admite hasta 20 requisitos. El API y PostgreSQL validan el contenido y conservan cada versión. Retirar un requisito de una edición lo elimina de la ficha vigente y conserva la versión histórica que lo contenía.
 - Los campos `party_requirements` y `no_requirements_reason` se incorporaron en `0053_qms_party_requirements`. Un cliente antiguo puede omitirlos en `PATCH` y conserva los valores existentes. La migración conserva estado, notas y revisiones anteriores. Las fichas anteriores requieren completar la evaluación antes de una nueva revisión.
-- La fuente se registra como texto. Un requisito decidido para el QMS también puede enlazarse con un proceso.
+- La fuente se registra como texto. Un requisito atendido por el QMS puede enlazarse con procesos, revisiones documentales liberadas, evidencia operativa aceptada y riesgos u oportunidades evaluados.
 
 ## Vínculos de requisitos con procesos
 
@@ -26,6 +26,27 @@ El registro de la primera entrega está disponible en la guía de implementació
 - La guía señala si el proceso fue actualizado o archivado y si el vínculo corresponde a una versión anterior del requisito. Retirar el enlace exige motivo y conserva los datos originales. El vínculo es una referencia operativa. La conformidad del proceso se verifica por separado.
 - Se exige `context.read` y `processes.read` para ver historial o datos del proceso y también `context.manage` para vincular o retirar. Quien revisa la ficha con autoridad de contexto puede ver los requisitos. Para inspeccionar los vínculos necesita además lectura de procesos.
 - La migración `0054_qms_party_process_links` conserva los vínculos por empresa y unidad con claves compuestas, RLS forzada y control de versiones. Vincular o retirar crea una nueva versión pendiente de revisión en la ficha. El historial del enlace conserva su versión y su motivo.
+
+## Evidencia documental de un requisito
+
+- El selector ofrece revisiones vigentes y liberadas de documentos activos de la misma unidad. La revisión debe tener un archivo limpio y una huella SHA-256 válida. El API y PostgreSQL verifican también las versiones seleccionadas.
+- El historial conserva código, título, revisión, huella, motivo y versión de la ficha que creó o retiró el vínculo. La vista indica si la revisión sigue vigente, fue sustituida, quedó obsoleta o cambió desde la vinculación.
+- La ficha de contexto y el historial documental tienen permisos separados. Leer vínculos exige `context.read` y `documents.read`. Vincular o retirar exige además `context.manage`. La autorización para descargar archivos se resuelve en el módulo documental.
+- `0055_qms_party_document_links` añade el historial protegido de las citas. Cambiar un vínculo vuelve a dejar pendiente de revisión la ficha.
+
+## Evidencia operativa aceptada
+
+- El selector ofrece registros de evidencia aceptados de implementaciones activas en la misma unidad. PostgreSQL valida la relación entre ambos registros y comprueba sus versiones al guardar.
+- La cita conserva código de implementación, nombre y tipo de evidencia, fecha de aceptación, versiones y motivo. Si se archiva la implementación, la ficha muestra ese estado y conserva la cita. Retirar la cita agrega motivo y versión de retiro.
+- Leer el vínculo exige `context.read` y `control_instances.read`. Vincular o retirar exige también `context.manage` y reabre la revisión independiente de la ficha. La evidencia conserva su proceso de aceptación original.
+- `0056_qms_party_evidence_links` protege estas relaciones por empresa y unidad y veta un retroceso que descartaría el historial.
+
+## Riesgos y oportunidades relacionados con un requisito
+
+- El selector muestra riesgos y oportunidades de la misma unidad en estado evaluado, con acción requerida o en seguimiento. Validar la versión al guardar evita citar una evaluación que ya había cambiado al comenzar el guardado.
+- La ficha conserva el fundamento, la copia del requisito, el código, el nombre, el tipo, el estado y las versiones al vincular. La vista muestra también el estado actual. Cuando cambia la evaluación o el riesgo se cierra, la versión citada sigue disponible. Retirar el vínculo exige motivo.
+- Leer exige `context.read` y `risks.read`. Vincular o retirar exige también `context.manage` y devuelve la ficha a revisión independiente. La evaluación y el cierre del riesgo se gestionan desde el registro de riesgos.
+- `0057_qms_party_risk_links` protege las citas mediante claves por empresa y unidad, RLS forzada y un veto a la reversión que perdería el historial.
 
 Las secciones siguientes conservan el diseño de partida para comparar el alcance previsto con la primera entrega.
 
