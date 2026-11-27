@@ -23,6 +23,11 @@ QMS_PROJECT_ACTIONS = {
     },
     "qms_project_step.updated": "qms_project_step",
 }
+QMS_PROJECT_REFERENCE_ACTIONS = {
+    f"qms_project.{kind}_{command}": f"qms_project_{kind}_link"
+    for kind in ("document", "evidence")
+    for command in ("linked", "unlinked")
+}
 PROCESS_ACTIONS = {
     action: "qms_process"
     for action in (
@@ -698,6 +703,7 @@ def _record(
         **INTERNAL_AUDIT_ACTIONS,
         **PROCESS_ACTIONS,
         **QMS_PROJECT_ACTIONS,
+        **QMS_PROJECT_REFERENCE_ACTIONS,
         **CONTROL_ACTIONS,
         **RISK_ACTIONS,
         **NCR_ACTIONS,
@@ -1341,3 +1347,36 @@ def record_document(db: Session, **kwargs: object) -> AuditEvent:
         if value is not None and (not isinstance(value, dict) or set(value) != fields):
             raise AuditPayloadError("document audit fields are invalid")
     return _record(db, resource_type=resource_type, **kwargs)  # type: ignore[arg-type]
+
+
+def record_qms_project_reference(db: Session, **kwargs: object) -> AuditEvent:
+    action = str(kwargs.get("action", ""))
+    resource = QMS_PROJECT_REFERENCE_ACTIONS.get(action)
+    if resource is None:
+        raise AuditPayloadError("unsupported project reference action")
+    fields = {
+        "unit_id",
+        "project_id",
+        "step_id",
+        "target_process_id",
+        "linked_target_version",
+        "source_project_version",
+        "source_step_version",
+        "row_version",
+        "status",
+        "rationale_hash",
+        "removal_reason_hash",
+    } | (
+        {"document_id", "document_revision_id", "linked_document_version"}
+        if resource == "qms_project_document_link"
+        else {"evidence_id", "control_instance_id", "linked_instance_version"}
+    )
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if field == "old_values" and action.endswith("_linked"):
+            if payload is not None:
+                raise AuditPayloadError("new references cannot have old values")
+            continue
+        if not isinstance(payload, dict) or set(payload) != fields:
+            raise AuditPayloadError("project reference payload fields are invalid")
+    return _record(db, resource_type=resource, **kwargs)  # type: ignore[arg-type]

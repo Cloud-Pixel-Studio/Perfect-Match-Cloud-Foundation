@@ -53,6 +53,16 @@ function csrfToken(): string {
   return item ? decodeURIComponent(item.split("=").slice(1).join("=")) : "";
 }
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
 export function IdentityShell() {
   const [view, setView] = useState<IdentityViewState>("loading");
   const [identity, setIdentity] = useState<Identity | null>(null);
@@ -70,15 +80,15 @@ export function IdentityShell() {
 
   const loadIdentity = useCallback(async () => {
     try {
-      const me = await fetch(`${apiUrl}/auth/me`, { credentials: "include" });
+      const me = await fetchWithTimeout(`${apiUrl}/auth/me`, { credentials: "include" });
       if (!me.ok) {
         setView(unauthenticatedState(me.status, document.cookie.includes("pm_csrf=")));
         return;
       }
       const user = (await me.json()) as Identity;
       const [memberships, capabilityResponse] = await Promise.all([
-        fetch(`${apiUrl}/auth/tenants`, { credentials: "include" }),
-        user.current_tenant_id ? fetch(`${apiUrl}/qms-access/active-capabilities`, { credentials: "include" }) : Promise.resolve(null),
+        fetchWithTimeout(`${apiUrl}/auth/tenants`, { credentials: "include" }),
+        user.current_tenant_id ? fetchWithTimeout(`${apiUrl}/qms-access/active-capabilities`, { credentials: "include" }) : Promise.resolve(null),
       ]);
       if (!memberships.ok) throw new Error("memberships unavailable");
       if (user.current_tenant_id && !capabilityResponse?.ok) throw new Error("capability summary unavailable");
@@ -222,6 +232,7 @@ export function IdentityShell() {
           <p className="eyebrow">Secure access</p>
           <h1 id="login-heading">{copy[0]}</h1>
           <p>{copy[1]}</p>
+          {view === "error" && <button className="secondary-action compact-action" type="button" onClick={() => { setView("loading"); void loadIdentity(); }}>Retry secure session check</button>}
           <a className="primary-action" href={`${apiUrl}/auth/login`}>
             <LogIn aria-hidden="true" size={18} />
             Continue to Perfect Match

@@ -1,0 +1,67 @@
+{
+  "version": "project-supporting-records-v1",
+  "prefix": "/qms-projects/{project_id}/steps/{step_id}",
+  "kinds": ["document", "evidence"],
+  "authorization": {
+    "all_reads": "projects.read at exact active unit",
+    "document": "documents.read at same unit",
+    "evidence": "control_instances.read at same unit",
+    "writes": "all corresponding reads AND projects.manage; open project; CSRF; no implicit role or assignment authority",
+    "source_review": "No review/manage permission needed for citation; source lifecycle never changes"
+  },
+  "text": "Rationale/removal reason use the existing project30 blank-set boundary normalization before 1..500 Unicode-code-point validation. New input text/search rejects NUL and unpaired Unicode surrogates with422 before PostgreSQL. Snapshot labels are copied unchanged from source and may need an unnamed fallback in UI.",
+  "page": {
+    "tenant_id": "uuid", "unit_id": "uuid", "project_id": "uuid", "step_id": "uuid",
+    "project_status": "open|archived", "project_version": "strict positive int", "step_version": "strict positive int",
+    "observed_at": "ISOdatetime", "limit": "int 1..50 default50", "offset": "int 0..1000000 default0",
+    "has_more": "boolean from limit+1 before slicing", "items": "typed array <=limit; scope and versions retained even for empty/off-end pages"
+  },
+  "link_common": {
+    "id": "uuid", "tenant_id": "uuid", "unit_id": "uuid", "project_id": "uuid", "step_id": "uuid",
+    "target_process_id": "uuid", "snapshot_code": "string max50 codepoints", "snapshot_name": "string max200 codepoints",
+    "linked_target_version": "strict positive int", "source_project_version": "strict positive int", "source_step_version": "strict positive int",
+    "status": "active|removed", "row_version": "strict positive int", "rationale": "normalized nonempty string max500",
+    "created_by_user_id": "uuid", "created_at": "ISOdatetime", "removed_by_user_id": "uuid|null", "removed_at": "ISOdatetime|null", "removal_reason": "empty while active; normalized nonempty max500 after removal",
+    "current_target_state": "kind-specific enum; diagnostic observation, not verification"
+  },
+  "document_link": {
+    "document_id": "uuid", "document_revision_id": "uuid", "snapshot_revision": "string max40 codepoints",
+    "file_sha256": "lowercase64hex", "linked_document_version": "strict positive int",
+    "current_target_state": "active|changed|superseded|obsolete|unavailable"
+  },
+  "evidence_link": {
+    "evidence_id": "uuid", "control_instance_id": "uuid", "linked_instance_version": "strict positive int",
+    "current_target_state": "accepted|changed|implementation_archived|unavailable"
+  },
+  "document_candidate": {
+    "tenant_id": "source uuid, must match page context", "unit_id": "source uuid, must match page context",
+    "document_id": "uuid", "document_revision_id": "uuid", "process_id": "uuid", "code": "string max50", "title": "string max200",
+    "revision": "string max40", "file_sha256": "lowercase64hex", "document_version": "strict positive int", "revision_version": "strict positive int"
+  },
+  "evidence_candidate": {
+    "tenant_id": "source uuid, must match page context", "unit_id": "source uuid, must match page context",
+    "evidence_id": "uuid", "control_instance_id": "uuid", "process_id": "uuid", "code": "implementation code string max50", "name": "evidence name string max160",
+    "instance_version": "strict positive int", "evidence_version": "strict positive int"
+  },
+  "routes": [
+    {"method":"GET","path":"/document-links","response":"Page<DocumentLink>; active first, created_at/id descending; includes removed history"},
+    {"method":"GET","path":"/evidence-links","response":"Page<EvidenceLink>; same ordering/history"},
+    {"method":"GET","path":"/document-candidates","query":"literal search max160 codepoints, limit,offset","response":"Page<DocumentCandidate>; active document plus active clean revision only; eligibility before pagination; code/id stable ordering"},
+    {"method":"GET","path":"/evidence-candidates","query":"literal search max160 codepoints, limit,offset","response":"Page<EvidenceCandidate>; accepted evidence plus active implementation only; eligibility before pagination; implementation code/evidence sequence/id ordering"},
+    {"method":"POST","path":"/document-links","body":{"expected_project_version":"strict positive int","expected_step_version":"strict positive int","document_id":"uuid","document_revision_id":"uuid","expected_document_version":"strict positive int","expected_revision_version":"strict positive int","rationale":"normalized1..500"},"response":"201 {project:ProjectDetail,link:DocumentLink}; project+step versions each+1, link.row_version1 and active"},
+    {"method":"POST","path":"/evidence-links","body":{"expected_project_version":"strict positive int","expected_step_version":"strict positive int","evidence_id":"uuid","expected_instance_version":"strict positive int","expected_evidence_version":"strict positive int","rationale":"normalized1..500"},"response":"201 {project:ProjectDetail,link:EvidenceLink}; same version movement"},
+    {"method":"POST","path":"/document-links/{link_id}/remove","body":{"expected_project_version":"strict positive int","expected_step_version":"strict positive int","expected_link_version":"strict positive int","reason":"normalized1..500"},"response":"200 {project:ProjectDetail,link:DocumentLink}; project+step+link versions each+1, statusremoved, immutable snapshots/rationale retained"},
+    {"method":"POST","path":"/evidence-links/{link_id}/remove","body":"same removal fields","response":"200 {project:ProjectDetail,link:EvidenceLink}; same movement"}
+  ],
+  "errors": "401 session;403 missing capability;404 hidden/missing project/step/link;409 stale versions/duplicate/source/scope/archive conflicts;422 invalid body/query. No upstream narrative in client diagnostics.",
+  "rules": [
+    "No new project status or step completion; feature_pending and all follow-up content/assignment/date stay unchanged after link commands.",
+    "Both selected container and target versions must match at add validation. Later source lifecycle changes preserve snapshots; current-state diagnostics may become historical or unavailable.",
+    "Accepted evidence citation does not re-evaluate its attached document or accept this project step.",
+    "Link SQL trigger advances project+step through0050 protocol, no caller-controlled snapshot data. API audit and data transaction atomic.",
+    "Active duplicates prohibited per step/target revision or evidence; removed history permits a new citation row. No DELETE/edit/restore link commands.",
+    "Source read revocation hides corresponding link rows and candidates; missing source capability is restricted, not zero evidence.",
+    "All response snapshots/IDs are same company/unit; no owner bypass, auto grants or cross-tenant source queries.",
+    "Client validates current scope and expected versions, preserves drafts for409/uncertain responses, requires explicit reconciliation and never blindly retries a write. Exact201/200 receipts only."
+  ]
+}

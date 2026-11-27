@@ -8,3 +8,6 @@ allowBuilds:
 ignoredOptionalDependencies:
   - "@img/sharp-libvips-linux-x64"
   - "@img/sharp-linux-x64"
+
+overrides:
+  minimatch: ">=11.0.1"

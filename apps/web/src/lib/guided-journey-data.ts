@@ -25,7 +25,10 @@ function checkAbort(signal?: AbortSignal): void {
 async function read(path: string, signal: AbortSignal | undefined, request: typeof fetch, tenantHeader?: string): Promise<unknown> {
   checkAbort(signal);
   try {
-    const response = await request(`/api/identity${path}`, { credentials: "include", cache: "no-store", signal });
+    const response = await Promise.race([
+      request(`/api/identity${path}`, { credentials: "include", cache: "no-store", signal }),
+      new Promise<Response>((_, reject) => globalThis.setTimeout(() => reject(new Error("Guide request timed out.")), 10000)),
+    ]);
     checkAbort(signal);
     if (response.status === 401 || response.status === 403) throw new GuideAccessError(response.status);
     if (!response.ok) throw unavailable();
@@ -38,6 +41,7 @@ async function read(path: string, signal: AbortSignal | undefined, request: type
     if (cause instanceof GuideAccessError) throw cause;
     if (cause instanceof Error && cause.name === "AbortError") throw new DOMException("The guide read was cancelled.", "AbortError");
     throw unavailable();
+  } finally {
   }
 }
 

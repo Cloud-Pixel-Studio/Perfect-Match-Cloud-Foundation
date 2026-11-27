@@ -833,6 +833,8 @@ def test_downgrade_preserves_grant_and_audit_history_without_projects(
     if history == "audit":
         with boundary.admin.begin() as db:
             db.execute(text("TRUNCATE qms_access_grants CASCADE"))
+    with boundary.admin.connect() as db:
+        previous_revision = db.scalar(text("SELECT version_num FROM alembic_version"))
     result = subprocess.run(
         [sys.executable, "-m", "alembic", "downgrade", "0049_tenant_suspension"],
         capture_output=True,
@@ -849,7 +851,7 @@ def test_downgrade_preserves_grant_and_audit_history_without_projects(
             )
             is True
         )
-        assert db.scalar(text("SELECT version_num FROM alembic_version")) == "0050_qms_projects"
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == previous_revision
 
 
 def test_inactive_assignee_is_preserved_on_unrelated_notes_and_audit_is_private(
@@ -1133,7 +1135,7 @@ def _direct_versioned_step_notes(
         db.execute(
             text(
                 "UPDATE public.qms_projects SET row_version=row_version+1,"
-                "step_write_id=:step,updated_at=clock_timestamp() WHERE id=:project"
+                "step_write_id=:step,updated_at=greatest(clock_timestamp(),updated_at+interval '1 microsecond') WHERE id=:project"
             ),
             {"step": step["id"], "project": project["id"]},
         )
@@ -1141,7 +1143,7 @@ def _direct_versioned_step_notes(
             text(
                 "UPDATE public.qms_project_steps SET status=:status,notes=:notes,"
                 "row_version=row_version+1,source_project_version=:version,"
-                "updated_by_user_id=:actor,updated_at=clock_timestamp() WHERE id=:step"
+                "updated_by_user_id=:actor,updated_at=greatest(clock_timestamp(),updated_at+interval '1 microsecond') WHERE id=:step"
             ),
             {
                 "status": status,
