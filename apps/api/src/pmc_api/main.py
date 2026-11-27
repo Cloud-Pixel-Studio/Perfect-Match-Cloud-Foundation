@@ -34,6 +34,8 @@ from pmc_api.nonconformities import router as nonconformities_router
 from pmc_api.organization import router as organization_router
 from pmc_api.processes import router as processes_router
 from pmc_api.qms_access import router as qms_access_router
+from pmc_api.qms_context import router as qms_context_router
+from pmc_api.qms_party_process_links import router as qms_party_process_links_router
 from pmc_api.qms_project_references import router as qms_project_references_router
 from pmc_api.qms_projects import router as qms_projects_router
 from pmc_api.risk_links import router as risk_links_router
@@ -87,6 +89,8 @@ app.include_router(tenant_router)
 app.include_router(audit_router)
 app.include_router(organization_router)
 app.include_router(qms_access_router)
+app.include_router(qms_context_router)
+app.include_router(qms_party_process_links_router)
 app.include_router(qms_projects_router)
 app.include_router(qms_project_references_router)
 app.include_router(processes_router)

@@ -16,11 +16,53 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class QMSContextRecord(Base):
+    __tablename__ = "qms_context_records"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    kind: Mapped[str]
+    code: Mapped[str]
+    name: Mapped[str]
+    classification: Mapped[str]
+    category: Mapped[str]
+    relevance: Mapped[str]
+    description: Mapped[str]
+    requirements: Mapped[str]
+    party_requirements: Mapped[list[dict[str, str]]] = mapped_column(JSONB)
+    no_requirements_reason: Mapped[str]
+    evidence_summary: Mapped[str]
+    owner_user_id: Mapped[UUID]
+    review_due_on: Mapped[date]
+    status: Mapped[str]
+    row_version: Mapped[int]
+    created_by_user_id: Mapped[UUID]
+    content_editor_user_id: Mapped[UUID]
+    updated_by_user_id: Mapped[UUID]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision_note: Mapped[str]
+
+
+class QMSContextRevision(Base):
+    __tablename__ = "qms_context_revisions"
+
+    record_id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    row_version: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str]
+    snapshot: Mapped[dict[str, object]] = mapped_column(JSON)
 
 
 class QMSAccessGrant(Base):

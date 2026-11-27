@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 from pmc_api.models import AuditEvent
 
 AUDIT_SCHEMA_VERSION = 1
+QMS_CONTEXT_ACTIONS = {
+    f"qms_context.{action}": "qms_context_record"
+    for action in ("created", "updated", "reviewed", "retired")
+}
 QMS_PROJECT_ACTIONS = {
     **{
         action: "qms_project"
@@ -703,6 +707,7 @@ def _record(
         **INTERNAL_AUDIT_ACTIONS,
         **PROCESS_ACTIONS,
         **QMS_PROJECT_ACTIONS,
+        **QMS_CONTEXT_ACTIONS,
         **QMS_PROJECT_REFERENCE_ACTIONS,
         **CONTROL_ACTIONS,
         **RISK_ACTIONS,
@@ -886,6 +891,17 @@ def _workflow_builder(action: str) -> Callable[..., AuditEvent]:
         return _record_workflow(db, action=action, **kwargs)  # type: ignore[arg-type]
 
     return record
+
+
+def record_qms_context(db: Session, **kwargs: object) -> AuditEvent:
+    if str(kwargs.get("action", "")) not in QMS_CONTEXT_ACTIONS:
+        raise AuditPayloadError("unsupported QMS context audit action")
+    allowed = {"unit_id", "kind", "status", "row_version"}
+    for field in ("old_values", "new_values"):
+        payload = kwargs.get(field)
+        if payload is not None and (not isinstance(payload, dict) or set(payload) != allowed):
+            raise AuditPayloadError("context audit payload fields are invalid")
+    return _record(db, resource_type="qms_context_record", **kwargs)  # type: ignore[arg-type]
 
 
 def record_qms_access(db: Session, **kwargs: object) -> AuditEvent:

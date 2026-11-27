@@ -135,3 +135,9 @@ fi
   echo "Protected reference history blocked destructive downgrade: PASS"
 )
 snapshot 06
+(
+  cd apps/api
+  uv run --no-sync pytest "$@" tests/test_qms_context_integrity.py \
+    tests/test_qms_party_requirements_integrity.py tests/test_qms_party_process_links_integrity.py \
+    tests/test_qms_context_upgrade_rehearsal.py
+)

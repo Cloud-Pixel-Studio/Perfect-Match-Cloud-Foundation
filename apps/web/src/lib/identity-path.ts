@@ -1,4 +1,5 @@
 const allowedRoots = new Set([
+  "context",
   "auth", "tenant", "audit", "organization", "action-center", "workflows", "workflow-instances", "qms-access", "qms-projects", "processes", "controls", "control-instances", "control-activities", "control-evidence-requirements", "control-instance-activities", "control-instance-evidence", "documents", "risks", "nonconformities", "capas", "internal-audits",
 ]);
 const namedSegment = /^[a-z][a-z-]*$/;

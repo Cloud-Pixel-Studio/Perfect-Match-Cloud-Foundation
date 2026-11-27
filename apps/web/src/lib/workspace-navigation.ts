@@ -95,7 +95,8 @@ export function workspaceSectionsForContext(role: string, capabilities: Iterable
   const assurance = administration || role === "auditor";
   const visible = (id: WorkspaceId) => {
     if (id === "overview" || id === "actions" || id === "workflows" || id === "permissions") return true;
-    if (id === "implementation-guide") return administration || assigned.includes("projects.read");
+    if (id === "implementation-guide") return administration
+      || assigned.includes("projects.read") || assigned.includes("context.read");
     if (id === "organization" || id === "audit") return assurance;
     return (capabilityFamilies[id] ?? []).some((prefix) => assigned.some((capability) => capability.startsWith(prefix)));
   };

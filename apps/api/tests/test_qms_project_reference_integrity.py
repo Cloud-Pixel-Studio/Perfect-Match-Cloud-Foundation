@@ -811,15 +811,14 @@ def test_downgrade_refuses_reference_and_audit_history_and_preserves_forced_rls(
     if history == "audit":
         with boundary.admin.begin() as db:
             db.execute(text("TRUNCATE qms_project_document_links"))
+    with boundary.admin.connect() as db:
+        previous_head = db.scalar(text("SELECT version_num FROM alembic_version"))
     result = migrate("0050_qms_projects", "downgrade")
     assert (
         result.returncode != 0 and "cannot discard QMS project reference history" in result.stderr
     )
     with boundary.admin.connect() as db:
-        assert (
-            db.scalar(text("SELECT version_num FROM alembic_version"))
-            == "0051_qms_project_references"
-        )
+        assert db.scalar(text("SELECT version_num FROM alembic_version")) == previous_head
         assert (
             db.scalar(
                 text(

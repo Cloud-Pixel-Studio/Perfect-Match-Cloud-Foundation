@@ -46,3 +46,10 @@
 .project-reference-choice small { display:block; margin-top:var(--pm-space-1); font-size:var(--pm-text-xs); font-weight:var(--pm-weight-normal); }
 .project-references a:focus-visible { outline:3px solid var(--pm-focus); outline-offset:3px; }
 @media(max-width:640px) { .project-reference-kind,.project-reference-card { padding:var(--pm-space-3); } .project-reference-search > button { width:100%; justify-content:center; } .project-reference-card > a { max-width:100%; white-space:normal; text-align:center; } }
+.context-register { min-width: 0; overflow-wrap: anywhere; }
+.context-fields { display: grid; gap: var(--pm-space-4); border: 0; padding: 0; margin: 0; min-width: 0; }
+.context-fields legend { padding: 0; margin-bottom: var(--pm-space-3); font-weight: var(--pm-weight-semibold); }
+.context-register summary { cursor: pointer; padding-block: var(--pm-space-2); }
+.party-requirements { min-width: 0; }
+.party-requirements > h4 { margin: 0; }
+.party-requirements > .project-reference-kind { padding: var(--pm-space-4); }
