@@ -1,5 +1,11 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Identificación de autores y aprobadores · 27 noviembre 2026
+- Respaldo cifrado `CP-QMS-HISTORY-ACTORS-00-20261127T232738Z` sobre `7c7226a`, descifrado y comparado, con bundle Git verificado.
+- El historial de contexto, partes interesadas y alcance identifica al actor en cada versión. Distingue creación, edición, revisión, aprobación del alcance y retiro. El actor conserva su ID y, con `0060_context_revision_actor`, su nombre al momento de la acción. Las versiones antiguas marcan el nombre del perfil actual si está disponible o muestran el ID original.
+- Pasaron aplicación y reversión de `0060` en un PostgreSQL desechable, 201 integraciones, 360 unitarias web y 33 recorridos con API simulada. Se comprobó conservar el nombre capturado al renombrar al aprobador y la alternativa para cuentas inactivas en el historial anterior.
+- El PR #69 permanece en revisión. La última validación del commit anterior aprobó calidad y CodeQL, y el control final de seguridad continúa abierto. No se actualizó la demo. Siguen pendientes objetivos 6.2 y decisión climática 4.1.
+
 ## Fuentes del alcance 4.3 · 27 noviembre 2026
 - Respaldo cifrado `CP-ISO-SCOPE-BASIS-00-20261127T203751Z` sobre `2687074`, descifrado y comparado, con bundle Git verificado.
 - El alcance por unidad permite citar hasta 20 temas revisados o requisitos individuales atendidos por el QMS. PostgreSQL toma la versión, el título y el enunciado del historial revisado y valida empresa y unidad. Editar las citas deja un borrador y la versión aprobada conserva sus referencias.

@@ -76,7 +76,13 @@ export type ContextRecord = Omit<ContextFields, "scope_basis"> & {
   owner_display_name?: string | null;
   scope_basis?: ScopeBasisCitation[];
 };
-export type ContextRevision = { command: string; snapshot: ContextRecord };
+const revisionCommands = ["created", "updated", "reviewed", "retired"] as const;
+export type ContextRevision = {
+  command: typeof revisionCommands[number];
+  snapshot: ContextRecord;
+  actorDisplayName: string | null;
+  actorNameSource: "recorded" | "current_directory" | null;
+};
 export type ContextPermission = {
   read: boolean; manage: boolean; review: boolean; processRead: boolean; documentRead: boolean; evidenceRead: boolean; riskRead: boolean;
 };
@@ -257,13 +263,18 @@ export async function contextHistory(scope: ContextScope, entry: ContextRecord, 
   await verifyIdentity(scope, signal);
   const body = await request(`/context/${entry.kind}/${entry.id}/history?unit_id=${scope.unitId}&before_version=${before}`, signal, scope.tenantId);
   if (!Array.isArray(body) || body.length > contextPageSize) throw new ContextError(502);
-  const result = body.map((row: unknown) => {
-    if (!isObject(row) || typeof row.command !== "string" || !["created", "updated", "reviewed", "retired"].includes(row.command)) {
-      throw new ContextError(502);
-    }
+  const result = body.map((row: unknown): ContextRevision => {
+    if (!isObject(row)) throw new ContextError(502);
+    const command = revisionCommands.find(value => value === row.command);
+    if (!command) throw new ContextError(502);
     const snapshot = parseRecord(row.snapshot, scope, entry.kind);
     if (snapshot.id !== entry.id || snapshot.row_version >= before) throw new ContextError(409, true);
-    return { command: row.command, snapshot };
+    const name = row.actor_display_name ?? null;
+    const source = row.actor_name_source ?? null;
+    if ((name !== null && (typeof name !== "string" || [...name].length > 160 || !name.trim()))
+      || (source !== null && source !== "recorded" && source !== "current_directory")
+      || (name === null) !== (source === null)) throw new ContextError(502);
+    return { command, snapshot, actorDisplayName: name, actorNameSource: source };
   });
   await verifyIdentity(scope, signal);
   return result;

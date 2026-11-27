@@ -19,6 +19,7 @@ const applicabilityLabels = {
 };
 const relevanceLabels = { under_review: "Undecided", relevant: "Relevant", not_relevant: "Not relevant" };
 const stateLabels = { draft: "Pending review", active: "Reviewed", retired: "Retired" };
+const historyActions = { created: "Created", updated: "Edited", reviewed: "Reviewed", retired: "Retired" };
 const requirementLabels = {
   pending: "Decision pending",
   addressed_by_qms: "Address in the QMS",
@@ -429,14 +430,21 @@ function History({ scope, record, onError }: {
   return <section aria-label="Record history">
     <h5>Record history</h5>
     {revisions === null ? <p role="status">Loading versions…</p> : <ol className="project-reference-list">
-      {revisions.map(({ command, snapshot }) => <li key={snapshot.row_version}>
-        <details>
-          <summary>Version {snapshot.row_version} · {textLabel(command)} · <time dateTime={snapshot.updated_at}>{new Date(snapshot.updated_at).toLocaleString()}</time></summary>
-          <p><strong>{snapshot.code} · {snapshot.name}</strong></p>
-          <RecordSummary record={snapshot} />
-          <p className="project-help">Changed by {snapshot.updated_by_user_id}</p>
-        </details>
-      </li>)}
+      {revisions.map(({ command, snapshot, actorDisplayName, actorNameSource }) => {
+        const action = command === "reviewed" && snapshot.kind === "qms-scope" ? "Approved" : historyActions[command];
+        return <li key={snapshot.row_version}>
+          <details>
+            <summary>
+              Version {snapshot.row_version} · {action} by {actorDisplayName ?? "account " + snapshot.updated_by_user_id}
+              {actorNameSource === "current_directory" && " (current profile name)"} ·{" "}
+              <time dateTime={snapshot.updated_at}>{new Date(snapshot.updated_at).toLocaleString()}</time>
+            </summary>
+            <p><strong>{snapshot.code} · {snapshot.name}</strong></p>
+            <RecordSummary record={snapshot} />
+            {actorDisplayName && <p className="project-help">Actor ID · {snapshot.updated_by_user_id}</p>}
+          </details>
+        </li>;
+      })}
     </ol>}
     {more && revisions?.length ? <button className="secondary-action compact-action" type="button" onClick={() => {
       setMore(false); setBefore(revisions[revisions.length - 1].snapshot.row_version);

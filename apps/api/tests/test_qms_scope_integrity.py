@@ -77,8 +77,20 @@ def test_only_independently_approved_scope_is_effective(boundary: Boundary) -> N
     boundary.call("POST", approval, {**APPROVAL, "expected_version": 3}, role="admin")
     effective = boundary.call("GET", current, role="auditor")
     assert effective["row_version"] == 4 and effective["description"] == updated["description"]
+    with boundary.admin.begin() as db:
+        db.execute(
+            text("UPDATE users SET display_name='Renamed synthetic reviewer' WHERE id=:id"),
+            {"id": USERS["admin"]},
+        )
     rows = boundary.call("GET", f"{base}/history?unit_id={SITE}", role="auditor")
     assert [row["command"] for row in rows] == ["reviewed", "updated", "reviewed", "created"]
+    assert [row["actor_display_name"] for row in rows] == [
+        "Synthetic admin",
+        "Synthetic member",
+        "Synthetic admin",
+        "Synthetic member",
+    ]
+    assert all(row["actor_name_source"] == "recorded" for row in rows)
     assert rows[2]["snapshot"]["scope_definition"] == DEFINITION
     boundary.call(
         "POST",
@@ -89,6 +101,39 @@ def test_only_independently_approved_scope_is_effective(boundary: Boundary) -> N
     )
     blocked = migrate("0057_qms_party_risk_links", "downgrade")
     assert blocked.returncode and "cannot discard declared QMS scope history" in blocked.stderr
+
+
+def test_legacy_history_uses_current_member_name_or_retains_actor_id(boundary: Boundary) -> None:
+    grant_scope_roles(boundary)
+    prepared = migrate("0059_qms_scope_basis", "downgrade")
+    assert prepared.returncode == 0, prepared.stderr
+    try:
+        draft = boundary.call(
+            "POST", PATH, {**FIELDS, "unit_id": str(SITE)}, role="member", expected=201
+        )
+    finally:
+        restored = migrate("head")
+        assert restored.returncode == 0, restored.stderr
+
+    with boundary.admin.begin() as db:
+        db.execute(
+            text("UPDATE users SET display_name='Current synthetic author' WHERE id=:id"),
+            {"id": USERS["member"]},
+        )
+    url = f"{PATH}/{draft['id']}/history?unit_id={SITE}"
+    entry = boundary.call("GET", url, role="auditor")[0]
+    assert entry["actor_display_name"] == "Current synthetic author"
+    assert entry["actor_name_source"] == "current_directory"
+    boundary.call("GET", url, role="owner", expected=403)
+
+    with boundary.admin.begin() as db:
+        db.execute(
+            text("UPDATE users SET status='disabled' WHERE id=:id"),
+            {"id": USERS["member"]},
+        )
+    inactive = boundary.call("GET", url, role="auditor")[0]
+    assert inactive["actor_display_name"] is None and inactive["actor_name_source"] is None
+    assert inactive["snapshot"]["updated_by_user_id"] == str(USERS["member"])
 
 
 def test_requirements_and_authority_are_enforced_at_api_and_database(boundary: Boundary) -> None:

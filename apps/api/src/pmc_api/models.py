@@ -65,6 +65,7 @@ class QMSContextRevision(Base):
     row_version: Mapped[int] = mapped_column(primary_key=True)
     command: Mapped[str]
     snapshot: Mapped[dict[str, object]] = mapped_column(JSON)
+    actor_display_name: Mapped[str | None] = mapped_column(String(160))
 
 
 class QMSAccessGrant(Base):

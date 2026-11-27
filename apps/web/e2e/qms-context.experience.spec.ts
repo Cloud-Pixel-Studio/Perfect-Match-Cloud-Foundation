@@ -55,6 +55,9 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
   let actor = author;
   let scopeRecord: ContextRecord | null = null;
   let approvedScope: ContextRecord | null = null;
+  const scopeHistory: Array<{
+    command: string; snapshot: ContextRecord; actor_display_name: string; actor_name_source: "recorded";
+  }> = [];
   let foreignPayload = false;
   let link: PartySourceLink | null = null;
   let phases: Array<{ command: string; snapshot: ContextRecord }> = source ? [{ command: "reviewed", snapshot: seededParty }] : [];
@@ -89,6 +92,7 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
       && url.searchParams.get("status") === "active") return ok([seededParty]);
     if (scenario === "scope" && path.startsWith("/context/qms-scope")) {
       if (path.endsWith("/current")) return ok(approvedScope);
+      if (path.endsWith("/history")) return ok(scopeHistory);
       if (method === "GET") return ok(scopeRecord && unit === firstUnit ? [scopeRecord] : []);
       expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
       const input = route.request().postDataJSON();
@@ -102,6 +106,9 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
           reviewed_at: "2026-11-27T12:01:00Z",
         };
         scopeRecord = approvedScope;
+        scopeHistory.unshift({
+          command: "reviewed", snapshot: scopeRecord, actor_display_name: "Synthetic reviewer", actor_name_source: "recorded",
+        });
         return ok(scopeRecord);
       }
       expect(actor).toBe(author);
@@ -122,6 +129,10 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
         created_by_user_id: author, content_editor_user_id: author, updated_by_user_id: author,
         updated_at: "2026-11-27T12:00:00Z", reviewed_at: null, decision_note: "", scope_basis: citations,
       };
+      if (scopeRecord) scopeHistory.unshift({
+        command: method === "PATCH" ? "updated" : "created", snapshot: scopeRecord,
+        actor_display_name: "Synthetic scope author", actor_name_source: "recorded",
+      });
       return ok(scopeRecord, method === "PATCH" ? 200 : 201);
     }
     if (path === "/context/interested-parties" && method === "POST") {
@@ -457,6 +468,12 @@ test("the QMS scope retains its approval while an author edits the next version"
   await expect(register.getByText(/Pending approval · Version 3/)).toBeVisible();
   await expect(register.getByText("CTX-01 · Receiving disruptions", { exact: true })).toHaveCount(1);
   await expect(register.getByText(/Receiving through dispatch and packaging\./)).toBeVisible();
+  await register.getByRole("button", { name: "Version history" }).click();
+  await expect(register.getByText(/^Version 3 · Edited by Synthetic scope author/)).toBeVisible();
+  const approval = register.getByText(/^Version 2 · Approved by Synthetic reviewer/);
+  await approval.click();
+  await expect(register.getByText("The documented boundaries match operations.").last()).toBeVisible();
+  await expect(register.getByText(`Actor ID · ${reviewer}`, { exact: true })).toBeVisible();
   const accessibility = await new AxeBuilder({ page }).include(".context-register")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(accessibility.violations).toEqual([]);

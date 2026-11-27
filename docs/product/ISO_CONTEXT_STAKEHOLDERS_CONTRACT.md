@@ -58,6 +58,12 @@ El registro de la primera entrega está disponible en la guía de implementació
 - `0059_qms_scope_basis` permite citar hasta 20 temas revisados o requisitos individuales de partes interesadas que se decidió atender en el QMS. El selector ofrece registros revisados de la unidad seleccionada. Al guardar, PostgreSQL deriva el código, el título y el enunciado desde la versión revisada de la fuente. El historial de la fuente y de la ficha conserva lo que se consideró aun cuando el registro original cambie.
 - Agregar o retirar una referencia guarda el alcance como borrador. La versión vigente conserva sus referencias hasta la siguiente aprobación. El API admite fichas existentes sin citas y conserva las referencias cuando un cliente anterior edita el alcance sin enviar el campo nuevo.
 
+## Autoría del historial
+
+- El historial distingue quién creó, editó, revisó o retiró un registro. En el alcance declarado, la revisión que activa una versión aparece como aprobación y conserva su motivo y fecha.
+- Desde `0060_context_revision_actor`, cada versión nueva conserva el nombre del actor tal como estaba en el directorio al registrar la acción. El identificador de cuenta sigue disponible para distinguir nombres iguales. Para versiones anteriores se indica si el nombre procede del perfil actual. Si el miembro ya no está disponible en el directorio, se muestra el identificador original.
+- La consulta mantiene el permiso `context.read` por unidad. La bitácora general conserva sus propios permisos y reporta el actor que ejecutó cada evento.
+
  Las secciones siguientes conservan el diseño de partida para comparar el alcance previsto con la primera entrega.
 
 ## Alcance

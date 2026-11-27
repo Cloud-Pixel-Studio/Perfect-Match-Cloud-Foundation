@@ -212,6 +212,8 @@ class RecordRevision(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     command: Command
     snapshot: RecordRead
+    actor_display_name: str | None = None
+    actor_name_source: Literal["recorded", "current_directory"] | None = None
 
 
 class ResponsiblePerson(BaseModel):
@@ -346,17 +348,22 @@ def _audit_values(entry: QMSContextRecord) -> dict[str, object]:
     }
 
 
-def _read_records(db: Session, rows: list[QMSContextRecord]) -> list[RecordRead]:
-    if not rows:
-        return []
+def _directory_names(db: Session, users: set[UUID]) -> dict[UUID, str]:
+    if not users:
+        return {}
     lookup = text(
         "SELECT user_id,display_name FROM public.organization_member_directory() "
         "WHERE user_id IN :users"
     ).bindparams(bindparam("users", expanding=True))
-    owners = {
+    return {
         row.user_id: row.display_name
-        for row in db.execute(lookup, {"users": list({row.owner_user_id for row in rows})})
+        for row in db.execute(lookup, {"users": list(users)})
+        if row.display_name.strip()
     }
+
+
+def _read_records(db: Session, rows: list[QMSContextRecord]) -> list[RecordRead]:
+    owners = _directory_names(db, {row.owner_user_id for row in rows})
     results = [RecordRead.model_validate(row) for row in rows]
     for result in results:
         result.owner_display_name = owners.get(result.owner_user_id)
@@ -542,9 +549,25 @@ def history(
             .limit(limit)
         )
     )
+    result = [RecordRevision.model_validate(row) for row in rows]
+    legacy_names = _directory_names(
+        db,
+        {
+            item.snapshot.updated_by_user_id
+            for item in result
+            if not (item.actor_display_name or "").strip()
+        },
+    )
+    for item in result:
+        if item.actor_display_name and item.actor_display_name.strip():
+            item.actor_name_source = "recorded"
+        else:
+            item.actor_display_name = legacy_names.get(item.snapshot.updated_by_user_id)
+            if item.actor_display_name:
+                item.actor_name_source = "current_directory"
     _verify(db, authenticated, actor, unit_id, "context.read")
     _headers(response, actor)
-    return [RecordRevision.model_validate(row) for row in rows]
+    return result
 
 
 @router.post(
