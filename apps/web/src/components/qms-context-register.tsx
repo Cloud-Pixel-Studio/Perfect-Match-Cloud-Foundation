@@ -3,15 +3,20 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { PartySourceLinks } from "./party-source-links";
 import {
-  ContextError, contextCategories, contextHistory, contextPageSize, contextRelevance,
+  approvedContextScope, ContextError, contextCategories, contextHistory, contextPageSize, contextRelevance,
   contextStates, getContextPermissions, listContext, listResponsiblePeople, partyTypes, saveContext,
   partyRequirementLimit, partySources, requirementDispositions, requirementReviewBlocker, trimRequirementText,
+  scopeApplicability, scopeReady,
   type ContextCommand, type ContextFields, type ContextKind, type ContextPermission,
   type ContextRecord, type ContextRevision, type ContextScope, type ContextState, type ResponsiblePerson,
-  type PartyRequirement, type PartySource,
+  type PartyRequirement, type PartySource, type ScopeDefinition,
 } from "../lib/qms-context";
 
-const captions = { issues: "Context issues", "interested-parties": "Interested parties" };
+const captions = { issues: "Context issues", "interested-parties": "Interested parties", "qms-scope": "QMS scope" };
+const createLabels = { issues: "New issue", "interested-parties": "New interested party", "qms-scope": "Define QMS scope" };
+const applicabilityLabels = {
+  undecided: "Decision pending", all_applicable: "All requirements apply", exceptions: "Some requirements do not apply",
+};
 const relevanceLabels = { under_review: "Undecided", relevant: "Relevant", not_relevant: "Not relevant" };
 const stateLabels = { draft: "Pending review", active: "Reviewed", retired: "Retired" };
 const requirementLabels = {
@@ -36,8 +41,11 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
   const [peopleState, setPeopleState] = useState<"loading" | "more" | "ready" | "error">("loading");
   const [requirements, setRequirements] = useState(entry?.party_requirements ?? []);
   const [absenceReason, setAbsenceReason] = useState(entry?.no_requirements_reason ?? "");
+  const [applicability, setApplicability] = useState(entry?.scope_definition?.applicability ?? "undecided");
+  const [nonApplicability, setNonApplicability] = useState(entry?.scope_definition?.non_applicability ?? "");
   const editContent = editor.action === "create" || editor.action === "edit";
   const issues = kind === "issues";
+  const declaringScope = kind === "qms-scope";
   useEffect(() => {
     if (!editContent) return;
     const controller = new AbortController();
@@ -61,13 +69,22 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
       onSave({ action: "retire", entry: editor.entry, note: value("note") });
     } else {
       const fields: ContextFields = {
-        code: value("code"), name: value("name"), classification: value("classification"),
+        code: declaringScope ? "QMS-SCOPE" : value("code"),
+        name: value("name"), classification: declaringScope ? "declared_scope" : value("classification"),
         category: issues ? value("category") : "",
-        relevance: value("relevance") as ContextFields["relevance"], description: value("description"),
+        relevance: declaringScope ? "relevant" : value("relevance") as ContextFields["relevance"],
+        description: value("description"),
         requirements: value("requirements"), evidence_summary: value("evidence_summary"),
         owner_user_id: value("owner_user_id"), review_due_on: value("review_due_on"),
       };
-      if (!issues) {
+      if (declaringScope) {
+        fields.scope_definition = {
+          products_services: trimRequirementText(value("products_services")),
+          basis: trimRequirementText(value("basis")),
+          applicability,
+          non_applicability: applicability === "exceptions" ? trimRequirementText(nonApplicability) : "",
+        };
+      } else if (kind === "interested-parties") {
         fields.party_requirements = requirements.map(requirement => ({
           ...requirement,
           statement: trimRequirementText(requirement.statement),
@@ -91,24 +108,26 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
 
   return <form className="project-summary" onSubmit={submit}>
     <fieldset disabled={busy} className="context-fields">
-      <legend>{editor.action === "create" ? issues ? "New context issue" : "New interested party" : `${textLabel(editor.action)} ${entry?.code}`}</legend>
+      <legend>{editor.action === "create" ? (issues ? "New context issue" : createLabels[kind]) : `${textLabel(editor.action)} ${entry?.code}`}</legend>
       {editContent ? <>
         <div className="project-fields">
-          <label>Code<input name="code" required maxLength={40} defaultValue={entry?.code} /></label>
-          <label>Name<input name="name" required maxLength={160} defaultValue={entry?.name} /></label>
-          <label>{issues ? "Source" : "Party type"}
-            <select name="classification" defaultValue={entry?.classification}>
-              {(issues ? ["internal", "external"] : partyTypes).map(type => <option key={type} value={type}>{textLabel(type)}</option>)}
-            </select>
-          </label>
-          {issues && <label>Category<select name="category" defaultValue={entry?.category ?? "other"}>
-            {contextCategories.map(category => <option key={category} value={category}>{textLabel(category)}</option>)}
-          </select></label>}
-          <label>{issues ? "Climate change relevance for this issue" : "Relevance to the QMS"}
-            <select name="relevance" defaultValue={entry?.relevance ?? "under_review"}>
-              {contextRelevance.map(relevance => <option key={relevance} value={relevance}>{relevanceLabels[relevance]}</option>)}
-            </select>
-          </label>
+          {!declaringScope && <label>Code<input name="code" required maxLength={40} defaultValue={entry?.code} /></label>}
+          <label>{declaringScope ? "Scope title" : "Name"}<input name="name" required maxLength={160} defaultValue={entry?.name} /></label>
+          {!declaringScope && <>
+            <label>{issues ? "Source" : "Party type"}
+              <select name="classification" defaultValue={entry?.classification}>
+                {(issues ? ["internal", "external"] : partyTypes).map(type => <option key={type} value={type}>{textLabel(type)}</option>)}
+              </select>
+            </label>
+            {issues && <label>Category<select name="category" defaultValue={entry?.category ?? "other"}>
+              {contextCategories.map(category => <option key={category} value={category}>{textLabel(category)}</option>)}
+            </select></label>}
+            <label>{issues ? "Climate change relevance for this issue" : "Relevance to the QMS"}
+              <select name="relevance" defaultValue={entry?.relevance ?? "under_review"}>
+                {contextRelevance.map(relevance => <option key={relevance} value={relevance}>{relevanceLabels[relevance]}</option>)}
+              </select>
+            </label>
+          </>}
           <label>Responsible person
             <select name="owner_user_id" required defaultValue={entry?.owner_user_id ?? scope.userId}>
               <option value="">Select a person</option>
@@ -127,16 +146,30 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
         }}>Load more people</button>}
         {peopleState === "loading" && <p role="status" className="project-help">Loading responsible people…</p>}
         {peopleState === "error" && <p role="status" className="project-help">The company directory could not be loaded. Reopen the form to retry.</p>}
-        <label>{issues ? "Issue and rationale for climate relevance" : "Needs and expectations"}
+        <label>{declaringScope ? "QMS boundaries" : issues ? "Issue and rationale for climate relevance" : "Needs and expectations"}
           <textarea name="description" rows={3} required maxLength={4000} defaultValue={entry?.description} />
         </label>
-        {!issues && <PartyRequirementsFields requirements={requirements} onChange={setRequirements}
+        {kind === "interested-parties" && <PartyRequirementsFields requirements={requirements} onChange={setRequirements}
           absenceReason={absenceReason} onAbsenceChange={setAbsenceReason} />}
-        <label>{issues ? "Impact on the quality system" : "Additional requirements notes"}
-          <textarea name="requirements" rows={3} maxLength={4000} defaultValue={entry?.requirements} />
-        </label>
-        <label>Supporting evidence summary<textarea name="evidence_summary" rows={2} maxLength={4000} defaultValue={entry?.evidence_summary} /></label>
-        {entry?.status === "active" && <p className="project-help">Saving these changes sends this record back for independent review.</p>}
+        {declaringScope ? <>
+          <label>Products and services covered<textarea name="products_services" rows={3} maxLength={4000} defaultValue={entry?.scope_definition?.products_services} /></label>
+          <label>Context and interested-party requirements considered<textarea name="basis" rows={3} maxLength={4000} defaultValue={entry?.scope_definition?.basis} /></label>
+          <label>Applicability of requirements<select name="applicability" value={applicability}
+            onChange={event => setApplicability(event.target.value as ScopeDefinition["applicability"])}>
+            {scopeApplicability.map(decision => <option key={decision} value={decision}>{applicabilityLabels[decision]}</option>)}
+          </select></label>
+          {applicability === "exceptions" && <label>Requirements that do not apply and their justification
+            <textarea rows={3} maxLength={4000} value={nonApplicability} onChange={event => setNonApplicability(event.target.value)} />
+          </label>}
+        </> : <>
+          <label>{issues ? "Impact on the quality system" : "Additional requirements notes"}
+            <textarea name="requirements" rows={3} maxLength={4000} defaultValue={entry?.requirements} />
+          </label>
+          <label>Supporting evidence summary<textarea name="evidence_summary" rows={2} maxLength={4000} defaultValue={entry?.evidence_summary} /></label>
+        </>}
+        {entry?.status === "active" && <p className="project-help">{declaringScope
+          ? "The approved scope stays current until an independent reviewer approves these changes."
+          : "Saving these changes sends this record back for independent review."}</p>}
       </> : <>
         <label>{editor.action === "review" ? "Review decision and rationale" : "Reason for retirement"}
           <textarea name="note" required maxLength={1000} rows={3} />
@@ -149,7 +182,7 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
     </fieldset>
     <div className="project-actions">
       <button type="submit" className="primary-action compact-action" disabled={busy}>
-        {busy ? "Saving…" : editor.action === "review" ? "Record review" : editor.action === "retire" ? "Retire record" : "Save draft"}
+        {busy ? "Saving…" : editor.action === "review" ? declaringScope ? "Approve scope" : "Record review" : editor.action === "retire" ? "Retire record" : "Save draft"}
       </button>
       <button type="button" className="secondary-action compact-action" disabled={busy} onClick={onCancel}>Cancel</button>
     </div>
@@ -212,6 +245,25 @@ function PartyRequirementsFields({ requirements, onChange, absenceReason, onAbse
 }
 
 function RecordSummary({ record }: { record: ContextRecord }) {
+  if (record.kind === "qms-scope" && record.scope_definition) {
+    const definition = record.scope_definition;
+    return <>
+      <p className="project-help">
+        {record.status === "active" ? "Approved" : "Pending approval"} · Version {record.row_version} · Review due{" "}
+        <time dateTime={record.review_due_on}>{record.review_due_on}</time>
+        {record.status === "active" && record.review_due_on < today() && " (overdue)"}
+      </p>
+      {record.owner_display_name && <p className="project-help">Responsible person · {record.owner_display_name}</p>}
+      <p className="project-notes"><strong>QMS boundaries</strong><br />{record.description}</p>
+      {definition.products_services && <p className="project-notes"><strong>Products and services</strong><br />{definition.products_services}</p>}
+      {definition.basis && <p className="project-notes"><strong>Context and requirements considered</strong><br />{definition.basis}</p>}
+      <p className="project-notes"><strong>Applicability</strong><br />{applicabilityLabels[definition.applicability]}
+        {definition.non_applicability && <><br />{definition.non_applicability}</>}
+      </p>
+      {!scopeReady(definition) && <p className="project-help">Complete the products and services, scope basis and applicability decision before approval.</p>}
+      {record.decision_note && <p className="project-notes"><strong>Approval decision</strong><br />{record.decision_note}</p>}
+    </>;
+  }
   const blocker = requirementReviewBlocker(record);
   const requirements = record.party_requirements ?? [];
   return <>
@@ -287,6 +339,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
   const [reload, setReload] = useState(0);
   const [permission, setPermission] = useState<ContextPermission | null>(null);
   const [page, setPage] = useState<Awaited<ReturnType<typeof listContext>> | null>(null);
+  const [approvedScope, setApprovedScope] = useState<ContextRecord | null>(null);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [historyId, setHistoryId] = useState("");
   const [openLinks, setOpenLinks] = useState<{ partyId: string; source: PartySource } | null>(null);
@@ -305,7 +358,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
 
   const reportFailure = useCallback((cause: unknown) => {
     if (cause instanceof ContextError && (cause.status === 401 || cause.status === 403 || cause.scopeChanged)) {
-      setPage(null); setEditor(null); setPermission(null); setHistoryId(""); setOpenLinks(null);
+      setPage(null); setApprovedScope(null); setEditor(null); setPermission(null); setHistoryId(""); setOpenLinks(null);
       setError("Your access or company changed. Refresh the register to verify access.");
     } else {
       setError("The register could not be loaded. Refresh to retry.");
@@ -319,15 +372,18 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
     void (async () => {
       const permissions = await getContextPermissions(scope, controller.signal);
       const result = permissions.read ? await listContext(scope, kind, status, offset, controller.signal) : null;
+      const draft = kind === "qms-scope" ? result?.records[0] : undefined;
+      const approved = draft?.status === "draft" ? await approvedContextScope(scope, draft, controller.signal) : null;
       if (controller.signal.aborted) return;
       setPermission(permissions);
       setPage(result);
+      setApprovedScope(approved);
     })().catch(cause => { if (!controller.signal.aborted) reportFailure(cause); });
     return () => controller.abort();
   }, [opened, scope, kind, status, offset, reload, reportFailure]);
 
   function resetRead() {
-    setPage(null); setPermission(null); setHistoryId(""); setError(""); setNotice(""); setStale(false);
+    setPage(null); setApprovedScope(null); setPermission(null); setHistoryId(""); setError(""); setNotice(""); setStale(false);
     setEditor(null);
     setOpenLinks(null);
   }
@@ -343,7 +399,8 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
       if (controller.signal.aborted) return;
       resetRead();
       setStatus(""); setOffset(0); setReload(current => current + 1);
-      setNotice(`${result.code} · ${stateLabels[result.status]} · Version ${result.row_version}`);
+      const label = result.kind === "qms-scope" ? (result.status === "active" ? "Approved scope" : "Scope draft saved") : `${result.code} · ${stateLabels[result.status]}`;
+      setNotice(`${label} · Version ${result.row_version}`);
     } catch (cause) {
       if (controller.signal.aborted) return;
       if (cause instanceof ContextError && (cause.status === 401 || cause.status === 403 || cause.scopeChanged)) {
@@ -372,17 +429,17 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
     {opened && <>
       <div className="project-toolbar">
         <label>Register<select value={kind} disabled={Boolean(editor) || linkBusy} onChange={event => {
-          resetRead(); setOffset(0); setKind(event.target.value as ContextKind);
+          resetRead(); setOffset(0); setStatus(""); setKind(event.target.value as ContextKind);
         }}>{Object.entries(captions).map(([value, caption]) => <option key={value} value={value}>{caption}</option>)}</select></label>
-        {permission?.read && <label>Status<select value={status} disabled={Boolean(editor) || linkBusy} onChange={event => {
+        {permission?.read && kind !== "qms-scope" && <label>Status<select value={status} disabled={Boolean(editor) || linkBusy} onChange={event => {
           resetRead(); setOffset(0); setStatus(event.target.value as ContextState | "");
         }}><option value="">All statuses</option>{contextStates.map(state => <option value={state} key={state}>{stateLabels[state]}</option>)}</select></label>}
         <button type="button" className="secondary-action compact-action" disabled={busy || linkBusy || Boolean(editor && !stale)} onClick={() => {
           resetRead(); setReload(current => current + 1);
         }}>Refresh register</button>
-        {permission?.manage && !editor && <button type="button" className="primary-action compact-action" disabled={locked || linkBusy} onClick={() => {
+        {permission?.manage && !editor && (kind !== "qms-scope" || page?.records.length === 0) && <button type="button" className="primary-action compact-action" disabled={locked || linkBusy} onClick={() => {
           setNotice(""); setError(""); setEditor({ action: "create" });
-        }}>{kind === "issues" ? "New issue" : "New interested party"}</button>}
+        }}>{createLabels[kind]}</button>}
       </div>
       {error && <p role="alert" className="project-feedback">{error}</p>}
       {notice && <p role="status" className="project-feedback">{notice}</p>}
@@ -391,7 +448,13 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
       {editor && <KindForm kind={kind} editor={editor} scope={scope} busy={busy} onSave={command => {
         void mutate(command);
       }} onCancel={() => { setEditor(null); setError(""); setStale(false); }} />}
-      {page?.records.length === 0 && <p role="status">No records match this view.</p>}
+      {page?.records.length === 0 && <p role="status">{kind === "qms-scope" ? "This unit has no declared QMS scope yet." : "No records match this view."}</p>}
+      {approvedScope && <section className="project-summary" aria-label="Current approved scope">
+        <h4>Current approved scope</h4>
+        <p><strong>{approvedScope.name}</strong></p>
+        <RecordSummary record={approvedScope} />
+      </section>}
+      {kind === "qms-scope" && page?.records[0]?.status === "draft" && !approvedScope && <p className="project-help">There is no approved scope yet.</p>}
       {page && <ul className="project-reference-list">
         {page.records.map(record => <li key={record.id} className="project-reference-card">
           <h4>{record.code} · {record.name}</h4>
@@ -409,12 +472,13 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
               </button>;
             })}
             {permission?.manage && record.status !== "retired" && <>
-              <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "edit", entry: record })}>Edit {record.code}</button>
-              <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "retire", entry: record })}>Retire {record.code}</button>
+              <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "edit", entry: record })}>{kind === "qms-scope" ? "Edit scope" : `Edit ${record.code}`}</button>
+              {kind !== "qms-scope" && <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "retire", entry: record })}>Retire {record.code}</button>}
             </>}
             {permission?.review && record.status !== "retired" && record.relevance !== "under_review" && !requirementReviewBlocker(record)
+              && (kind !== "qms-scope" || (record.scope_definition && scopeReady(record.scope_definition)))
               && record.created_by_user_id !== scope.userId && record.content_editor_user_id !== scope.userId &&
-              <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "review", entry: record })}>Review {record.code}</button>}
+              <button type="button" className="secondary-action compact-action" disabled={Boolean(editor) || locked || linkBusy} onClick={() => setEditor({ action: "review", entry: record })}>{kind === "qms-scope" ? "Review scope for approval" : `Review ${record.code}`}</button>}
           </div>
           {historyId === record.id && <History scope={scope} record={record} onError={reportFailure} />}
           {openLinks?.partyId === record.id && permission?.[partySourcePermission[openLinks.source]] && <PartySourceLinks

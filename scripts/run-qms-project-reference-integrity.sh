@@ -140,6 +140,6 @@ snapshot 06
   uv run --no-sync pytest "$@" tests/test_qms_context_integrity.py \
     tests/test_qms_party_requirements_integrity.py tests/test_qms_party_process_links_integrity.py \
     tests/test_qms_party_document_links_integrity.py tests/test_qms_party_evidence_links_integrity.py \
-    tests/test_qms_party_risk_links_integrity.py \
+    tests/test_qms_party_risk_links_integrity.py tests/test_qms_scope_integrity.py \
     tests/test_qms_context_upgrade_rehearsal.py
 )

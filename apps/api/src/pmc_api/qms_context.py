@@ -30,7 +30,7 @@ from pmc_api.qms_access import actor_context, require_capability
 
 router = APIRouter(prefix="/context", tags=["qms-context"])
 DBSession = Annotated[Session, Depends(get_db)]
-Kind = Literal["issues", "interested-parties"]
+Kind = Literal["issues", "interested-parties", "qms-scope"]
 State = Literal["draft", "active", "retired"]
 Command = Literal["created", "updated", "reviewed", "retired"]
 Relevance = Literal["relevant", "not_relevant", "under_review"]
@@ -106,6 +106,38 @@ class RequirementAssessment(BaseModel):
     no_requirements_reason: RequirementRationale = ""
 
 
+ScopeText = Annotated[
+    str, StringConstraints(max_length=4000), BeforeValidator(_trim_requirement_text)
+]
+
+
+class ScopeDefinition(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    products_services: ScopeText
+    basis: ScopeText
+    applicability: Literal["undecided", "all_applicable", "exceptions"]
+    non_applicability: ScopeText
+
+    @model_validator(mode="after")
+    def validate_content(self) -> ScopeDefinition:
+        if any(
+            INVALID_TEXT.search(value)
+            for value in (self.products_services, self.basis, self.non_applicability)
+        ):
+            raise ValueError("scope definition contains unsupported characters")
+        if self.applicability != "exceptions" and self.non_applicability:
+            raise ValueError("justification is only valid for requirements that do not apply")
+        return self
+
+    def ready(self) -> bool:
+        return bool(
+            self.products_services
+            and self.basis
+            and self.applicability != "undecided"
+            and (self.applicability != "exceptions" or self.non_applicability)
+        )
+
+
 class RecordFields(RequirementAssessment):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     code: Code
@@ -116,6 +148,7 @@ class RecordFields(RequirementAssessment):
     description: Description
     requirements: Notes = ""
     evidence_summary: Notes = ""
+    scope_definition: ScopeDefinition | None = None
     owner_user_id: UUID
     review_due_on: date
 
@@ -170,8 +203,20 @@ class ResponsiblePerson(BaseModel):
 def _validate_content(kind: Kind, body: RecordFields) -> None:
     if kind == "issues":
         valid = body.classification in {"internal", "external"} and body.category in CATEGORIES
+    elif kind == "qms-scope":
+        valid = (
+            body.code == "QMS-SCOPE"
+            and body.classification == "declared_scope"
+            and body.category == ""
+            and body.relevance == "relevant"
+            and not (body.requirements or body.evidence_summary)
+            and bool(_trim_requirement_text(body.description))
+            and body.scope_definition is not None
+        )
     else:
         valid = body.classification in PARTIES and body.category == ""
+    if kind != "qms-scope" and body.scope_definition is not None:
+        valid = False
     if not valid or any(
         INVALID_TEXT.search(value) for value in body.model_dump().values() if isinstance(value, str)
     ):
@@ -193,7 +238,7 @@ def _requirement_values(
         if row is None or "no_requirements_reason" in supplied
         else row.no_requirements_reason
     )
-    if kind == "issues" and (entries or reason):
+    if kind != "interested-parties" and (entries or reason):
         raise HTTPException(422, "only interested parties have a requirement assessment")
     if entries and reason:
         raise HTTPException(422, "record either individual requirements or a reason for none")
@@ -403,6 +448,33 @@ def records(
     return result
 
 
+@router.get("/qms-scope/current", response_model=RecordRead | None)
+def current_scope(
+    unit_id: UUID,
+    db: DBSession,
+    authenticated: Authenticated,
+    response: Response,
+) -> RecordRead | None:
+    actor = actor_context(db, authenticated)
+    require_capability(db, "context.read", unit_id)
+    snapshot = db.scalar(
+        select(QMSContextRevision.snapshot)
+        .join(QMSContextRecord, QMSContextRecord.id == QMSContextRevision.record_id)
+        .where(
+            *_criteria(actor, "qms-scope", unit_id),
+            QMSContextRevision.tenant_id == actor.tenant_id,
+            QMSContextRevision.unit_id == unit_id,
+            QMSContextRevision.command == "reviewed",
+        )
+        .order_by(QMSContextRevision.row_version.desc())
+        .limit(1)
+    )
+    result = RecordRead.model_validate(snapshot) if snapshot is not None else None
+    _verify(db, authenticated, actor, unit_id, "context.read")
+    _headers(response, actor)
+    return result
+
+
 @router.get("/{kind}/{record_id}", response_model=RecordRead)
 def detail(
     kind: Kind,
@@ -510,6 +582,8 @@ def _change(
     actor = actor_context(db, auth)
     require_capability(db, "context.read", unit_id)
     require_capability(db, "context.review" if command == "reviewed" else "context.manage", unit_id)
+    if kind == "qms-scope" and command == "retired":
+        raise HTTPException(409, "replace the declared QMS scope through independent approval")
     try:
         row = _find(db, actor, kind, unit_id, record_id, lock=True)
         if row.row_version != body.expected_version or row.status == "retired":
@@ -532,6 +606,11 @@ def _change(
                 if actor.user_id in {row.created_by_user_id, row.content_editor_user_id}:
                     raise HTTPException(403, "independent context review required")
                 _require_reviewable_party(row)
+                if (
+                    kind == "qms-scope"
+                    and not ScopeDefinition.model_validate(row.scope_definition).ready()
+                ):
+                    raise HTTPException(409, "complete the QMS scope definition before approval")
                 row.review_due_on = body.review_due_on
         row.row_version += 1
         result = _persist(db, actor, auth, request, row, command, before)

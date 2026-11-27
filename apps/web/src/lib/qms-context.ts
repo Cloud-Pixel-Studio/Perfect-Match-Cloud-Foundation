@@ -1,5 +1,5 @@
 export type ContextScope = { tenantId: string; userId: string; unitId: string };
-export type ContextKind = "issues" | "interested-parties";
+export type ContextKind = "issues" | "interested-parties" | "qms-scope";
 export type ContextState = "draft" | "active" | "retired";
 export type ContextRelevance = "relevant" | "not_relevant" | "under_review";
 export const requirementDispositions = ["pending", "addressed_by_qms", "outside_qms"] as const;
@@ -14,6 +14,25 @@ export type RequirementAssessment = {
   party_requirements: PartyRequirement[];
   no_requirements_reason: string;
 };
+export const scopeApplicability = ["undecided", "all_applicable", "exceptions"] as const;
+export type ScopeDefinition = {
+  products_services: string;
+  basis: string;
+  applicability: typeof scopeApplicability[number];
+  non_applicability: string;
+};
+export function scopeReady(definition: ScopeDefinition): boolean {
+  return Boolean(definition.products_services && definition.basis && definition.applicability !== "undecided"
+    && (definition.applicability !== "exceptions" || definition.non_applicability));
+}
+
+function isScopeDefinition(value: unknown): value is ScopeDefinition {
+  if (!isObject(value) || Object.keys(value).length !== 4 || !scopeApplicability.some(decision => decision === value.applicability)) return false;
+  return [value.products_services, value.basis, value.non_applicability].every(
+    field => typeof field === "string" && [...field].length <= 4000 && trimRequirementText(field) === field,
+  ) && (value.applicability === "exceptions" || value.non_applicability === "");
+}
+
 export const partyRequirementLimit = 20;
 export const trimRequirementText = (value: string) =>
   value.replace(/^[\s\u001c-\u001f\u0085]+|[\s\u001c-\u001f\u0085]+$/gu, "");
@@ -28,6 +47,7 @@ export type ContextFields = {
   evidence_summary: string;
   owner_user_id: string;
   review_due_on: string;
+  scope_definition?: ScopeDefinition | null;
 } & Partial<RequirementAssessment>;
 export type ContextRecord = ContextFields & {
   id: string;
@@ -140,6 +160,14 @@ function parseRecord(value: unknown, scope: ContextScope, kind: ContextKind): Co
     || !entries.every(isPartyRequirement) || new Set(entries.map(item => item.id)).size !== entries.length) {
     throw new ContextError(502);
   }
+  const definition = value.scope_definition;
+  if (kind === "qms-scope") {
+    if (!isScopeDefinition(definition) || value.code !== "QMS-SCOPE" || value.classification !== "declared_scope"
+      || value.category !== "" || value.relevance !== "relevant" || value.requirements !== "" || value.evidence_summary !== ""
+      || value.status === "retired" || (value.status === "active" && (!scopeReady(definition) || !value.reviewed_at))) {
+      throw new ContextError(502);
+    }
+  } else if (definition != null) throw new ContextError(502);
   return { ...value, party_requirements: entries, no_requirements_reason: reason } as ContextRecord;
 }
 
@@ -177,6 +205,17 @@ export async function listContext(scope: ContextScope, kind: ContextKind, status
   }
   await verifyIdentity(scope, signal);
   return { records: records.slice(0, contextPageSize), hasMore: records.length > contextPageSize };
+}
+
+export async function approvedContextScope(scope: ContextScope, draft: ContextRecord, signal: AbortSignal) {
+  await verifyIdentity(scope, signal);
+  const body = await request("/context/qms-scope/current?unit_id=" + scope.unitId, signal, scope.tenantId);
+  const result = body === null ? null : parseRecord(body, scope, "qms-scope");
+  if (result && (result.status !== "active" || result.id !== draft.id || result.row_version >= draft.row_version)) {
+    throw new ContextError(409, true);
+  }
+  await verifyIdentity(scope, signal);
+  return result;
 }
 
 export async function listResponsiblePeople(scope: ContextScope, offset: number, signal: AbortSignal): Promise<ResponsiblePerson[]> {
@@ -505,6 +544,14 @@ export async function saveContext(scope: ContextScope, kind: ContextKind, comman
   }
   const assessment = command.action === "create" ? command.fields
     : command.action === "edit" ? { ...command.entry, ...command.fields } : command.entry;
+  if (kind === "qms-scope") {
+    const expected = assessment.scope_definition;
+    const observed = result.scope_definition;
+    if (!expected || !observed || result.description !== assessment.description || result.name !== assessment.name
+      || result.owner_user_id !== assessment.owner_user_id || observed.products_services !== expected.products_services
+      || observed.basis !== expected.basis || observed.applicability !== expected.applicability
+      || observed.non_applicability !== expected.non_applicability) throw new ContextError(502);
+  }
   const received = result.party_requirements ?? [];
   const sent = assessment.party_requirements ?? [];
   if ((result.no_requirements_reason ?? "") !== (assessment.no_requirements_reason ?? "")

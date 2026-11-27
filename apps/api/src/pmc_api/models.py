@@ -40,6 +40,7 @@ class QMSContextRecord(Base):
     requirements: Mapped[str]
     party_requirements: Mapped[list[dict[str, str]]] = mapped_column(JSONB)
     no_requirements_reason: Mapped[str]
+    scope_definition: Mapped[dict[str, str] | None] = mapped_column(JSONB(none_as_null=True))
     evidence_summary: Mapped[str]
     owner_user_id: Mapped[UUID]
     review_due_on: Mapped[date]

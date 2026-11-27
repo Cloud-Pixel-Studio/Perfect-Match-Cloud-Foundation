@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import type { ContextFields, ContextRecord, PartyRequirement, PartySource, PartySourceLink } from "../src/lib/qms-context";
+import type { ContextFields, ContextKind, ContextRecord, PartyRequirement, PartySource, PartySourceLink } from "../src/lib/qms-context";
 
 const tenant = "10000000-0000-4000-8000-000000000001";
 const author = "20000000-0000-4000-8000-000000000001";
@@ -40,8 +40,11 @@ const seededParty: ContextRecord = {
   party_requirements: [purchaseRequirement], no_requirements_reason: "",
 };
 
-async function fixture(page: Page, source?: PartySource) {
+async function fixture(page: Page, scenario?: PartySource | "scope") {
+  const source = scenario === "scope" ? undefined : scenario;
   let actor = author;
+  let scopeRecord: ContextRecord | null = null;
+  let approvedScope: ContextRecord | null = null;
   let foreignPayload = false;
   let link: PartySourceLink | null = null;
   let phases: Array<{ command: string; snapshot: ContextRecord }> = source ? [{ command: "reviewed", snapshot: seededParty }] : [];
@@ -72,6 +75,35 @@ async function fixture(page: Page, source?: PartySource) {
     if (path === "/context/members") return ok([{ user_id: reviewer, display_name: "Synthetic reviewer" }]);
     if (path === "/processes" || path === "/documents") return ok([]);
     if (path === "/context/issues") return ok([]);
+    if (scenario === "scope" && path.startsWith("/context/qms-scope")) {
+      if (path.endsWith("/current")) return ok(approvedScope);
+      if (method === "GET") return ok(scopeRecord && unit === firstUnit ? [scopeRecord] : []);
+      expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
+      const input = route.request().postDataJSON();
+      if (path.endsWith("/review")) {
+        if (!scopeRecord) throw new Error("No scope draft to approve");
+        expect(actor).toBe(reviewer);
+        expect(input.expected_version).toBe(scopeRecord.row_version);
+        approvedScope = {
+          ...scopeRecord, status: "active", row_version: scopeRecord.row_version + 1,
+          updated_by_user_id: reviewer, decision_note: input.note, review_due_on: input.review_due_on,
+          reviewed_at: "2026-11-27T12:01:00Z",
+        };
+        scopeRecord = approvedScope;
+        return ok(scopeRecord);
+      }
+      expect(actor).toBe(author);
+      expect(input.scope_definition.applicability).toBe("exceptions");
+      expect(input.scope_definition.non_applicability).toBe("8.3: The customer supplies the design.");
+      if (method === "PATCH") expect(input.expected_version).toBe(scopeRecord?.row_version);
+      scopeRecord = {
+        ...input, id: recordId, tenant_id: tenant, unit_id: firstUnit, kind: "qms-scope",
+        status: "draft", row_version: (scopeRecord?.row_version ?? 0) + 1,
+        created_by_user_id: author, content_editor_user_id: author, updated_by_user_id: author,
+        updated_at: "2026-11-27T12:00:00Z", reviewed_at: null, decision_note: "",
+      };
+      return ok(scopeRecord, method === "PATCH" ? 200 : 201);
+    }
     if (path === "/context/interested-parties" && method === "POST") {
       expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
       const input = route.request().postDataJSON() as ContextFields & { unit_id: string };
@@ -177,16 +209,20 @@ async function fixture(page: Page, source?: PartySource) {
     }
     return ok({}, 404);
   });
-  return { useReviewer: () => { actor = reviewer; }, sendPreviousUnit: () => { foreignPayload = true; } };
+  return {
+    useReviewer: () => { actor = reviewer; },
+    useAuthor: () => { actor = author; },
+    sendPreviousUnit: () => { foreignPayload = true; },
+  };
 }
 
-async function openRegister(page: Page, unitId = firstUnit) {
+async function openRegister(page: Page, unitId = firstUnit, kind: ContextKind = "interested-parties") {
   if (page.url().endsWith("/#implementation-guide-heading")) await page.reload();
   else await page.goto("/#implementation-guide-heading");
   await page.getByRole("combobox", { name: "Organizational unit", exact: true }).selectOption(unitId);
   const region = page.getByRole("region", { name: "Context and interested parties" });
   await region.getByRole("button", { name: "View context register" }).click();
-  await region.getByRole("combobox", { name: "Register", exact: true }).selectOption("interested-parties");
+  await region.getByRole("combobox", { name: "Register", exact: true }).selectOption(kind);
   return region;
 }
 
@@ -354,4 +390,42 @@ test("the current opportunity state and the cited state are both visible to auth
   register = await openRegister(page);
   await expect(register.getByRole("button", { name: "Review PARTY-01" })).toBeVisible();
   await expect(register.getByRole("button", { name: "View risk links" })).toHaveCount(0);
+});
+
+test("the QMS scope retains its approval while an author edits the next version", async ({ page }) => {
+  const state = await fixture(page, "scope");
+  await page.setViewportSize({ width: 375, height: 812 });
+  let register = await openRegister(page, firstUnit, "qms-scope");
+  await register.getByRole("button", { name: "Define QMS scope", exact: true }).click();
+  await register.getByLabel("Scope title").fill("Assembly QMS");
+  await register.getByLabel("QMS boundaries").fill("Receiving through dispatch.");
+  await register.getByLabel("Products and services covered").fill("Assembly and inspection of demonstration components.");
+  await register.getByLabel("Context and interested-party requirements considered").fill("Receiving disruption CTX-01 and requirement REQ-04.");
+  await register.getByLabel("Review due").fill("2099-05-01");
+  await register.getByLabel("Applicability of requirements").selectOption("exceptions");
+  await register.getByLabel("Requirements that do not apply and their justification").fill("8.3: The customer supplies the design.");
+  await register.getByRole("button", { name: "Save draft" }).click();
+  await expect(register.getByText("Scope draft saved · Version 1")).toBeVisible();
+  await expect(register.getByText("There is no approved scope yet.")).toBeVisible();
+  await expect(register.getByRole("button", { name: "Review scope for approval" })).toHaveCount(0);
+  state.useReviewer();
+  register = await openRegister(page, firstUnit, "qms-scope");
+  await register.getByRole("button", { name: "Review scope for approval" }).click();
+  await register.getByLabel("Review decision and rationale").fill("The documented boundaries match operations.");
+  await register.getByRole("button", { name: "Approve scope" }).click();
+  await expect(register.getByText("Approved scope · Version 2")).toBeVisible();
+
+  state.useAuthor();
+  register = await openRegister(page, firstUnit, "qms-scope");
+  await register.getByRole("button", { name: "Edit scope" }).click();
+  await register.getByLabel("QMS boundaries").fill("Receiving through dispatch and packaging.");
+  await register.getByRole("button", { name: "Save draft" }).click();
+  const approved = register.getByRole("region", { name: "Current approved scope" });
+  await expect(approved.getByText(/Approved · Version 2/)).toBeVisible();
+  await expect(approved.getByText(/Receiving through dispatch\./)).toBeVisible();
+  await expect(register.getByText(/Pending approval · Version 3/)).toBeVisible();
+  await expect(register.getByText(/Receiving through dispatch and packaging\./)).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include(".context-register")
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(accessibility.violations).toEqual([]);
 });

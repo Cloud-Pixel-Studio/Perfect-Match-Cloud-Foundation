@@ -1,5 +1,12 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Alcance declarado del QMS 4.3 · 27 noviembre 2026
+- Respaldo de código cifrado `CP-ISO-SCOPE-00-20261127T192126Z` sobre `0f3151d`, descifrado y comparado, con bundle Git verificado.
+- La guía permite documentar un alcance por unidad con límites, productos y servicios, contexto, requisitos considerados y justificación de no aplicabilidad. La aprobación exige otro actor y revisión con fecha futura. Los borradores conservan el alcance previamente aprobado como vigente. Se reutilizan RLS, permisos de contexto, historial y bitácora.
+- `0058_qms_scope` pasó aplicación y reversión en vacío y el veto a perder historial. Pasaron 198 pruebas API/PostgreSQL, incluido el ensayo desde `0051`, lint y tipos. Web local: 360 unitarias y 15 recorridos de guía y contexto, incluido alcance a 375 px con API simulada y comprobación acotada de accesibilidad.
+- La corrección previa de procesos obtuvo CI de calidad verde. El paso de navegador de seguridad reportó 12 fallas del juego de referencias de proyectos. Se corrigieron los selectores y la sincronización del fixture. Pasaron los 18 casos localmente. Separado de esas pruebas, siguen los hallazgos de la imagen Keycloak.
+- Pendientes la relación versionada del alcance con 4.1 y 4.2, los objetivos de calidad 6.2 y la actualización de la demo. Se mantiene el conteo de 21 cláusulas con apoyo parcial.
+
 ## Conteo ISO 9001:2026 y reparación de CI · 26 noviembre 2026
 - Cotejo del índice del PDF de referencia, páginas físicas 3–4, contra la matriz. 27 cláusulas de primer nivel en 4–10, 21 con apoyo parcial, 6 sin flujo específico y ninguna con cobertura integral verificada. La mejora continua corresponde a 10.1. Se quitó la fila 10.3 de la edición anterior.
 - La ejecución de calidad del PR #69 encontró que la limpieza del fixture de procesos omitía tablas con referencias a los registros de prueba. Se incorporaron seis tablas de enlaces al truncado explícito. Pasaron 202 casos del mismo conjunto de CI en PostgreSQL desechable, el ciclo de migración en vacío y el veto de reversión con historial CAPA.

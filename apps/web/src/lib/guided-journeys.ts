@@ -67,7 +67,9 @@ const audits: GuideStep = {
 const pending = (id: string, title: string, why: string, instructions: string[], expected: string, doneWhen: string, productGap: string): GuideStep => ({ id, title, why, instructions, expected, doneWhen, productGap });
 const normative = pending("normative-profile", "Confirm the standard, edition and applicability",
   "Implementation guidance must refer to an identified, reviewed edition and the company's actual scope.",
-  ["Identify the intended standard and edition with the responsible quality professional.", "Prepare the applicability rationale and record which existing processes and controls would support each requirement."],
+  ["Identify the intended standard and edition with the responsible quality professional.",
+    "Open the context register and choose QMS scope. Define the boundaries, products and services, and applicability, then have an independent reviewer approve the scope.",
+    "Record which existing processes and controls would support each applicable requirement."],
   "A reviewed versioned profile and an applicability matrix for the project.",
   "The authorized profile has been released and the project's applicability decisions are reviewed.",
   "Versioned ISO profiles, requirement mappings and project applicability are not implemented. This guide cannot approve an ISO profile.");

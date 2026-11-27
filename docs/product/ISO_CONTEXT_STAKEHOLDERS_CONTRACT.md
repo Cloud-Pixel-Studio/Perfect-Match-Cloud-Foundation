@@ -1,4 +1,4 @@
-# Contrato funcional: contexto y partes interesadas (ISO 9001:2026, 4.1-4.2)
+# Contrato funcional: contexto, partes interesadas y alcance (ISO 9001:2026, 4.1-4.3)
 
 El registro de la primera entrega está disponible en la guía de implementación al seleccionar una unidad. La referencia de diseño es ISO 9001:2026, cláusulas 4.1 y 4.2.
 
@@ -10,7 +10,7 @@ El registro de la primera entrega está disponible en la guía de implementació
 - El historial conserva versiones con contenido, motivo y actor. La bitácora general recibe únicamente metadatos. El retiro exige motivo y conserva el historial. El rol de aplicación carece de permisos de escritura directa sobre la tabla de versiones y de borrado sobre el registro.
 - Las capacidades `context.read`, `context.manage` y `context.review` se otorgan por unidad. Gestionar o revisar exige también lectura. El rol de auditor admite la capacidad explícita de lectura. La asignación de un responsable carece de efecto sobre el acceso.
 - Las rutas de detalle, historial, edición, revisión y retiro reciben `unit_id` en la consulta. `PATCH` recibe los campos editables completos y la versión esperada. Se añadieron `GET /context/members`, `GET /context/{kind}/{id}/history` y `POST /context/{kind}/{id}/retire`. El listado filtra por estado y el historial pagina por versión.
-- Quedan pendientes la decisión climática consolidada para todo el QMS, los vínculos con objetivos y la conexión con el alcance 4.3.
+- Quedan pendientes la decisión climática consolidada para todo el QMS, los vínculos con objetivos y las referencias versionadas desde el alcance 4.3.
 
 ## Requisitos individuales de partes interesadas
 
@@ -48,7 +48,15 @@ El registro de la primera entrega está disponible en la guía de implementació
 - Leer exige `context.read` y `risks.read`. Vincular o retirar exige también `context.manage` y devuelve la ficha a revisión independiente. La evaluación y el cierre del riesgo se gestionan desde el registro de riesgos.
 - `0057_qms_party_risk_links` protege las citas mediante claves por empresa y unidad, RLS forzada y un veto a la reversión que perdería el historial.
 
-Las secciones siguientes conservan el diseño de partida para comparar el alcance previsto con la primera entrega.
+## Alcance declarado del QMS
+
+- En la guía de implementación se selecciona una unidad y, en el registro de contexto, la opción **QMS scope**. La empresa puede elegir la unidad responsable de su alcance general. Se admite un alcance declarado por unidad.
+- El borrador documenta límites, productos y servicios, contexto y requisitos considerados, y la decisión sobre aplicabilidad. Si se declaran requisitos no aplicables, la aprobación exige identificar y justificar la decisión en la ficha. La revisión exige responsable, decisión y fecha futura.
+- Leer exige `context.read`. Redactar exige además `context.manage`. Aprobar exige `context.review` y un actor distinto del creador y del último editor. El historial conserva cada versión. El autor actualiza el alcance mediante una nueva versión y el registro vigente cambia al aprobarla.
+- `GET /context/qms-scope/current?unit_id=…` devuelve la última versión aprobada o un resultado vacío si todavía no existe. Tiene el mismo límite por empresa y unidad que las demás rutas de contexto. El borrador se consulta desde el registro.
+- `0058_qms_scope` reutiliza el historial de contexto y protege las aprobaciones mediante restricciones de forma y estado. Vincular la justificación a registros versionados de 4.1 y 4.2 queda pendiente.
+
+ Las secciones siguientes conservan el diseño de partida para comparar el alcance previsto con la primera entrega.
 
 ## Alcance
 

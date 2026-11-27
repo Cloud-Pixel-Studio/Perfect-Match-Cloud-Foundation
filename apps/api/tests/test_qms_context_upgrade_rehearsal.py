@@ -18,6 +18,8 @@ from test_qms_party_risk_links_integrity import (
     transition_risk,
 )
 from test_qms_project_reference_integrity import path, payload, setup
+from test_qms_scope_integrity import APPROVAL, FIELDS
+from test_qms_scope_integrity import PATH as SCOPE
 from test_tenant_suspension_integrity import SITE, Boundary, migrate
 from test_tenant_suspension_integrity import boundary as boundary
 
@@ -127,6 +129,19 @@ def test_iso_upgrade_preserves_existing_project_document_and_evidence(boundary: 
     risk_links = boundary.call("GET", risk_url, role="member")
     assert risk_links["party_version"] == 5
     assert risk_links["items"][0]["risk_id"] == risk["id"]
+    scope = boundary.call(
+        "POST", SCOPE, {**FIELDS, "unit_id": str(SITE)}, role="member", expected=201
+    )
+    boundary.call(
+        "POST",
+        f"{SCOPE}/{scope['id']}/review?unit_id={SITE}",
+        {**APPROVAL, "expected_version": 1},
+        role="admin",
+    )
+    approved = boundary.call("GET", f"{SCOPE}/current?unit_id={SITE}", role="member")
+    assert (
+        approved["row_version"] == 2 and approved["scope_definition"] == FIELDS["scope_definition"]
+    )
     for kind, page in old_links.items():
         current = boundary.call("GET", path(project, kind), role="member")
         assert datetime.fromisoformat(current.pop("observed_at")) >= datetime.fromisoformat(
