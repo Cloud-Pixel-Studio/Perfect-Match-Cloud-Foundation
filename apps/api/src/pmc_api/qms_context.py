@@ -153,11 +153,29 @@ class RecordFields(RequirementAssessment):
     review_due_on: date
 
 
-class RecordCreate(RecordFields):
+class ScopeBasisReference(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    record_id: UUID
+    source_version: RowVersion
+    requirement_id: UUID | None = None
+
+
+class ScopeBasisCitation(ScopeBasisReference):
+    kind: Literal["issues", "interested-parties"]
+    code: Code
+    name: Label
+    requirement_statement: str | None
+
+
+class RecordWrite(RecordFields):
+    scope_basis: list[ScopeBasisReference] = Field(default_factory=list, max_length=20)
+
+
+class RecordCreate(RecordWrite):
     unit_id: UUID
 
 
-class RecordEdit(RecordFields):
+class RecordEdit(RecordWrite):
     expected_version: RowVersion
 
 
@@ -173,6 +191,7 @@ class Review(Retire):
 
 class RecordRead(RecordFields):
     model_config = ConfigDict(from_attributes=True)
+    scope_basis: list[ScopeBasisCitation] = Field(default_factory=list, max_length=20)
     owner_display_name: str | None = None
     id: UUID
     tenant_id: UUID
@@ -200,7 +219,7 @@ class ResponsiblePerson(BaseModel):
     display_name: str
 
 
-def _validate_content(kind: Kind, body: RecordFields) -> None:
+def _validate_content(kind: Kind, body: RecordWrite) -> None:
     if kind == "issues":
         valid = body.classification in {"internal", "external"} and body.category in CATEGORIES
     elif kind == "qms-scope":
@@ -215,8 +234,11 @@ def _validate_content(kind: Kind, body: RecordFields) -> None:
         )
     else:
         valid = body.classification in PARTIES and body.category == ""
-    if kind != "qms-scope" and body.scope_definition is not None:
+    if kind != "qms-scope" and (body.scope_definition is not None or body.scope_basis):
         valid = False
+    scope_keys = {(item.record_id, item.requirement_id) for item in body.scope_basis}
+    if len(scope_keys) != len(body.scope_basis):
+        raise HTTPException(422, "duplicate QMS scope basis reference")
     if not valid or any(
         INVALID_TEXT.search(value) for value in body.model_dump().values() if isinstance(value, str)
     ):
@@ -543,9 +565,10 @@ def create(
     entries, reason = _requirement_values(kind, body)
     now = datetime.now(UTC)
     row = QMSContextRecord(
-        **body.model_dump(exclude={"party_requirements", "no_requirements_reason"}),
+        **body.model_dump(exclude={"party_requirements", "no_requirements_reason", "scope_basis"}),
         party_requirements=entries,
         no_requirements_reason=reason,
+        scope_basis=[item.model_dump(mode="json") for item in body.scope_basis],
         id=uuid4(),
         tenant_id=actor.tenant_id,
         kind=kind,
@@ -594,8 +617,15 @@ def _change(
             row.party_requirements, row.no_requirements_reason = _requirement_values(
                 kind, body, row
             )
+            if "scope_basis" in body.model_fields_set:
+                row.scope_basis = [item.model_dump(mode="json") for item in body.scope_basis]
             for field, value in body.model_dump(
-                exclude={"expected_version", "party_requirements", "no_requirements_reason"}
+                exclude={
+                    "expected_version",
+                    "party_requirements",
+                    "no_requirements_reason",
+                    "scope_basis",
+                }
             ).items():
                 setattr(row, field, value)
         else:

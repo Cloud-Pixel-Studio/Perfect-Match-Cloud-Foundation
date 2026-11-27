@@ -1,5 +1,11 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Fuentes del alcance 4.3 · 27 noviembre 2026
+- Respaldo cifrado `CP-ISO-SCOPE-BASIS-00-20261127T203751Z` sobre `2687074`, descifrado y comparado, con bundle Git verificado.
+- El alcance por unidad permite citar hasta 20 temas revisados o requisitos individuales atendidos por el QMS. PostgreSQL toma la versión, el título y el enunciado del historial revisado y valida empresa y unidad. Editar las citas deja un borrador y la versión aprobada conserva sus referencias.
+- `0059_qms_scope_basis` completó aplicación y reversión en vacío, y bloqueó la reversión con citas históricas. Pasaron 200 integraciones con PostgreSQL, incluido el ensayo desde `0051`, 360 unitarias web y 33 recorridos con API simulada. Ruff, mypy, lint, TypeScript y compilación pasaron.
+- En el commit anterior del PR #69 pasaron calidad y CodeQL. El paso de navegador de seguridad pasó y el control final de publicación continúa fallando. Siguen pendientes los objetivos 6.2, la decisión climática 4.1 y la instalación de esta actualización en AWS.
+
 ## Alcance declarado del QMS 4.3 · 27 noviembre 2026
 - Respaldo de código cifrado `CP-ISO-SCOPE-00-20261127T192126Z` sobre `0f3151d`, descifrado y comparado, con bundle Git verificado.
 - La guía permite documentar un alcance por unidad con límites, productos y servicios, contexto, requisitos considerados y justificación de no aplicabilidad. La aprobación exige otro actor y revisión con fecha futura. Los borradores conservan el alcance previamente aprobado como vigente. Se reutilizan RLS, permisos de contexto, historial y bitácora.

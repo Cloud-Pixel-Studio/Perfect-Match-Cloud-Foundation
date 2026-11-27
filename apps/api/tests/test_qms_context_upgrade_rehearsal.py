@@ -10,7 +10,7 @@ from sqlalchemy.engine import Engine
 from test_qms_party_document_links_integrity import citation
 from test_qms_party_evidence_links_integrity import evidence_citation
 from test_qms_party_process_links_integrity import create_party, link_body
-from test_qms_party_requirements_integrity import ENDPOINT
+from test_qms_party_requirements_integrity import DECIDED, ENDPOINT
 from test_qms_party_risk_links_integrity import (
     allow_risk_access,
     create_risk,
@@ -129,8 +129,28 @@ def test_iso_upgrade_preserves_existing_project_document_and_evidence(boundary: 
     risk_links = boundary.call("GET", risk_url, role="member")
     assert risk_links["party_version"] == 5
     assert risk_links["items"][0]["risk_id"] == risk["id"]
+    boundary.call(
+        "POST",
+        f"{ENDPOINT}/{party['id']}/review?unit_id={SITE}",
+        {**APPROVAL, "expected_version": 5},
+        role="admin",
+    )
     scope = boundary.call(
-        "POST", SCOPE, {**FIELDS, "unit_id": str(SITE)}, role="member", expected=201
+        "POST",
+        SCOPE,
+        {
+            **FIELDS,
+            "unit_id": str(SITE),
+            "scope_basis": [
+                {
+                    "record_id": party["id"],
+                    "source_version": 6,
+                    "requirement_id": DECIDED["id"],
+                }
+            ],
+        },
+        role="member",
+        expected=201,
     )
     boundary.call(
         "POST",
@@ -142,6 +162,7 @@ def test_iso_upgrade_preserves_existing_project_document_and_evidence(boundary: 
     assert (
         approved["row_version"] == 2 and approved["scope_definition"] == FIELDS["scope_definition"]
     )
+    assert approved["scope_basis"][0]["requirement_statement"] == DECIDED["statement"]
     for kind, page in old_links.items():
         current = boundary.call("GET", path(project, kind), role="member")
         assert datetime.fromisoformat(current.pop("observed_at")) >= datetime.fromisoformat(

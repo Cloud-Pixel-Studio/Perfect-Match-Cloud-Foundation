@@ -1,5 +1,6 @@
 export type ContextScope = { tenantId: string; userId: string; unitId: string };
 export type ContextKind = "issues" | "interested-parties" | "qms-scope";
+export type ScopeBasisKind = Exclude<ContextKind, "qms-scope">;
 export type ContextState = "draft" | "active" | "retired";
 export type ContextRelevance = "relevant" | "not_relevant" | "under_review";
 export const requirementDispositions = ["pending", "addressed_by_qms", "outside_qms"] as const;
@@ -21,6 +22,15 @@ export type ScopeDefinition = {
   applicability: typeof scopeApplicability[number];
   non_applicability: string;
 };
+export type ScopeBasisReference = { record_id: string; source_version: number; requirement_id: string | null };
+export type ScopeBasisCitation = ScopeBasisReference & {
+  kind: ScopeBasisKind;
+  code: string;
+  name: string;
+  requirement_statement: string | null;
+};
+export const scopeBasisLimit = 20;
+export const scopeBasisKey = ({ record_id, requirement_id }: ScopeBasisReference) => record_id + "/" + (requirement_id ?? "");
 export function scopeReady(definition: ScopeDefinition): boolean {
   return Boolean(definition.products_services && definition.basis && definition.applicability !== "undecided"
     && (definition.applicability !== "exceptions" || definition.non_applicability));
@@ -48,8 +58,9 @@ export type ContextFields = {
   owner_user_id: string;
   review_due_on: string;
   scope_definition?: ScopeDefinition | null;
+  scope_basis?: ScopeBasisReference[];
 } & Partial<RequirementAssessment>;
-export type ContextRecord = ContextFields & {
+export type ContextRecord = Omit<ContextFields, "scope_basis"> & {
   id: string;
   tenant_id: string;
   unit_id: string;
@@ -63,6 +74,7 @@ export type ContextRecord = ContextFields & {
   reviewed_at: string | null;
   decision_note: string;
   owner_display_name?: string | null;
+  scope_basis?: ScopeBasisCitation[];
 };
 export type ContextRevision = { command: string; snapshot: ContextRecord };
 export type ContextPermission = {
@@ -161,14 +173,27 @@ function parseRecord(value: unknown, scope: ContextScope, kind: ContextKind): Co
     throw new ContextError(502);
   }
   const definition = value.scope_definition;
+  const scopeBasis = value.scope_basis === undefined ? [] : value.scope_basis;
+  if (!Array.isArray(scopeBasis) || scopeBasis.length > scopeBasisLimit
+    || !scopeBasis.every(isScopeBasisCitation) || new Set(scopeBasis.map(scopeBasisKey)).size !== scopeBasis.length) {
+    throw new ContextError(502);
+  }
   if (kind === "qms-scope") {
     if (!isScopeDefinition(definition) || value.code !== "QMS-SCOPE" || value.classification !== "declared_scope"
       || value.category !== "" || value.relevance !== "relevant" || value.requirements !== "" || value.evidence_summary !== ""
       || value.status === "retired" || (value.status === "active" && (!scopeReady(definition) || !value.reviewed_at))) {
       throw new ContextError(502);
     }
-  } else if (definition != null) throw new ContextError(502);
-  return { ...value, party_requirements: entries, no_requirements_reason: reason } as ContextRecord;
+  } else if (definition != null || scopeBasis.length > 0) throw new ContextError(502);
+  return { ...value, party_requirements: entries, no_requirements_reason: reason, scope_basis: scopeBasis } as ContextRecord;
+}
+
+function isScopeBasisCitation(value: unknown): value is ScopeBasisCitation {
+  if (!isObject(value) || !validUuid(value.record_id) || !positiveVersion(value.source_version)
+    || !processLabel(value.code, 40) || !processLabel(value.name, 160)) return false;
+  if (value.kind === "issues") return value.requirement_id === null && value.requirement_statement === null;
+  return value.kind === "interested-parties" && validUuid(value.requirement_id)
+    && processLabel(value.requirement_statement, 360);
 }
 
 function isPartyRequirement(value: unknown): value is PartyRequirement {
@@ -547,10 +572,14 @@ export async function saveContext(scope: ContextScope, kind: ContextKind, comman
   if (kind === "qms-scope") {
     const expected = assessment.scope_definition;
     const observed = result.scope_definition;
+    const selected = assessment.scope_basis ?? [];
+    const captured = result.scope_basis ?? [];
     if (!expected || !observed || result.description !== assessment.description || result.name !== assessment.name
       || result.owner_user_id !== assessment.owner_user_id || observed.products_services !== expected.products_services
       || observed.basis !== expected.basis || observed.applicability !== expected.applicability
-      || observed.non_applicability !== expected.non_applicability) throw new ContextError(502);
+      || observed.non_applicability !== expected.non_applicability || selected.length !== captured.length
+      || selected.some((item, index) => scopeBasisKey(item) !== scopeBasisKey(captured[index])
+        || item.source_version !== captured[index].source_version)) throw new ContextError(502);
   }
   const received = result.party_requirements ?? [];
   const sent = assessment.party_requirements ?? [];

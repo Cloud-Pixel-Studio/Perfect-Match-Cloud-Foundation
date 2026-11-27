@@ -6,10 +6,10 @@ import {
   approvedContextScope, ContextError, contextCategories, contextHistory, contextPageSize, contextRelevance,
   contextStates, getContextPermissions, listContext, listResponsiblePeople, partyTypes, saveContext,
   partyRequirementLimit, partySources, requirementDispositions, requirementReviewBlocker, trimRequirementText,
-  scopeApplicability, scopeReady,
+  scopeApplicability, scopeBasisKey, scopeBasisLimit, scopeReady,
   type ContextCommand, type ContextFields, type ContextKind, type ContextPermission,
   type ContextRecord, type ContextRevision, type ContextScope, type ContextState, type ResponsiblePerson,
-  type PartyRequirement, type PartySource, type ScopeDefinition,
+  type PartyRequirement, type PartySource, type ScopeBasisCitation, type ScopeBasisKind, type ScopeDefinition,
 } from "../lib/qms-context";
 
 const captions = { issues: "Context issues", "interested-parties": "Interested parties", "qms-scope": "QMS scope" };
@@ -31,9 +31,9 @@ const textLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice
 const today = () => new Date().toISOString().slice(0, 10);
 type Editor = { action: "create" } | { action: "edit" | "review" | "retire"; entry: ContextRecord };
 
-function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
+function KindForm({ kind, editor, scope, busy, onSave, onCancel, onError }: {
   kind: ContextKind; editor: Editor; scope: ContextScope; busy: boolean;
-  onSave: (command: ContextCommand) => void; onCancel: () => void;
+  onSave: (command: ContextCommand) => void; onCancel: () => void; onError: (cause: unknown) => void;
 }) {
   const entry = "entry" in editor ? editor.entry : null;
   const [people, setPeople] = useState<ResponsiblePerson[]>([]);
@@ -43,6 +43,7 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
   const [absenceReason, setAbsenceReason] = useState(entry?.no_requirements_reason ?? "");
   const [applicability, setApplicability] = useState(entry?.scope_definition?.applicability ?? "undecided");
   const [nonApplicability, setNonApplicability] = useState(entry?.scope_definition?.non_applicability ?? "");
+  const [scopeBasis, setScopeBasis] = useState(entry?.scope_basis ?? []);
   const editContent = editor.action === "create" || editor.action === "edit";
   const issues = kind === "issues";
   const declaringScope = kind === "qms-scope";
@@ -84,6 +85,9 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
           applicability,
           non_applicability: applicability === "exceptions" ? trimRequirementText(nonApplicability) : "",
         };
+        fields.scope_basis = scopeBasis.map(({ record_id, source_version, requirement_id }) => (
+          { record_id, source_version, requirement_id }
+        ));
       } else if (kind === "interested-parties") {
         fields.party_requirements = requirements.map(requirement => ({
           ...requirement,
@@ -154,6 +158,7 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
         {declaringScope ? <>
           <label>Products and services covered<textarea name="products_services" rows={3} maxLength={4000} defaultValue={entry?.scope_definition?.products_services} /></label>
           <label>Context and interested-party requirements considered<textarea name="basis" rows={3} maxLength={4000} defaultValue={entry?.scope_definition?.basis} /></label>
+          <ScopeBasisEditor scope={scope} citations={scopeBasis} onChange={setScopeBasis} onError={onError} />
           <label>Applicability of requirements<select name="applicability" value={applicability}
             onChange={event => setApplicability(event.target.value as ScopeDefinition["applicability"])}>
             {scopeApplicability.map(decision => <option key={decision} value={decision}>{applicabilityLabels[decision]}</option>)}
@@ -187,6 +192,108 @@ function KindForm({ kind, editor, scope, busy, onSave, onCancel }: {
       <button type="button" className="secondary-action compact-action" disabled={busy} onClick={onCancel}>Cancel</button>
     </div>
   </form>;
+}
+
+function reviewedScopeCandidates(records: ContextRecord[]): ScopeBasisCitation[] {
+  return records.flatMap<ScopeBasisCitation>(record => {
+    const source = { record_id: record.id, source_version: record.row_version, code: record.code, name: record.name };
+    if (record.kind === "issues") return [{ ...source, kind: record.kind, requirement_id: null, requirement_statement: null }];
+    if (record.kind !== "interested-parties") return [];
+    return (record.party_requirements ?? []).filter(item => item.disposition === "addressed_by_qms")
+      .map(item => ({ ...source, kind: "interested-parties", requirement_id: item.id, requirement_statement: item.statement }));
+  });
+}
+
+function ScopeBasisEditor({ scope, citations, onChange, onError }: {
+  scope: ContextScope; citations: ScopeBasisCitation[];
+  onChange: (next: ScopeBasisCitation[]) => void; onError: (cause: unknown) => void;
+}) {
+  const [opened, setOpened] = useState(false);
+  const [kind, setKind] = useState<ScopeBasisKind>("issues");
+  const [offset, setOffset] = useState(0);
+  const [selected, setSelected] = useState("");
+  const [page, setPage] = useState<{ citations: ScopeBasisCitation[]; hasMore: boolean } | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [reload, setReload] = useState(0);
+  const keys = new Set(citations.map(scopeBasisKey));
+  const choices = page?.citations.filter(item => !keys.has(scopeBasisKey(item))) ?? [];
+  const chosen = choices.find(item => scopeBasisKey(item) === selected);
+
+  useEffect(() => {
+    if (!opened) return;
+    const controller = new AbortController();
+    void listContext(scope, kind, "active", offset, controller.signal).then(result => {
+      if (!controller.signal.aborted) setPage({ citations: reviewedScopeCandidates(result.records), hasMore: result.hasMore });
+    }).catch(cause => {
+      if (controller.signal.aborted) return;
+      if (cause instanceof ContextError && (cause.status === 401 || cause.status === 403 || cause.scopeChanged)) onError(cause);
+      else setFailed(true);
+    });
+    return () => controller.abort();
+  }, [opened, scope, kind, offset, onError, reload]);
+
+  function clearPage() {
+    setPage(null); setFailed(false); setSelected("");
+  }
+
+  return <section className="party-requirements" aria-label="Scope basis references">
+    <h4>Scope basis references</h4>
+    <ul className="project-reference-list">
+      {citations.map(item => <li className="project-reference-kind" key={scopeBasisKey(item)}>
+        <ScopeCitationText item={item} />
+        <button type="button" className="secondary-action compact-action"
+          aria-label={`Remove ${item.requirement_statement ?? item.name} from scope basis`}
+          onClick={() => onChange(citations.filter(citation => scopeBasisKey(citation) !== scopeBasisKey(item)))}>
+          Remove reference
+        </button>
+      </li>)}
+    </ul>
+    {citations.length === scopeBasisLimit && <p role="status">This scope contains the maximum of 20 references.</p>}
+    <button type="button" className="secondary-action compact-action" aria-expanded={opened}
+      disabled={!opened && citations.length >= scopeBasisLimit}
+      onClick={() => { clearPage(); setOffset(0); setOpened(!opened); }}>
+      {opened ? "Close source picker" : "Choose reviewed sources"}
+    </button>
+    {opened && <>
+      <div className="project-fields">
+        <label>Source type<select value={kind} onChange={event => {
+          clearPage(); setOffset(0); setKind(event.target.value as ScopeBasisKind);
+        }}>
+          <option value="issues">Context issues</option>
+          <option value="interested-parties">Interested-party requirements</option>
+        </select></label>
+        <label>Reviewed source<select value={selected} disabled={!choices.length} onChange={event => setSelected(event.target.value)}>
+          <option value="">Select a reviewed source</option>
+          {choices.map(item => <option key={scopeBasisKey(item)} value={scopeBasisKey(item)}>
+            {item.code} · {item.requirement_statement ?? item.name} · Version {item.source_version}
+          </option>)}
+        </select></label>
+      </div>
+      {!page && !failed && <p role="status">Loading reviewed sources…</p>}
+      {failed && <p role="alert">Reviewed sources could not be loaded.</p>}
+      {page && choices.length === 0 && <p role="status">No additional reviewed sources on this page.</p>}
+      <div className="project-actions">
+        <button type="button" className="secondary-action compact-action" disabled={!chosen || citations.length >= scopeBasisLimit}
+          onClick={() => { if (chosen) { onChange([...citations, chosen]); setSelected(""); } }}>Add reference</button>
+        {failed && <button type="button" className="secondary-action compact-action"
+          onClick={() => { clearPage(); setReload(value => value + 1); }}>Retry sources</button>}
+        {(offset > 0 || page?.hasMore) && <>
+          <button type="button" className="secondary-action compact-action" disabled={offset === 0}
+            onClick={() => { clearPage(); setOffset(value => value - contextPageSize); }}>Previous sources</button>
+          <button type="button" className="secondary-action compact-action" disabled={!page?.hasMore}
+            onClick={() => { clearPage(); setOffset(value => value + contextPageSize); }}>More sources</button>
+        </>}
+      </div>
+    </>}
+  </section>;
+}
+
+function ScopeCitationText({ item }: { item: ScopeBasisCitation }) {
+  return <>
+    <p className="project-notes"><strong>{item.code} · {item.name}</strong></p>
+    {item.requirement_statement && <p className="project-notes">{item.requirement_statement}</p>}
+    <p className="project-help">Reviewed source · Version {item.source_version}</p>
+  </>;
 }
 
 function PartyRequirementsFields({ requirements, onChange, absenceReason, onAbsenceChange }: {
@@ -257,6 +364,14 @@ function RecordSummary({ record }: { record: ContextRecord }) {
       <p className="project-notes"><strong>QMS boundaries</strong><br />{record.description}</p>
       {definition.products_services && <p className="project-notes"><strong>Products and services</strong><br />{definition.products_services}</p>}
       {definition.basis && <p className="project-notes"><strong>Context and requirements considered</strong><br />{definition.basis}</p>}
+      {Boolean(record.scope_basis?.length) && <div>
+        <p><strong>Scope basis references</strong></p>
+        <ul className="project-reference-list">
+          {record.scope_basis?.map(item => <li className="project-reference-kind" key={scopeBasisKey(item)}>
+            <ScopeCitationText item={item} />
+          </li>)}
+        </ul>
+      </div>}
       <p className="project-notes"><strong>Applicability</strong><br />{applicabilityLabels[definition.applicability]}
         {definition.non_applicability && <><br />{definition.non_applicability}</>}
       </p>
@@ -447,7 +562,7 @@ export function QMSContextRegister({ scope, onEditingChange, locked }: {
       {permission && !permission.read && <p role="status">Access to this register requires the context read permission for the selected unit.</p>}
       {editor && <KindForm kind={kind} editor={editor} scope={scope} busy={busy} onSave={command => {
         void mutate(command);
-      }} onCancel={() => { setEditor(null); setError(""); setStale(false); }} />}
+      }} onCancel={() => { setEditor(null); setError(""); setStale(false); }} onError={reportFailure} />}
       {page?.records.length === 0 && <p role="status">{kind === "qms-scope" ? "This unit has no declared QMS scope yet." : "No records match this view."}</p>}
       {approvedScope && <section className="project-summary" aria-label="Current approved scope">
         <h4>Current approved scope</h4>

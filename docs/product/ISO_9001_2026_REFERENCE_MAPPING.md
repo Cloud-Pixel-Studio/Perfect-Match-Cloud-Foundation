@@ -14,7 +14,7 @@ El índice del PDF de referencia enumera **27 cláusulas de primer nivel** entre
 | --- | --- | --- | --- |
 | 4.1 | Contexto, asuntos internos/externos y cambio climático relevante | Parcial. Registro por unidad con responsable, pertinencia climática del asunto, revisión e historial | Decisión climática consolidada y vínculos trazables a evidencias y procesos |
 | 4.2 | Partes interesadas y requisitos | Parcial. Registro por unidad, decisiones individuales, historial y enlaces versionados a procesos, revisiones documentales liberadas, evidencia operativa aceptada y riesgos u oportunidades evaluados | Vínculos con objetivos |
-| 4.3 | Alcance documentado, productos/servicios y no aplicabilidad justificada | Parcial. Alcance por unidad con aprobación independiente, justificación de no aplicabilidad, historial y versión vigente mientras se prepara una modificación | Referencias versionadas a temas de contexto y requisitos de partes interesadas |
+| 4.3 | Alcance documentado, productos/servicios y no aplicabilidad justificada | Parcial. Alcance por unidad con aprobación independiente, justificación de no aplicabilidad, historial, versión vigente y referencias a temas y requisitos revisados | Evaluación de aplicabilidad por cláusula y distribución controlada del alcance |
 | 4.4 | Procesos, entradas/salidas, interacción, criterios, recursos y mejora | Parcial: procesos y responsabilidades | Mapa de interacción, indicadores por proceso y evaluación formal de resultados |
 | 5.1 | Liderazgo, integración, recursos, cultura y enfoque al cliente | Parcial: roles, permisos y workflow | Evidencia de liderazgo, decisiones, recursos, cultura y satisfacción del cliente |
 | 5.2 | Política de calidad disponible, comunicada y aplicada | Parcial: documentos controlados | Flujo de aprobación, comunicación, acuse/lectura y revisión de política |
@@ -50,4 +50,4 @@ El índice del PDF de referencia enumera **27 cláusulas de primer nivel** entre
 
 ## Trabajo pendiente de contexto
 
-Vincular los temas de contexto con sus procesos y riesgos. Conectar el alcance 4.3 con los temas y requisitos considerados y completar el registro de objetivos 6.2.
+Vincular los temas de contexto con sus procesos y riesgos, consolidar la decisión climática y completar el registro de objetivos 6.2.

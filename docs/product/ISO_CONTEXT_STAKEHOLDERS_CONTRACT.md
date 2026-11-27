@@ -10,7 +10,7 @@ El registro de la primera entrega está disponible en la guía de implementació
 - El historial conserva versiones con contenido, motivo y actor. La bitácora general recibe únicamente metadatos. El retiro exige motivo y conserva el historial. El rol de aplicación carece de permisos de escritura directa sobre la tabla de versiones y de borrado sobre el registro.
 - Las capacidades `context.read`, `context.manage` y `context.review` se otorgan por unidad. Gestionar o revisar exige también lectura. El rol de auditor admite la capacidad explícita de lectura. La asignación de un responsable carece de efecto sobre el acceso.
 - Las rutas de detalle, historial, edición, revisión y retiro reciben `unit_id` en la consulta. `PATCH` recibe los campos editables completos y la versión esperada. Se añadieron `GET /context/members`, `GET /context/{kind}/{id}/history` y `POST /context/{kind}/{id}/retire`. El listado filtra por estado y el historial pagina por versión.
-- Quedan pendientes la decisión climática consolidada para todo el QMS, los vínculos con objetivos y las referencias versionadas desde el alcance 4.3.
+- Quedan pendientes la decisión climática consolidada y los vínculos con objetivos de calidad.
 
 ## Requisitos individuales de partes interesadas
 
@@ -54,7 +54,9 @@ El registro de la primera entrega está disponible en la guía de implementació
 - El borrador documenta límites, productos y servicios, contexto y requisitos considerados, y la decisión sobre aplicabilidad. Si se declaran requisitos no aplicables, la aprobación exige identificar y justificar la decisión en la ficha. La revisión exige responsable, decisión y fecha futura.
 - Leer exige `context.read`. Redactar exige además `context.manage`. Aprobar exige `context.review` y un actor distinto del creador y del último editor. El historial conserva cada versión. El autor actualiza el alcance mediante una nueva versión y el registro vigente cambia al aprobarla.
 - `GET /context/qms-scope/current?unit_id=…` devuelve la última versión aprobada o un resultado vacío si todavía no existe. Tiene el mismo límite por empresa y unidad que las demás rutas de contexto. El borrador se consulta desde el registro.
-- `0058_qms_scope` reutiliza el historial de contexto y protege las aprobaciones mediante restricciones de forma y estado. Vincular la justificación a registros versionados de 4.1 y 4.2 queda pendiente.
+- `0058_qms_scope` reutiliza el historial de contexto y protege las aprobaciones mediante restricciones de forma y estado.
+- `0059_qms_scope_basis` permite citar hasta 20 temas revisados o requisitos individuales de partes interesadas que se decidió atender en el QMS. El selector ofrece registros revisados de la unidad seleccionada. Al guardar, PostgreSQL deriva el código, el título y el enunciado desde la versión revisada de la fuente. El historial de la fuente y de la ficha conserva lo que se consideró aun cuando el registro original cambie.
+- Agregar o retirar una referencia guarda el alcance como borrador. La versión vigente conserva sus referencias hasta la siguiente aprobación. El API admite fichas existentes sin citas y conserva las referencias cuando un cliente anterior edita el alcance sin enviar el campo nuevo.
 
  Las secciones siguientes conservan el diseño de partida para comparar el alcance previsto con la primera entrega.
 

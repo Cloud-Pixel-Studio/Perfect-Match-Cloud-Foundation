@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import type { ContextFields, ContextKind, ContextRecord, PartyRequirement, PartySource, PartySourceLink } from "../src/lib/qms-context";
+import type { ContextFields, ContextKind, ContextRecord, PartyRequirement, PartySource, PartySourceLink, ScopeBasisCitation, ScopeBasisReference } from "../src/lib/qms-context";
 
 const tenant = "10000000-0000-4000-8000-000000000001";
 const author = "20000000-0000-4000-8000-000000000001";
@@ -39,6 +39,16 @@ const seededParty: ContextRecord = {
   updated_at: "2026-11-26T12:00:00Z", reviewed_at: "2026-11-26T12:00:00Z", decision_note: "Reviewed.",
   party_requirements: [purchaseRequirement], no_requirements_reason: "",
 };
+const scopeIssue: ContextRecord = {
+  ...seededParty, id: "40000000-0000-4000-8000-000000000002", kind: "issues", code: "CTX-01",
+  name: "Receiving disruptions", classification: "external", category: "environmental", party_requirements: [],
+};
+const basisSources: ScopeBasisCitation[] = [
+  { record_id: scopeIssue.id, source_version: 2, kind: "issues", code: scopeIssue.code, name: scopeIssue.name,
+    requirement_id: null, requirement_statement: null },
+  { record_id: seededParty.id, source_version: 2, kind: "interested-parties", code: seededParty.code,
+    name: seededParty.name, requirement_id: purchaseRequirement.id, requirement_statement: purchaseRequirement.statement },
+];
 
 async function fixture(page: Page, scenario?: PartySource | "scope") {
   const source = scenario === "scope" ? undefined : scenario;
@@ -74,7 +84,9 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
     });
     if (path === "/context/members") return ok([{ user_id: reviewer, display_name: "Synthetic reviewer" }]);
     if (path === "/processes" || path === "/documents") return ok([]);
-    if (path === "/context/issues") return ok([]);
+    if (path === "/context/issues") return ok(scenario === "scope" && unit === firstUnit && url.searchParams.get("status") === "active" ? [scopeIssue] : []);
+    if (path === "/context/interested-parties" && scenario === "scope" && unit === firstUnit
+      && url.searchParams.get("status") === "active") return ok([seededParty]);
     if (scenario === "scope" && path.startsWith("/context/qms-scope")) {
       if (path.endsWith("/current")) return ok(approvedScope);
       if (method === "GET") return ok(scopeRecord && unit === firstUnit ? [scopeRecord] : []);
@@ -96,11 +108,19 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
       expect(input.scope_definition.applicability).toBe("exceptions");
       expect(input.scope_definition.non_applicability).toBe("8.3: The customer supplies the design.");
       if (method === "PATCH") expect(input.expected_version).toBe(scopeRecord?.row_version);
+      const references = input.scope_basis as ScopeBasisReference[];
+      expect(references).toHaveLength(method === "PATCH" ? 1 : 2);
+      const citations = references.map(reference => {
+        const source = basisSources.find(item => item.record_id === reference.record_id
+          && item.source_version === reference.source_version && item.requirement_id === reference.requirement_id);
+        if (!source) throw new Error("No reviewed record for the supplied basis reference");
+        return source;
+      });
       scopeRecord = {
         ...input, id: recordId, tenant_id: tenant, unit_id: firstUnit, kind: "qms-scope",
         status: "draft", row_version: (scopeRecord?.row_version ?? 0) + 1,
         created_by_user_id: author, content_editor_user_id: author, updated_by_user_id: author,
-        updated_at: "2026-11-27T12:00:00Z", reviewed_at: null, decision_note: "",
+        updated_at: "2026-11-27T12:00:00Z", reviewed_at: null, decision_note: "", scope_basis: citations,
       };
       return ok(scopeRecord, method === "PATCH" ? 200 : 201);
     }
@@ -119,7 +139,7 @@ async function fixture(page: Page, scenario?: PartySource | "scope") {
         ...input, kind: "interested-parties", id: recordId, tenant_id: tenant, status: "draft",
         row_version: 1, created_by_user_id: actor, content_editor_user_id: actor, updated_by_user_id: actor,
         updated_at: "2026-11-26T12:00:00Z", reviewed_at: null, decision_note: "",
-        owner_display_name: "Synthetic quality user",
+        owner_display_name: "Synthetic quality user", scope_basis: [],
       };
       phases = [{ command: "created", snapshot }];
       return ok(snapshot, 201);
@@ -401,6 +421,14 @@ test("the QMS scope retains its approval while an author edits the next version"
   await register.getByLabel("QMS boundaries").fill("Receiving through dispatch.");
   await register.getByLabel("Products and services covered").fill("Assembly and inspection of demonstration components.");
   await register.getByLabel("Context and interested-party requirements considered").fill("Receiving disruption CTX-01 and requirement REQ-04.");
+  const basis = register.getByRole("region", { name: "Scope basis references" });
+  await basis.getByRole("button", { name: "Choose reviewed sources" }).click();
+  const reviewed = basis.getByRole("combobox", { name: "Reviewed source" });
+  await reviewed.selectOption({ label: "CTX-01 · Receiving disruptions · Version 2" });
+  await basis.getByRole("button", { name: "Add reference" }).click();
+  await basis.getByRole("combobox", { name: "Source type" }).selectOption("interested-parties");
+  await reviewed.selectOption({ label: "PARTY-01 · Match each received lot to its certificate. · Version 2" });
+  await basis.getByRole("button", { name: "Add reference" }).click();
   await register.getByLabel("Review due").fill("2099-05-01");
   await register.getByLabel("Applicability of requirements").selectOption("exceptions");
   await register.getByLabel("Requirements that do not apply and their justification").fill("8.3: The customer supplies the design.");
@@ -419,11 +447,15 @@ test("the QMS scope retains its approval while an author edits the next version"
   register = await openRegister(page, firstUnit, "qms-scope");
   await register.getByRole("button", { name: "Edit scope" }).click();
   await register.getByLabel("QMS boundaries").fill("Receiving through dispatch and packaging.");
+  await register.getByRole("button", { name: "Remove Receiving disruptions from scope basis" }).click();
   await register.getByRole("button", { name: "Save draft" }).click();
   const approved = register.getByRole("region", { name: "Current approved scope" });
   await expect(approved.getByText(/Approved · Version 2/)).toBeVisible();
   await expect(approved.getByText(/Receiving through dispatch\./)).toBeVisible();
+  await expect(approved.getByText("CTX-01 · Receiving disruptions")).toBeVisible();
+  await expect(approved.getByText("Match each received lot to its certificate.")).toBeVisible();
   await expect(register.getByText(/Pending approval · Version 3/)).toBeVisible();
+  await expect(register.getByText("CTX-01 · Receiving disruptions", { exact: true })).toHaveCount(1);
   await expect(register.getByText(/Receiving through dispatch and packaging\./)).toBeVisible();
   const accessibility = await new AxeBuilder({ page }).include(".context-register")
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
