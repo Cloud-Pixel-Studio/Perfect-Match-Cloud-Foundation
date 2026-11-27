@@ -8,6 +8,8 @@ Perfect Match QMS usa ISO 9001:2026 como referencia de diseño y trazabilidad. L
 
 ## Mapa de cobertura
 
+El índice del PDF de referencia enumera **27 cláusulas de primer nivel** entre los capítulos 4 y 10. El mapa registra **21 con apoyo parcial, 6 sin flujo específico y 0 con cobertura integral verificada**. El apoyo parcial incluye guías y módulos compartidos. Cada fila agrupa los subapartados de su cláusula.
+
 | Cláusula | Intención operativa | Cobertura actual | Pendiente principal |
 | --- | --- | --- | --- |
 | 4.1 | Contexto, asuntos internos/externos y cambio climático relevante | Parcial. Registro por unidad con responsable, pertinencia climática del asunto, revisión e historial | Decisión climática consolidada y vínculos trazables a evidencias y procesos |
@@ -18,7 +20,7 @@ Perfect Match QMS usa ISO 9001:2026 como referencia de diseño y trazabilidad. L
 | 5.2 | Política de calidad disponible, comunicada y aplicada | Parcial: documentos controlados | Flujo de aprobación, comunicación, acuse/lectura y revisión de política |
 | 5.3 | Responsabilidades y autoridades comunicadas | Implementado parcialmente: RBAC, capacidades y asignaciones | Matriz de autoridad por proceso y evidencia de comunicación |
 | 6.1 | Riesgos y oportunidades | Parcial. Registro de riesgos, acciones y vínculos versionados desde requisitos de partes interesadas | Vínculos con temas de contexto y verificación de eficacia |
-| 6.2 | Objetivos de calidad y planificación | Parcial: guía y referencias | Objetivos medibles, responsables, recursos, plazos y seguimiento |
+| 6.2 | Objetivos de calidad y planificación | Parcial. La guía indica cómo planificar objetivos y admite referencias como respaldo | Registro de objetivos medibles, responsables, recursos, plazos y seguimiento |
 | 6.3 | Planificación de cambios | Parcial: proyectos y workflows | Evaluación de impacto, integridad del QMS, aprobaciones y reversión |
 | 7.1 | Recursos, personas, infraestructura, ambiente y conocimiento | Parcial: organización y registros | Inventario de recursos, competencias, ambiente, conocimiento y disponibilidad |
 | 7.2 | Competencia | Pendiente funcional | Matriz de competencias, formación, evaluación y evidencia vigente |
@@ -28,16 +30,15 @@ Perfect Match QMS usa ISO 9001:2026 como referencia de diseño y trazabilidad. L
 | 8.1 | Planificación y control operacional | Parcial: procesos, acciones y workflows | Criterios operativos, controles por proceso y evidencia de ejecución |
 | 8.2 | Requisitos de productos/servicios y comunicación con clientes | Pendiente funcional | Requisitos, revisión, cambios, comunicación y trazabilidad contractual |
 | 8.3 | Diseño y desarrollo | Pendiente funcional | Plan, entradas, controles, salidas, cambios y verificación/validación |
-| 8.4 | Proveedores externos | Parcial: módulo proveedor de referencia | Evaluación, selección, seguimiento, controles y comunicación de requisitos |
+| 8.4 | Proveedores externos | Parcial. Controles, riesgos y no conformidades admiten clasificar registros de proveedores | Registro de proveedores y flujos de evaluación, selección, seguimiento y comunicación de requisitos |
 | 8.5 | Producción y prestación del servicio | Parcial | Instrucciones controladas, identificación, trazabilidad, liberación y cambios |
 | 8.6 | Liberación de productos/servicios | Pendiente funcional | Criterios de aceptación, autoridad de liberación y registro de conformidad |
 | 8.7 | Salidas no conformes | Parcial: NCR/CAPA | Contención, disposición, concesión autorizada, revalidación y evidencia completa |
 | 9.1 | Seguimiento, medición, análisis y evaluación | Parcial: indicadores y dashboard | Plan de medición, método, frecuencia, análisis y decisiones reproducibles |
 | 9.2 | Auditoría interna | Parcial: planificación | Ejecución, independencia, hallazgos, informe, seguimiento y cierre |
 | 9.3 | Revisión por la dirección | Pendiente funcional | Entradas, decisiones, acciones, recursos y registro de revisión |
-| 10.1 | Mejora general | Parcial: acciones y proyectos | Registro de oportunidades, priorización y evidencia de beneficio |
+| 10.1 | Mejora continua | Parcial. Oportunidades, acciones y proyectos | Priorización, análisis de tendencias y evidencia de mejora sostenida |
 | 10.2 | No conformidad y acción correctiva | Parcial: NCR/CAPA/workflows | Causa, acción, eficacia, actualización de riesgos y cierre independiente |
-| 10.3 | Mejora continua | Parcial | Métricas de tendencia, decisiones y trazabilidad de mejora sostenida |
 
 ## Decisiones de producto derivadas
 

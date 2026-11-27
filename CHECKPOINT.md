@@ -1,5 +1,11 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Conteo ISO 9001:2026 y reparación de CI · 26 noviembre 2026
+- Cotejo del índice del PDF de referencia, páginas físicas 3–4, contra la matriz. 27 cláusulas de primer nivel en 4–10, 21 con apoyo parcial, 6 sin flujo específico y ninguna con cobertura integral verificada. La mejora continua corresponde a 10.1. Se quitó la fila 10.3 de la edición anterior.
+- La ejecución de calidad del PR #69 encontró que la limpieza del fixture de procesos omitía tablas con referencias a los registros de prueba. Se incorporaron seis tablas de enlaces al truncado explícito. Pasaron 202 casos del mismo conjunto de CI en PostgreSQL desechable, el ciclo de migración en vacío y el veto de reversión con historial CAPA.
+- El análisis de proveedores en ese PR reportó seis hallazgos altos o críticos para Keycloak y cero para SeaweedFS. La validación funcional de procesos se hizo en un fixture. Pendiente la nueva comprobación remota y el despliegue de la demo.
+- Respaldo cifrado `CP-ISO-COVERAGE-00-20261127T022243Z` descifrado y comparado byte por byte, con bundle Git verificado.
+
 ## Riesgos y oportunidades para requisitos ISO 4.2 · 26 noviembre 2026
 - Rama `codex/iso-context-register` sobre `a6b6aa7`. Respaldo cifrado `CP-ISO-PARTY-RISKS-00-20261126T214049Z` descifrado y cotejado por SHA-256, con bundle Git verificado.
 - La ficha permite vincular riesgos y oportunidades evaluados de su unidad. Conserva la versión y el estado citados, muestra el estado actual y registra retiros con motivo. Exige lectura de contexto y riesgos, más gestión de contexto para cambiar vínculos. Cada cambio devuelve la ficha a revisión independiente.
