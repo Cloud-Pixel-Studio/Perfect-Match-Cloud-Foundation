@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { journeys, observeGuideStep } from "../lib/guided-journeys";
 import { GuideAccessError, loadGuideSnapshot, loadGuideUnits, type GuideResource, type GuideSnapshot, type GuideUnit } from "../lib/guided-journey-data";
 import { QMSProjectPlanner, ProjectStepPlan } from "./qms-project-planner";
+import { QMSContextRegister } from "./qms-context-register";
 import type { ProjectDetail, ProjectMember } from "../lib/qms-projects";
 import type { WorkspaceId } from "../lib/workspace-navigation";
 
@@ -48,7 +49,8 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
   const [project, setProject] = useState<ProjectDetail|null>(null);
   const [projectEditing,setProjectEditing] = useState(false);
   const [stepEditing,setStepEditing] = useState(false);
-  const editingProject = projectEditing || stepEditing;
+  const [contextEditing, setContextEditing] = useState(false);
+  const editingProject = projectEditing || stepEditing || contextEditing;
   useEffect(()=>{onDraftChange?.(editingProject);return()=>onDraftChange?.(false);},[editingProject,onDraftChange]);
   const [projectCanManage, setProjectCanManage] = useState(false);
   const [projectMembers, setProjectMembers] = useState<ProjectMember[]>([]);
@@ -226,7 +228,8 @@ function GuideScope({ tenantId, userId, preferredUnitId, onUnitChange, onNavigat
       <a className="primary-action compact-action" href="/api/identity/auth/login"><LogIn aria-hidden="true" size={16} />Sign in again</a>
     </> : <button className="secondary-action compact-action" onClick={reloadAccess} type="button">Reload access</button>}</div></div>}
 
-    {unit && !accessError && <QMSProjectPlanner key={JSON.stringify([tenantId,userId,unitId])} context={projectContext} project={project} onChange={changeProject} onAccessLost={invalidateAccess} onManageChange={setProjectCanManage} onMembersChange={setProjectMembers} onEditingChange={setProjectEditing} locked={stepEditing} journeyId={journey.id} />}
+    {unit && !accessError && <QMSContextRegister key={unitId} scope={projectContext} onEditingChange={setContextEditing} locked={projectEditing || stepEditing} />}
+    {unit && !accessError && <QMSProjectPlanner key={JSON.stringify([tenantId,userId,unitId])} context={projectContext} project={project} onChange={changeProject} onAccessLost={invalidateAccess} onManageChange={setProjectCanManage} onMembersChange={setProjectMembers} onEditingChange={setProjectEditing} locked={stepEditing || contextEditing} journeyId={journey.id} />}
     {editingProject && <p className="guide-inline-note" role="status">Save or cancel your draft before changing unit, project or step.</p>}
     {project && <p className="guide-inline-note">The saved project fixes this journey. Choose “Browse guides without a project” to explore another case.</p>}
     <div className="guide-case-heading"><h3>What brings you here?</h3><p>Six journeys, built around your starting point.</p></div>

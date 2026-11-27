@@ -1,0 +1,10 @@
+# Synthetic demo only. Apply LAST after base, demo and account-switch overrides.
+# Select reviewed immutable application tags/IDs; keep DEMO_SOURCE_SHA unchanged.
+# This override never starts bootstraps or changes provider/storage images.
+services:
+  api:
+    image: ${DEMO_PROJECTS_API_IMAGE:?required}
+  migrate:
+    image: ${DEMO_PROJECTS_API_IMAGE:?required}
+  web:
+    image: ${DEMO_PROJECTS_WEB_IMAGE:?required}

@@ -16,11 +16,56 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class QMSContextRecord(Base):
+    __tablename__ = "qms_context_records"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    kind: Mapped[str]
+    code: Mapped[str]
+    name: Mapped[str]
+    classification: Mapped[str]
+    category: Mapped[str]
+    relevance: Mapped[str]
+    description: Mapped[str]
+    requirements: Mapped[str]
+    party_requirements: Mapped[list[dict[str, str]]] = mapped_column(JSONB)
+    no_requirements_reason: Mapped[str]
+    scope_definition: Mapped[dict[str, str] | None] = mapped_column(JSONB(none_as_null=True))
+    scope_basis: Mapped[list[dict[str, object]]] = mapped_column(JSONB, server_default="[]")
+    evidence_summary: Mapped[str]
+    owner_user_id: Mapped[UUID]
+    review_due_on: Mapped[date]
+    status: Mapped[str]
+    row_version: Mapped[int]
+    created_by_user_id: Mapped[UUID]
+    content_editor_user_id: Mapped[UUID]
+    updated_by_user_id: Mapped[UUID]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision_note: Mapped[str]
+
+
+class QMSContextRevision(Base):
+    __tablename__ = "qms_context_revisions"
+
+    record_id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    row_version: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str]
+    snapshot: Mapped[dict[str, object]] = mapped_column(JSON)
+    actor_display_name: Mapped[str | None] = mapped_column(String(160))
 
 
 class QMSAccessGrant(Base):
@@ -76,6 +121,44 @@ class QMSProjectStep(Base):
     source_project_version: Mapped[int] = mapped_column(Integer, nullable=False)
     updated_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class _ProjectReferenceColumns:
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    tenant_id: Mapped[UUID] = mapped_column(nullable=False)
+    unit_id: Mapped[UUID] = mapped_column(nullable=False)
+    project_id: Mapped[UUID] = mapped_column(nullable=False)
+    step_id: Mapped[UUID] = mapped_column(nullable=False)
+    target_process_id: Mapped[UUID] = mapped_column(nullable=False)
+    snapshot_code: Mapped[str] = mapped_column(String(50), nullable=False)
+    snapshot_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    linked_target_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_project_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_step_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    rationale: Mapped[str] = mapped_column(String(500), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    row_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_by_user_id: Mapped[UUID] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    removed_by_user_id: Mapped[UUID | None] = mapped_column()
+    removed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    removal_reason: Mapped[str] = mapped_column(String(500), nullable=False)
+
+
+class QMSProjectDocumentLink(_ProjectReferenceColumns, Base):
+    __tablename__ = "qms_project_document_links"
+    document_id: Mapped[UUID] = mapped_column(nullable=False)
+    document_revision_id: Mapped[UUID] = mapped_column(nullable=False)
+    snapshot_revision: Mapped[str] = mapped_column(String(40), nullable=False)
+    file_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
+    linked_document_version: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class QMSProjectEvidenceLink(_ProjectReferenceColumns, Base):
+    __tablename__ = "qms_project_evidence_links"
+    evidence_id: Mapped[UUID] = mapped_column(nullable=False)
+    control_instance_id: Mapped[UUID] = mapped_column(nullable=False)
+    linked_instance_version: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
 class QMSAuditProgram(Base):

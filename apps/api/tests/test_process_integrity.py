@@ -177,7 +177,19 @@ def reset_process_records() -> None:
     with engine("PMC_TEST_ADMIN_DATABASE_URL").begin() as connection:
         connection.execute(
             text(
-                "TRUNCATE qms_audit_competence_reviews, qms_audit_execution_grant_projection, qms_audit_agenda_items, qms_audit_criteria, qms_audit_scopes, qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, qms_ncr_document_links, qms_nonconformities, qms_risk_control_links, qms_risk_document_links, qms_risks, qms_document_revisions, qms_control_instance_evidence, qms_documents, qms_control_instance_activities, qms_control_instances, qms_control_activities, qms_control_evidence_requirements, qms_controls, qms_process_sites, qms_processes, qms_process_dependency_projection, qms_process_site_dependency_projection, qms_access_grants"
+                "TRUNCATE qms_party_risk_links, qms_party_process_links, qms_party_document_links, "
+                "qms_party_evidence_links, qms_project_document_links, qms_project_evidence_links, "
+                "qms_audit_competence_reviews, qms_audit_execution_grant_projection, "
+                "qms_audit_agenda_items, qms_audit_criteria, qms_audit_scopes, "
+                "qms_capa_control_links, qms_capa_evidence_links, qms_capa_document_links, "
+                "qms_capa_effectiveness_reviews, qms_capa_actions, qms_capas, "
+                "qms_ncr_evidence_links, qms_ncr_risk_links, qms_ncr_control_links, "
+                "qms_ncr_document_links, qms_nonconformities, qms_risk_control_links, "
+                "qms_risk_document_links, qms_risks, qms_document_revisions, "
+                "qms_control_instance_evidence, qms_documents, qms_control_instance_activities, "
+                "qms_control_instances, qms_control_activities, qms_control_evidence_requirements, "
+                "qms_controls, qms_process_sites, qms_processes, qms_process_dependency_projection, "
+                "qms_process_site_dependency_projection, qms_access_grants"
             )
         )
         connection.execute(

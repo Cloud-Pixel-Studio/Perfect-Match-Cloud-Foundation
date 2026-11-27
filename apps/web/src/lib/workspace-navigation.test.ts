@@ -57,6 +57,8 @@ describe("persona-aware workspace navigation", () => {
     expect(ids("admin", [])).toContain("implementation-guide");
     expect(ids("member", ["documents.read"])).not.toContain("implementation-guide");
     expect(ids("auditor", ["documents.read"])).not.toContain("implementation-guide");
+    expect(ids("member", ["context.read"])).toContain("implementation-guide");
+    expect(ids("auditor", ["context.read"])).toContain("implementation-guide");
     expect(workspaceFromHash("#implementation-guide-heading")).toBe("implementation-guide");
   });
 

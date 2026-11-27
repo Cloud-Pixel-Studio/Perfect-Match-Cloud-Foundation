@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FolderKanban, RefreshCw } from "lucide-react";
+import { QMSProjectReferences } from "./qms-project-references";
 import { journeys, type GuideJourney } from "../lib/guided-journeys";
 import { loadProject, loadProjectIndex, mutateProject, projectTextFits, trimProjectText, ProjectError, ProjectCatalogError, type Project, type ProjectCommand, type ProjectContext, type ProjectDetail, type ProjectIndex, type ProjectMember, type ProjectStep } from "../lib/qms-projects";
 
@@ -103,14 +104,15 @@ export function ProjectStepPlan({context,project,canManage,onChange,onAccessLost
  return step?<StepEditor key={`${project.id}:${step.id}`} {...{context,project,canManage,onChange,onAccessLost,step,members:members??[],onEditingChange}}/>:null;
 }
 function StepEditor({context,project,canManage,onChange,onAccessLost,step,members,onEditingChange}:Omit<Shared,'project'>&{project:ProjectDetail;step:ProjectStep;members:ProjectMember[];onEditingChange:(editing:boolean)=>void}){
+ const [referenceEditing,setReferenceEditing]=useState(false);
  const [draft,setDraft]=useState<{status:ProjectStep['status'];notes:string;assignee_user_id:string;target_date:string;version:number;projectVersion:number}|null>(null),[notice,setNotice]=useState(''),[reloading,setReloading]=useState(false),[reconciled,setReconciled]=useState(false);
  const request=useRef<AbortController|null>(null);useEffect(()=>()=>request.current?.abort(),[]);
  const command=useCommand(context,onChange,onAccessLost);
- useEffect(()=>{onEditingChange(Boolean(draft));return()=>onEditingChange(false);},[draft,onEditingChange]);
+ useEffect(()=>{onEditingChange(Boolean(draft)||referenceEditing);return()=>onEditingChange(false);},[draft,referenceEditing,onEditingChange]);
  const labels:Record<ProjectStep['status'],string>={not_started:'Not started',in_progress:'In progress',blocked:'Blocked',reported:'Work reported · pending verification',feature_pending:'Product feature pending'};
  async function reload(){request.current?.abort();const controller=new AbortController();request.current=controller;setReloading(true);try{const p=await loadProject(context,project.id,controller.signal);if(controller.signal.aborted)return;onChange(p);setReconciled(true);}catch(cause){if(controller.signal.aborted)return;if(cause instanceof ProjectError&&(cause.contextLost||[401,403,404].includes(cause.status)))onAccessLost(cause.status===401?401:403);else setNotice(message(cause));}finally{if(!controller.signal.aborted)setReloading(false);}}
  return <section className="project-step-plan" aria-labelledby="project-step-plan-heading"><div className="project-observation-title"><h5 id="project-step-plan-heading">Saved project follow-up</h5><span className="project-label">{labels[step.status]}</span></div><p className="project-help">This is the project’s planning record. Reported work remains unverified; operational records below cover the whole unit.</p><dl className="project-step-values"><div><dt>Assignee</dt><dd>{members.find(m=>m.id===step.assignee_user_id)?.display_name??(step.assignee_user_id?'Assigned company member':'Unassigned')}</dd></div><div><dt>Target date</dt><dd>{step.target_date??'Not set'}</dd></div></dl><p className="project-notes">{step.notes||'No follow-up notes recorded.'}</p>
-  {!draft&&canManage&&project.status==='open'&&<button className="secondary-action compact-action" type="button" onClick={()=>{setDraft({status:step.status,notes:step.notes,assignee_user_id:step.assignee_user_id??'',target_date:step.target_date??'',version:step.row_version,projectVersion:project.row_version});setNotice('');command.clear();setReconciled(false);}}>Update step follow-up</button>}
+  {!draft&&canManage&&project.status==='open'&&<button className="secondary-action compact-action" type="button" disabled={referenceEditing} onClick={()=>{setDraft({status:step.status,notes:step.notes,assignee_user_id:step.assignee_user_id??'',target_date:step.target_date??'',version:step.row_version,projectVersion:project.row_version});setNotice('');command.clear();setReconciled(false);}}>Update step follow-up</button>}
   {project.status==='archived'&&<p className="project-help">This plan is archived. Restore it before changing follow-up.</p>}
   {draft&&canManage&&<form className="project-form" aria-label="Step follow-up" onSubmit={async(e)=>{e.preventDefault();if(!projectTextFits(draft.notes,2000)||(['blocked','reported'].includes(draft.status)&&!trimProjectText(draft.notes))){setNotice('Enter follow-up notes of up to 2000 characters; blocked or reported work requires text. Your draft was kept.');return;}if(await command.run({kind:'step',id:project.id,stepId:step.id,expectedVersion:draft.projectVersion,expectedStepVersion:draft.version,changes:{status:draft.status,notes:draft.notes,assignee_user_id:draft.assignee_user_id||null,target_date:draft.target_date||null}})){setDraft(null);setNotice('Step follow-up saved. This is not an evidence acceptance.');}}}>
    <label>Work status<select value={draft.status} disabled={command.busy||step.status==='feature_pending'} onChange={e=>setDraft({...draft,status:e.target.value as ProjectStep['status']})}>{(step.status==='feature_pending'?['feature_pending']:['not_started','in_progress','blocked','reported']).map(s=><option key={s} value={s}>{labels[s as ProjectStep['status']]}</option>)}</select></label>
@@ -120,5 +122,6 @@ function StepEditor({context,project,canManage,onChange,onAccessLost,step,member
    <div className="project-actions"><button className="primary-action compact-action" disabled={project.status==='archived'||command.busy||reloading||command.conflict}>Save step follow-up</button><button className="secondary-action compact-action" disabled={command.busy} type="button" onClick={()=>{setDraft(null);command.clear();}}>Cancel step editing</button>{command.conflict&&<button className="secondary-action compact-action" type="button" disabled={reloading} onClick={()=>void reload()}>Reload step, keep draft</button>}</div>
   </form>}
   {command.error&&<p role="alert">{command.error}</p>}{notice&&<p role="status">{notice}</p>}
+  <QMSProjectReferences context={context} project={project} step={step} canManage={canManage} disabled={Boolean(draft)||command.busy||reloading} onChange={onChange} onAccessLost={onAccessLost} onEditingChange={setReferenceEditing}/>
  </section>;
 }
