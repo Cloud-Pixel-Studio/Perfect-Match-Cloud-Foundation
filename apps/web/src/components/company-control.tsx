@@ -7,7 +7,7 @@ import { ThemeToggle } from "./theme-toggle";
 const companyAreas = [
   { id: "organization", icon: Building2, name: "Organization structure", description: "Manage sites, departments and unit assignments." },
   { id: "employees", icon: UsersRound, name: "Employee directory", description: "Create, update and archive employee profiles." },
-  { id: "company-storage", icon: HardDrive, name: "Storage usage", description: "See how much space your stored documents occupy." },
+  { id: "company-storage", icon: HardDrive, name: "Storage usage", description: "See how much space your documents and employee photos occupy." },
   { id: "permissions", icon: KeyRound, name: "Permissions", description: "Assign QMS responsibilities by organizational unit." },
   { id: "implementation-guide", icon: CalendarCheck, name: "QMS implementation", description: "Plan a rollout and review your company’s implementation records." },
   { id: "audit", icon: ScrollText, name: "Audit trail", description: "Review recorded changes and the people who made them." },

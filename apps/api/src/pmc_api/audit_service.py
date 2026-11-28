@@ -916,7 +916,7 @@ def record_employee(
     for value in (old_values, new_values):
         if value is not None and set(value) != allowed:
             raise AuditPayloadError("employee audit payload fields are invalid")
-    if not set(fields).issubset({"full_name", "job_title", "unit_id", "status"}):
+    if not set(fields).issubset({"full_name", "job_title", "unit_id", "status", "portrait"}):
         raise AuditPayloadError("employee audit changes are invalid")
     return _record(
         db,

@@ -9,16 +9,19 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_vali
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from pmc_api.audit_service import record_employee
 from pmc_api.auth import Authenticated, require_csrf
 from pmc_api.database import get_db
+from pmc_api.employee_portraits import receive_portrait
 from pmc_api.models import EmployeeProfile, OrganizationUnit
 from pmc_api.tenant_access import TenantAccess, require_selected_tenant_access
 
 router = APIRouter(prefix="/employees/{tenant_id}", tags=["employees"])
 DBSession = Annotated[Session, Depends(get_db)]
 ProfileText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
+ExpectedVersion = Annotated[int, Query(ge=1, le=2147483647)]
 
 
 class ProfileInput(BaseModel):
@@ -56,6 +59,7 @@ class ProfileResponse(BaseModel):
     job_title: str
     status: str
     row_version: int
+    has_portrait: bool
     updated_at: datetime
 
     @field_validator("updated_at")
@@ -148,6 +152,8 @@ def _save(
             raise HTTPException(409, "employee profile or organization unit changed") from exc
         if code == "42501":
             raise HTTPException(403, "employee access changed") from exc
+        if code == "P0064":
+            raise HTTPException(507, "portrait exceeds the remaining company storage") from exc
         raise
 
 
@@ -270,3 +276,78 @@ def change_status(
     row.updated_at = datetime.now(UTC)
     action = "restored" if command == "restore" else "archived"
     return _save(db, actor, row, request, action=action, fields=["status"], previous=previous)
+
+
+@router.get("/{profile_id}/photo", response_class=Response)
+def get_portrait(
+    tenant_id: UUID, profile_id: UUID, response: Response, db: DBSession, auth: Authenticated
+) -> Response:
+    actor = _context(db, auth, tenant_id, response)
+    payload = db.scalar(
+        select(EmployeeProfile.portrait).where(
+            EmployeeProfile.tenant_id == actor.tenant_id, EmployeeProfile.id == profile_id
+        )
+    )
+    if payload is None:
+        raise HTTPException(404, "employee portrait not found")
+    return Response(
+        content=payload,
+        media_type="image/jpeg",
+        headers={
+            **dict(response.headers),
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "sandbox",
+            "Cross-Origin-Resource-Policy": "same-origin",
+        },
+    )
+
+
+def _change_portrait(
+    db: Session,
+    actor: TenantAccess,
+    profile_id: UUID,
+    expected_version: int,
+    request: Request,
+    portrait: bytes | None,
+) -> ProfileResponse:
+    row = _profile_for_update(db, actor, profile_id, expected_version)
+    if row.status != "active":
+        raise HTTPException(409, "restore the employee before changing the photo")
+    if row.portrait == portrait:
+        return ProfileResponse.model_validate(row)
+    previous = _audit_values(row)
+    row.portrait = portrait
+    row.row_version += 1
+    row.updated_at = datetime.now(UTC)
+    return _save(db, actor, row, request, action="updated", fields=["portrait"], previous=previous)
+
+
+@router.put("/{profile_id}/photo", dependencies=[Depends(require_csrf)])
+async def put_portrait(
+    tenant_id: UUID,
+    profile_id: UUID,
+    expected_version: ExpectedVersion,
+    request: Request,
+    response: Response,
+    db: DBSession,
+    auth: Authenticated,
+) -> ProfileResponse:
+    actor = await run_in_threadpool(_context, db, auth, tenant_id, response)
+    portrait = await receive_portrait(request)
+    return await run_in_threadpool(
+        _change_portrait, db, actor, profile_id, expected_version, request, portrait
+    )
+
+
+@router.delete("/{profile_id}/photo", dependencies=[Depends(require_csrf)])
+def delete_portrait(
+    tenant_id: UUID,
+    profile_id: UUID,
+    expected_version: ExpectedVersion,
+    request: Request,
+    response: Response,
+    db: DBSession,
+    auth: Authenticated,
+) -> ProfileResponse:
+    actor = _context(db, auth, tenant_id, response)
+    return _change_portrait(db, actor, profile_id, expected_version, request, None)

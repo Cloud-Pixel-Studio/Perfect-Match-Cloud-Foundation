@@ -1,5 +1,10 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Fotos privadas del directorio · 28 noviembre 2026
+- **Control de empresa → Employee directory** permite cargar, reemplazar y retirar fotos de ficha. Propietarios y administradores de la empresa activa pueden verlas. ClamAV debe aprobar la entrada y el servidor guarda solo el JPEG reducido sin metadatos de origen. La bitácora identifica el actor y el cambio. Archivar conserva la foto.
+- `0065_employee_portraits` aplica el mismo cupo a PDFs limpios y fotos. PostgreSQL confirma foto, consumo y bitácora juntos y protege contra cargas concurrentes. Pasaron 162 pruebas de API generales, 66 del conjunto con PostgreSQL, 379 unitarias web, siete recorridos del centro de control con API simulada y compilación. El retrato pasó Axe en ambos temas a 375 px. Se comprobó reversión sin fotos y veto al existir una.
+- Respaldo de código `CP-EMPLOYEE-PHOTO-00-20261128T104614Z` cotejado. Respaldo de BD sintética `CP-EMPLOYEE-PHOTO-DB-20261128T104702Z` restaurado en una instancia aparte y verificado sobre `0064`. Entrega en el PR #70. Pendiente verificar ClamAV y el recorrido completo en la demo, además de formación y delegación por unidad.
+
 ## Conciliación de PDFs privados · 28 noviembre 2026
 - Comando interno de solo lectura para una empresa. Compara revisiones con objetos privados y reporta archivos ausentes, diferencias de tamaño, claves inválidas o duplicadas y objetos antiguos sin referencia. Los objetos recientes se cuentan aparte. Un acceso denegado interrumpe el informe. El detalle opcional se guarda con permisos `0600`.
 - Pasaron 162 pruebas de la suite general y 62 del conjunto de almacenamiento y límites de empresa con PostgreSQL desechable y S3 simulado. Se verificaron aislamiento, rol de inventario, paginación y protección del informe. Pasaron Ruff y mypy. Respaldo incremental cifrado `CP-PDF-RECONCILIATION-00-20261128T103516Z` descifrado y cotejado. Entrega en el PR #70. Pendientes la prueba con la identidad del almacén de la demo, la ejecución periódica y otros tipos de archivos.

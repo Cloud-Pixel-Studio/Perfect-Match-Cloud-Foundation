@@ -1,11 +1,13 @@
 "use client";
 
 import { Building2, Plus, UserRound, UsersRound } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { employeePhotoUploadLimit } from "../lib/identity-path";
 
 type Employee = {
   id: string; tenant_id: string; unit_id: string; full_name: string; job_title: string;
-  status: "active" | "archived"; row_version: number;
+  status: "active" | "archived"; row_version: number; has_portrait?: boolean;
 };
 type Unit = { id: string; tenant_id: string; name: string; code: string; status: "active" | "archived" };
 type Page = { items: Employee[]; has_more: boolean };
@@ -30,6 +32,15 @@ async function fetchUnits(tenantId: string, signal: AbortSignal): Promise<Unit[]
     if (page.length < 100) return units;
   }
   throw new Error("Unit listing exceeds capacity");
+}
+
+function EmployeePortrait({ path, name }: { path: string; name: string }) {
+  const [unavailable, setUnavailable] = useState(false);
+  return <span className="cc-avatar cc-avatar-portrait">
+    {unavailable ? <UserRound size={38} aria-hidden="true" /> :
+      <Image src={api + path} alt={`Portrait of ${name}`} width={96} height={96} unoptimized
+        onError={() => setUnavailable(true)} />}
+  </span>;
 }
 
 export function EmployeesWorkspace({ tenantId, company }: { tenantId: string; company: string }) {
@@ -78,18 +89,20 @@ export function EmployeesWorkspace({ tenantId, company }: { tenantId: string; co
 
   useEffect(() => () => mutation.current?.abort(), []);
 
-  async function save(suffix: string, method: "POST" | "PATCH", body: object, success: string) {
+  async function save(suffix: string, method: "POST" | "PATCH" | "PUT" | "DELETE", body: object | File | null, success: string) {
     if (mutation.current) return;
     const controller = new AbortController();
+    const photoChange = method === "PUT" || method === "DELETE";
     mutation.current = controller;
     setSaving(true);
     setNotice("");
     setError("");
     try {
       const cookie = document.cookie.split("; ").find(part => part.startsWith("pm_csrf="))?.slice(8) ?? "";
+      const photo = body instanceof File ? body : null;
       const result = await scopedRequest(path + suffix, tenantId, controller.signal, {
-        method, headers: { "Content-Type": "application/json", "X-CSRF-Token": decodeURIComponent(cookie) },
-        body: JSON.stringify(body),
+        method, headers: { "Content-Type": photo?.type ?? "application/json", "X-CSRF-Token": decodeURIComponent(cookie) },
+        body: photo ?? (body ? JSON.stringify(body) : undefined),
       });
       const saved = await result.json() as Employee;
       if (saved.tenant_id !== tenantId || (suffix && saved.id !== suffix.split("/")[1])) throw new Error("Invalid employee");
@@ -97,7 +110,7 @@ export function EmployeesWorkspace({ tenantId, company }: { tenantId: string; co
       selectEmployee(saved.id);
       setEditor(null);
       setNotice(success);
-      setQuery(previous => ({ ...previous, offset: 0, revision: previous.revision + 1 }));
+      setQuery(previous => ({ ...previous, offset: photoChange ? previous.offset : 0, revision: previous.revision + 1 }));
     } catch (cause) {
       if (controller.signal.aborted) return;
       const contextChanged = cause === 401 || cause === 403 || cause === 409;
@@ -105,11 +118,27 @@ export function EmployeesWorkspace({ tenantId, company }: { tenantId: string; co
         setEditor(null);
         setQuery(previous => ({ ...previous, revision: previous.revision + 1 }));
       }
-      setError(contextChanged ? "The change could not be confirmed. Review the refreshed directory before trying again." : "The profile could not be saved. Review the fields and try again.");
+      if (contextChanged) setError("The change could not be confirmed. Review the refreshed directory before trying again.");
+      else if (photoChange && cause === 413) setError("The photo exceeds 2 MB.");
+      else if (photoChange && cause === 507) setError("There is not enough space in the company's storage allowance.");
+      else if (photoChange && (cause === 415 || cause === 422)) setError("Choose a valid JPG or PNG photo, from 64 to 4096 pixels per side.");
+      else if (photoChange) setError("The photo change was not confirmed. Try again.");
+      else setError("The profile could not be saved. Review the fields and try again.");
     } finally {
       if (mutation.current === controller) mutation.current = null;
       if (!controller.signal.aborted) setSaving(false);
     }
+  }
+
+  function savePortrait(event: FormEvent<HTMLFormElement>, employee: Employee) {
+    event.preventDefault();
+    const file = new FormData(event.currentTarget).get("portrait");
+    if (!(file instanceof File) || !file.size || file.size > employeePhotoUploadLimit
+      || !["image/jpeg", "image/png"].includes(file.type)) {
+      setError("Choose a JPG or PNG photo up to 2 MB.");
+      return;
+    }
+    void save(`/${employee.id}/photo?expected_version=${employee.row_version}`, "PUT", file, "Profile photo saved.");
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -194,12 +223,27 @@ export function EmployeesWorkspace({ tenantId, company }: { tenantId: string; co
       </section>
       {selected && <section className="cc-card cc-form" aria-labelledby="employee-live-profile">
         <header className="cc-employee-identity">
-          <span className="cc-avatar cc-avatar-portrait"><UserRound size={38} aria-hidden="true" /></span>
+          {selected.has_portrait ? <EmployeePortrait key={`${selected.id}:${selected.row_version}`}
+            path={`${path}/${selected.id}/photo?v=${selected.row_version}`} name={selected.full_name} /> :
+            <span className="cc-avatar cc-avatar-portrait"><UserRound size={38} aria-hidden="true" /></span>}
           <div><span className="cc-chip">{formatStatus(selected)}</span>
             <h3 id="employee-live-profile">{selected.full_name}</h3><p>{selected.job_title}</p></div>
         </header>
         <dl className="cc-facts"><div><dt><Building2 size={14} aria-hidden="true" /> Organization unit</dt>
           <dd>{unit?.name ?? "Unavailable"}{unit?.status === "archived" && " (archived)"}</dd></div></dl>
+        {selected.status === "active" && <form className="cc-form" key={`${selected.id}:${selected.row_version}`}
+          aria-label="Profile photo" onSubmit={event => savePortrait(event, selected)}>
+          <label>{selected.has_portrait ? "Replace profile photo" : "Choose profile photo"}
+            <input type="file" name="portrait" accept="image/jpeg,image/png" required
+              aria-describedby="employee-portrait-guide" disabled={saving || !!editor} />
+          </label>
+          <small id="employee-portrait-guide">JPG or PNG up to 2 MB.</small>
+          <div className="cc-actions">
+            <button type="submit" className="cc-secondary" disabled={saving || !!editor}>Save photo</button>
+            {selected.has_portrait && <button type="button" className="cc-secondary" disabled={saving || !!editor}
+              onClick={() => void save(`/${selected.id}/photo?expected_version=${selected.row_version}`, "DELETE", null, "Profile photo removed.")}>Remove photo</button>}
+          </div>
+        </form>}
         <div className="cc-actions">
           {selected.status === "active" && <button type="button" className="cc-primary" disabled={saving || !!editor || !activeUnits.length}
             onClick={() => { setError(""); setNotice(""); setEditor({ employee: selected }); }}>Edit profile</button>}

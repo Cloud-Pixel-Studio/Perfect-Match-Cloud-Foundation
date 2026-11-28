@@ -3,16 +3,18 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import Connection, Engine, create_engine, event, text
 from sqlalchemy.exc import DBAPIError
+from test_employee_directory_integrity import synthetic_portrait
 from test_module_operability_http_integrity import PDF, document, release
-from test_tenant_suspension_integrity import USERS, A, B, Boundary, context
+from test_tenant_suspension_integrity import SITE, USERS, A, B, Boundary, context
 from test_tenant_suspension_integrity import boundary as boundary
 
-from pmc_api import audit_service, documents
+from pmc_api import audit_service, documents, employee_portraits
 from pmc_api.antivirus import ScanVerdict
 from pmc_api.document_storage_reconciliation import InventoryError, load_references
 
@@ -54,6 +56,107 @@ def _file_path(boundary: Boundary, doc_id: str, revision_code: str) -> str:
         expected=201,
     )
     return f"/documents/{doc_id}/revisions/{revision['id']}/file"
+
+
+def test_employee_photos_and_pdfs_share_the_same_allowance(
+    boundary: Boundary, operations: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    doc, _revision, _storage = document(boundary, monkeypatch)
+    profile = boundary.call(
+        "POST",
+        f"/employees/{A}",
+        {
+            "full_name": "Synthetic Employee",
+            "job_title": "Inspector",
+            "unit_id": str(SITE),
+        },
+        expected=201,
+    )
+    photo = f"/employees/{A}/{profile['id']}/photo"
+    payload = synthetic_portrait()
+    photo_size = len(employee_portraits._normalize(payload, "PNG"))
+    owner = boundary.clients["owner"]
+    assert photo_size > len(PDF)
+    monkeypatch.setattr(employee_portraits, "scan", lambda _: ScanVerdict.CLEAN)
+    _approve(operations, A, len(PDF) + photo_size - 1, 0, uuid4())
+    assert (
+        owner.put(
+            photo + "?expected_version=1", content=payload, headers={"Content-Type": "image/png"}
+        ).status_code
+        == 507
+    )
+    assert owner.get(photo).status_code == 404
+    assert boundary.call("GET", PATH)["recorded_bytes"] == len(PDF)
+
+    _approve(operations, A, len(PDF) + photo_size, 1, uuid4())
+    assert (
+        owner.put(
+            photo + "?expected_version=1", content=payload, headers={"Content-Type": "image/png"}
+        ).status_code
+        == 200
+    )
+    usage = boundary.call("GET", PATH)
+    assert usage["recorded_bytes"] == len(PDF) + photo_size
+    assert usage["employee_photo_count"] == 1 and usage["employee_photo_bytes"] == photo_size
+    assert usage["usage_status"] == "at_limit"
+    member = boundary.clients["member"]
+    second = _file_path(boundary, doc["id"], "2")
+    assert (
+        member.put(second, content=PDF, headers={"Content-Type": "application/pdf"}).status_code
+        == 507
+    )
+    assert owner.delete(photo + "?expected_version=2").status_code == 200
+    assert (
+        member.put(second, content=PDF, headers={"Content-Type": "application/pdf"}).status_code
+        == 202
+    )
+    usage = boundary.call("GET", PATH)
+    assert usage["recorded_bytes"] == 2 * len(PDF)
+    assert (usage["employee_photo_count"], usage["employee_photo_bytes"]) == (0, 0)
+
+
+def test_two_employee_photos_cannot_spend_the_same_capacity(
+    boundary: Boundary, operations: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    directory = f"/employees/{A}"
+    profiles = [
+        boundary.call(
+            "POST",
+            directory,
+            {"full_name": f"Synthetic {role}", "job_title": "Inspector", "unit_id": str(SITE)},
+            role=role,
+            expected=201,
+        )
+        for role in ("owner", "admin")
+    ]
+    payload = synthetic_portrait()
+    photo_size = len(employee_portraits._normalize(payload, "PNG"))
+    _approve(operations, A, photo_size, 0, uuid4())
+    ready = Barrier(2, timeout=5)
+
+    def scan_together(_payload: object) -> ScanVerdict:
+        ready.wait()
+        return ScanVerdict.CLEAN
+
+    monkeypatch.setattr(employee_portraits, "scan", scan_together)
+
+    def upload(role: str, profile_id: str) -> int:
+        response = boundary.clients[role].put(
+            f"{directory}/{profile_id}/photo?expected_version=1",
+            content=payload,
+            headers={"Content-Type": "image/png"},
+        )
+        return int(response.status_code)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        owner = executor.submit(upload, "owner", profiles[0]["id"])
+        admin = executor.submit(upload, "admin", profiles[1]["id"])
+        assert sorted([owner.result(timeout=10), admin.result(timeout=10)]) == [200, 507]
+    usage = boundary.call("GET", PATH)
+    assert (usage["recorded_bytes"], usage["employee_photo_count"]) == (photo_size, 1)
+    assert (
+        sum(employee["has_portrait"] for employee in boundary.call("GET", directory)["items"]) == 1
+    )
 
 
 def test_document_inventory_requires_dedicated_role_and_scopes_references(
@@ -134,6 +237,8 @@ def test_aggregate_counts_retained_revisions_and_excludes_rejected_files(
         "tenant_id": str(A),
         "recorded_bytes": len(PDF) + len(second_content),
         "document_file_count": 2,
+        "employee_photo_bytes": 0,
+        "employee_photo_count": 0,
         "allowance_bytes": None,
         "available_bytes": None,
         "usage_percent": None,

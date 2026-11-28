@@ -18,7 +18,10 @@ type ConfiguredCapacity = {
   usage_percent: number;
   usage_status: keyof typeof capacityMessages;
 };
-type Usage = { tenant_id: string; recorded_bytes: number; document_file_count: number } & (
+type Usage = {
+  tenant_id: string; recorded_bytes: number; document_file_count: number;
+  employee_photo_bytes?: number; employee_photo_count?: number;
+} & (
   ConfiguredCapacity | { allowance_bytes: null; available_bytes: null; usage_percent: null; usage_status: "unconfigured" }
 );
 type UsageState = { kind: "loading" } | { kind: "unavailable" } | { kind: "ready"; usage: Usage };
@@ -43,12 +46,12 @@ function CapacityNotice({ usage }: { usage: ConfiguredCapacity & { recorded_byte
   const overage = usage.recorded_bytes - usage.allowance_bytes;
   return <section className="cc-card cc-capacity" data-status={usage.usage_status} aria-labelledby="storage-capacity-heading">
     <header>
-      <h3 id="storage-capacity-heading">Capacity used by recorded PDFs</h3>
+      <h3 id="storage-capacity-heading">Capacity used by documents and photos</h3>
       <strong>{usage.usage_status === "over_limit" ? "Over capacity" : `${usage.usage_percent}%`}</strong>
     </header>
-    <meter aria-label="Percentage of allowance used by PDFs" min={0} max={100} value={usage.usage_percent} />
+    <meter aria-label="Percentage of company allowance used" min={0} max={100} value={usage.usage_percent} />
     <p>{capacityMessages[usage.usage_status]}.
-      {overage > 0 && <> Recorded PDFs use {formatUsage(overage)} more than the allowance.</>}
+      {overage > 0 && <> Recorded files use {formatUsage(overage)} more than the allowance.</>}
     </p>
   </section>;
 }
@@ -66,8 +69,9 @@ export function CompanyStorageWorkspace({ tenantId, company }: { tenantId: strin
         });
         if (!response.ok || response.headers.get("X-Tenant-ID") !== tenantId) throw new Error("Usage unavailable");
         const usage = await response.json() as Usage;
-        if (usage.tenant_id !== tenantId || !Number.isSafeInteger(usage.recorded_bytes) || usage.recorded_bytes < 0
-          || !Number.isSafeInteger(usage.document_file_count) || usage.document_file_count < 0 || !validCapacity(usage)) {
+        const counts = [usage.recorded_bytes, usage.document_file_count, usage.employee_photo_bytes ?? 0, usage.employee_photo_count ?? 0];
+        if (usage.tenant_id !== tenantId || counts.some(value => !Number.isSafeInteger(value) || value < 0)
+          || (usage.employee_photo_bytes ?? 0) > usage.recorded_bytes || !validCapacity(usage)) {
           throw new Error("Invalid company usage");
         }
         if (!signal.aborted) setState({ kind: "ready", usage });
@@ -90,7 +94,7 @@ export function CompanyStorageWorkspace({ tenantId, company }: { tenantId: strin
       <div>
         <p className="cc-overline">{company}</p>
         <h2 id="company-storage-heading">Storage usage</h2>
-        <p>Review the space occupied by this company’s recorded document files.</p>
+        <p>Review the space occupied by this company’s documents and employee photos.</p>
       </div>
       <button className="cc-secondary" type="button" disabled={state.kind === "loading"} onClick={refresh}>
         <RefreshCw aria-hidden="true" size={17} /> Refresh usage
@@ -98,10 +102,14 @@ export function CompanyStorageWorkspace({ tenantId, company }: { tenantId: strin
     </header>
     {state.kind === "loading" && <RecordWorkspaceSkeleton label="Loading company storage usage" />}
     {state.kind === "unavailable" && <p className="cc-card" role="alert">Company storage usage could not be loaded. Refresh to retry.</p>}
-    {state.kind === "ready" && <dl className="cc-profile-grid cc-storage-metrics" aria-label="Company document storage totals" aria-live="polite">
+    {state.kind === "ready" && <dl className="cc-profile-grid cc-storage-metrics" aria-label="Company storage totals" aria-live="polite">
       <div className="cc-card">
-        <dt>Recorded document storage</dt>
+        <dt>Total recorded storage</dt>
         <dd>{formatUsage(state.usage.recorded_bytes)}<span>{integer.format(state.usage.recorded_bytes)} bytes</span></dd>
+      </div>
+      <div className="cc-card">
+        <dt>Employee profile photos</dt>
+        <dd>{integer.format(state.usage.employee_photo_count ?? 0)}<span>{formatUsage(state.usage.employee_photo_bytes ?? 0)} used by photos</span></dd>
       </div>
       <div className="cc-card">
         <dt>Retained PDF files</dt>
@@ -111,13 +119,13 @@ export function CompanyStorageWorkspace({ tenantId, company }: { tenantId: strin
         <dt>Contracted allowance</dt>
         {state.usage.usage_status === "unconfigured"
           ? <dd>Pending activation<span>The company’s contracted capacity will appear when activated.</span></dd>
-          : <dd>{formatUsage(state.usage.allowance_bytes)}<span>{formatUsage(state.usage.available_bytes)} available based on recorded PDFs</span></dd>}
+          : <dd>{formatUsage(state.usage.allowance_bytes)}<span>{formatUsage(state.usage.available_bytes)} available</span></dd>}
       </div>
     </dl>}
     {state.kind === "ready" && state.usage.usage_status !== "unconfigured" && <CapacityNotice usage={state.usage} />}
     <section className="cc-card" aria-labelledby="storage-measurement-heading">
       <h3 id="storage-measurement-heading">What is measured</h3>
-      <p>PDFs recorded as clean in Document control count here. Photos, backups, quarantined files and other attachments are outside this measurement. One MB is 1,000,000 bytes.</p>
+      <p>Clean PDFs and saved profile photos count toward the allowance, including photos on archived profiles. The total excludes backups, quarantined files and other attachments. One MB is 1,000,000 bytes.</p>
     </section>
   </section>;
 }

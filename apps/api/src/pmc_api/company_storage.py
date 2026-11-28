@@ -21,6 +21,8 @@ class StorageUsage(BaseModel):
     tenant_id: UUID
     recorded_bytes: int
     document_file_count: int
+    employee_photo_bytes: int
+    employee_photo_count: int
     allowance_bytes: int | None
     available_bytes: int | None
     usage_percent: int | None
@@ -59,19 +61,26 @@ def get_storage_usage(
                           WHERE tenant_id = :tenant_id), 0) AS recorded_bytes,
                 COALESCE((SELECT file_count FROM public.company_document_storage
                           WHERE tenant_id = :tenant_id), 0) AS file_count,
+                COALESCE((SELECT employee_photo_bytes FROM public.company_document_storage
+                          WHERE tenant_id = :tenant_id), 0) AS employee_photo_bytes,
+                COALESCE((SELECT employee_photo_count FROM public.company_document_storage
+                          WHERE tenant_id = :tenant_id), 0) AS employee_photo_count,
                 (SELECT allowance_bytes FROM public.company_storage_allowances
                  WHERE tenant_id = :tenant_id ORDER BY row_version DESC LIMIT 1) AS allowance_bytes
             """
         ),
         {"tenant_id": actor.tenant_id},
     ).one()
-    available, percent, status = _capacity_status(usage.recorded_bytes, usage.allowance_bytes)
+    recorded_bytes = usage.recorded_bytes + usage.employee_photo_bytes
+    available, percent, status = _capacity_status(recorded_bytes, usage.allowance_bytes)
     response.headers["X-Tenant-ID"] = str(actor.tenant_id)
     response.headers["Cache-Control"] = "private, no-store"
     return StorageUsage(
         tenant_id=actor.tenant_id,
-        recorded_bytes=usage.recorded_bytes,
+        recorded_bytes=recorded_bytes,
         document_file_count=usage.file_count,
+        employee_photo_bytes=usage.employee_photo_bytes,
+        employee_photo_count=usage.employee_photo_count,
         allowance_bytes=usage.allowance_bytes,
         available_bytes=available,
         usage_percent=percent,

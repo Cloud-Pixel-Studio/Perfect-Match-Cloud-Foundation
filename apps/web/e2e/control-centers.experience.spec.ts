@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const preview = "/design-studio/control-centers";
 const tenant = "10000000-0000-4000-8000-000000000001";
@@ -107,16 +108,16 @@ test("company storage shows contracted capacity and warns when usage exceeds it"
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#company-storage-heading");
   const panel = page.getByRole("region", { name: "Storage usage" });
-  const meter = panel.getByRole("meter", { name: "Percentage of allowance used by PDFs" });
+  const meter = panel.getByRole("meter", { name: "Percentage of company allowance used" });
   await expect(meter).toHaveAttribute("value", "90");
-  await expect(panel.getByText("1 MB available based on recorded PDFs")).toBeVisible();
+  await expect(panel.getByText("1 MB available")).toBeVisible();
   await expect(panel.getByText("You have reached 90% of your allowance.")).toBeVisible();
   await panel.screenshot({ path: info.outputPath("contracted-storage-desktop.png") });
   overLimit = true;
   await panel.getByRole("button", { name: "Refresh usage" }).click();
   await expect(meter).toHaveAttribute("value", "100");
   await expect(panel.getByText("Over capacity", { exact: true })).toBeVisible();
-  await expect(panel.getByText("Recorded PDFs use 1 MB more", { exact: false })).toBeVisible();
+  await expect(panel.getByText("Recorded files use 1 MB more", { exact: false })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 760 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
   const a11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
@@ -215,6 +216,54 @@ test("company administration saves employee profiles and rejects an unexpected c
   await page.getByRole("link", { name: "Audit trail", exact: true }).click();
   await page.locator(".audit-event summary").getByText("Employee · Updated", { exact: true }).click();
   await expect(page.getByText("Profile changes recorded for Job Title.", { exact: true })).toBeVisible();
+});
+
+test("the company profile uploads and displays a private employee portrait", async ({ page }, info) => {
+  await useCompany(page, "owner");
+  await page.setViewportSize({ width: 375, height: 812 });
+  const employeeId = "30000000-0000-4000-8000-000000000001";
+  const unit = "40000000-0000-4000-8000-000000000001";
+  const portrait = await readFile(new URL("../public/brand/control-centers/portraits/elena-cruz.jpg", import.meta.url));
+  const headers = { "X-Tenant-ID": tenant, "Cache-Control": "private, no-store" };
+  let profile = {
+    id: employeeId, tenant_id: tenant, unit_id: unit, full_name: "Elena Cruz", job_title: "Inspector",
+    status: "active", row_version: 1, has_portrait: false,
+  };
+  await page.route("**/api/identity/organization/units?*", route => route.fulfill({
+    headers, json: [{ id: unit, tenant_id: tenant, status: "active", name: "Quality", code: "Q" }],
+  }));
+  await page.route("**/api/identity/employees/**", route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (!url.pathname.endsWith("/photo")) return route.fulfill({ headers, json: { items: [profile], has_more: false } });
+    expect(url.pathname).toBe(`/api/identity/employees/${tenant}/${employeeId}/photo`);
+    if (request.method() === "GET") return route.fulfill({ headers, contentType: "image/jpeg", body: portrait });
+    expect(url.searchParams.get("expected_version")).toBe(String(profile.row_version));
+    if (request.method() === "PUT") {
+      expect(request.headers()["content-type"]).toBe("image/jpeg");
+      expect(request.postDataBuffer()).toEqual(portrait);
+    }
+    profile = { ...profile, has_portrait: request.method() === "PUT", row_version: profile.row_version + 1 };
+    return route.fulfill({ headers, json: profile });
+  });
+  await page.goto("/#employees-heading");
+  const panel = page.getByRole("region", { name: "Elena Cruz" });
+  await panel.getByLabel("Choose profile photo").setInputFiles({ name: "employee.jpg", mimeType: "image/jpeg", buffer: portrait });
+  await panel.getByRole("button", { name: "Save photo" }).click();
+  const image = panel.getByRole("img", { name: "Portrait of Elena Cruz" });
+  await expect(image).toBeVisible();
+  await expect.poll(() => image.evaluate(node => (node as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.reload();
+  await expect(image).toBeVisible();
+  const scan = () => new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect((await scan()).violations).toEqual([]);
+  await page.getByRole("checkbox", { name: "Use dark theme" }).press("Space");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect((await scan()).violations).toEqual([]);
+  await panel.screenshot({ path: info.outputPath("employee-private-portrait-mobile.png") });
+  await panel.getByRole("button", { name: "Remove photo" }).click();
+  await expect(image).toHaveCount(0);
+  await expect(panel.getByLabel("Choose profile photo")).toBeVisible();
 });
 
 test("the explicitly enabled design preview supports employee, training, branding and operations review", async ({ page }, info) => {

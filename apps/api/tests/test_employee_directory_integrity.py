@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import os
+from io import BytesIO
 from uuid import UUID
 
 import pytest
+from alembic import command
+from alembic.config import Config
+from PIL import Image, PngImagePlugin
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 from test_tenant_suspension_integrity import B_SITE, SITE, USERS, A, B, Boundary, context
 from test_tenant_suspension_integrity import boundary as boundary
+
+from pmc_api import employee_portraits
+from pmc_api.antivirus import ScanUnavailable, ScanVerdict
 
 pytestmark = [
     pytest.mark.tenant_suspension_integrity,
@@ -18,6 +25,120 @@ pytestmark = [
 ]
 
 PATH = f"/employees/{A}"
+
+
+def synthetic_portrait(color: str = "navy") -> bytes:
+    output = BytesIO()
+    metadata = PngImagePlugin.PngInfo()
+    metadata.add_text("Comment", "private-fixture-metadata")
+    Image.new("RGB", (96, 128), color).save(output, format="PNG", pnginfo=metadata)
+    return output.getvalue()
+
+
+def test_employee_portrait_lifecycle_and_access(
+    boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(employee_portraits, "scan", lambda _: ScanVerdict.CLEAN)
+    body = {"full_name": "Synthetic Employee", "job_title": "Inspector", "unit_id": str(SITE)}
+    row = boundary.call("POST", PATH, body, expected=201)
+    url = f"{PATH}/{row['id']}"
+    photo = f"{url}/photo"
+    png = synthetic_portrait()
+    headers = {"Content-Type": "image/png"}
+    admin = boundary.clients["admin"]
+    assert not row["has_portrait"]
+    assert admin.get(photo).status_code == 404
+    assert boundary.clients["member"].get(photo).status_code == 403
+    assert (
+        admin.put(
+            photo + "?expected_version=1", content=png, headers={**headers, "X-CSRF-Token": ""}
+        ).status_code
+        == 403
+    )
+    reply = admin.put(photo + "?expected_version=1", content=png, headers=headers)
+    assert reply.status_code == 200, reply.text
+    assert reply.json()["has_portrait"] and reply.json()["row_version"] == 2
+    fetched = admin.get(photo)
+    assert fetched.headers["content-type"] == "image/jpeg"
+    assert fetched.headers["cache-control"] == "private, no-store"
+    assert fetched.headers["x-tenant-id"] == str(A)
+    assert fetched.headers["cross-origin-resource-policy"] == "same-origin"
+    assert b"private-fixture-metadata" not in fetched.content
+    with Image.open(BytesIO(fetched.content)) as image:
+        assert image.format == "JPEG" and image.size == (96, 128)
+    with pytest.raises(DBAPIError, match="cannot discard employee portraits"):
+        command.downgrade(Config("alembic.ini"), "0064_document_storage_quota")
+    assert admin.get(photo).content == fetched.content
+    assert admin.delete(photo + "?expected_version=1").status_code == 409
+    updated = admin.put(
+        photo + "?expected_version=2", content=synthetic_portrait("green"), headers=headers
+    )
+    assert updated.status_code == 200 and updated.json()["row_version"] == 3
+    assert admin.get(photo).content != fetched.content
+    assert boundary.call("POST", f"{url}/archive", {"expected_version": 3})["has_portrait"]
+    assert admin.get(photo).status_code == 200
+    assert admin.delete(photo + "?expected_version=4").status_code == 409
+    boundary.call("POST", f"{url}/restore", {"expected_version": 4})
+    boundary.call("POST", "/auth/tenant", {"tenant_id": str(B)})
+    foreign = f"/employees/{B}/{row['id']}/photo"
+    owner = boundary.clients["owner"]
+    assert owner.get(photo).status_code == 409
+    assert owner.get(foreign).status_code == 404
+    assert owner.delete(foreign + "?expected_version=5").status_code == 404
+    with boundary.runtime.begin() as db:
+        context(db, user=USERS["owner"], tenant=B)
+        assert db.scalar(text("SELECT count(portrait) FROM employee_profiles")) == 0
+    removed = admin.delete(photo + "?expected_version=5")
+    assert removed.status_code == 200 and not removed.json()["has_portrait"]
+    assert admin.get(photo).status_code == 404
+    with boundary.admin.connect() as db:
+        events = db.execute(
+            text("""
+            SELECT actor_user_id, metadata AS event_metadata, old_values, new_values
+            FROM audit_events WHERE resource_id = :id AND action = 'employee.updated'
+            ORDER BY occurred_at
+        """),
+            {"id": UUID(row["id"])},
+        ).all()
+    assert len(events) == 3
+    assert all(
+        e.actor_user_id == USERS["admin"] and e.event_metadata["profile_fields"] == ["portrait"]
+        for e in events
+    )
+    assert all(set(e.new_values) == {"unit_id", "status", "row_version"} for e in events)
+
+
+def test_employee_portrait_validation_keeps_the_profile_intact(
+    boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    row = boundary.call(
+        "POST",
+        PATH,
+        {
+            "full_name": "Synthetic Employee",
+            "job_title": "Inspector",
+            "unit_id": str(SITE),
+        },
+        expected=201,
+    )
+    photo = f"{PATH}/{row['id']}/photo?expected_version=1"
+    admin = boundary.clients["admin"]
+    png = synthetic_portrait()
+    headers = {"Content-Type": "image/png"}
+    assert (
+        admin.put(photo, content=png, headers={"Content-Type": "image/svg+xml"}).status_code == 415
+    )
+    assert admin.put(photo, content=png, headers={"Content-Type": "image/jpeg"}).status_code == 415
+    assert admin.put(photo, content=b"a" * 2_000_001, headers=headers).status_code == 413
+    monkeypatch.setattr(employee_portraits, "scan", lambda _: ScanVerdict.INFECTED)
+    assert admin.put(photo, content=png, headers=headers).status_code == 422
+
+    def unavailable(_: BytesIO) -> ScanVerdict:
+        raise ScanUnavailable
+
+    monkeypatch.setattr(employee_portraits, "scan", unavailable)
+    assert admin.put(photo, content=png, headers=headers).status_code == 503
+    assert boundary.call("GET", PATH)["items"] == [row]
 
 
 def test_employee_lifecycle_persists_personnel_and_audit_without_creating_a_seat(

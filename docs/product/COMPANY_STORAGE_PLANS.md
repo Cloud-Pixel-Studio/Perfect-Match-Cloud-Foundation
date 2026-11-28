@@ -75,7 +75,13 @@ La migración `0064_document_storage_quota` activa el límite para empresas con 
 
 El rechazo conserva el borrador y los PDFs existentes. Si baja la cuota por debajo del consumo actual, permanecen disponibles las descargas autorizadas y el historial. Las empresas sin cuota aprobada conservan el comportamiento de carga anterior. El error informa que el PDF no cabe y remite al medidor. Los totales exactos siguen reservados a propietarios y administradores.
 
-Ante un fallo antes del intento de confirmar la transacción se intenta retirar exclusivamente el objeto de la carga fallida. Si se pierde la conexión durante la confirmación, se conserva el objeto privado porque su revisión puede haber quedado confirmada. Los avisos fuera del panel, la facturación y las fotos privadas siguen pendientes.
+Ante un fallo antes del intento de confirmar la transacción se intenta retirar exclusivamente el objeto de la carga fallida. Si se pierde la conexión durante la confirmación, se conserva el objeto privado porque su revisión puede haber quedado confirmada. Los avisos fuera del panel y la facturación siguen pendientes.
+
+## Fotos privadas de empleados
+
+La migración `0065_employee_portraits` incluye en el mismo cupo los bytes del JPEG normalizado y los PDFs limpios. El panel muestra el espacio total y desglosa las fotos de ficha. PostgreSQL confirma la foto, el total y la bitácora en una sola transacción. El límite de empresa se comprueba con el mismo bloqueo que utilizan las cargas PDF y los ajustes de cupo.
+
+Archivar una ficha conserva su foto y el espacio que ocupa. Reemplazar o retirar la foto actualiza el consumo al confirmar el cambio. Se conserva el historial de la acción y el contenido de respaldos previos sigue sujeto a la retención aplicable. La migración impide retroceder el esquema mientras queden fotos guardadas.
 
 ## Conciliación de PDFs privados
 

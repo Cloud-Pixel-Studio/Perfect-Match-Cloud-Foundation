@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON,
     Boolean,
     CheckConstraint,
+    Computed,
     Date,
     DateTime,
     ForeignKey,
@@ -36,6 +37,12 @@ class EmployeeProfile(Base):
     row_version: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    portrait: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
+    portrait_bytes: Mapped[int | None] = mapped_column(Computed("octet_length(portrait)"))
+
+    @property
+    def has_portrait(self) -> bool:
+        return self.portrait_bytes is not None
 
 
 class QMSContextRecord(Base):
