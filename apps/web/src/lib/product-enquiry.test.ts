@@ -65,6 +65,7 @@ describe("product demo enquiry", () => {
   it("bounds company text and rejects an unsupported priority or ISO value", () => {
     expect(buildProductEnquiry({ ...enquiry, company: "x".repeat(121) }).ok).toBe(false);
     expect(buildProductEnquiry({ ...enquiry, priority: "<script>" }).ok).toBe(false);
+    expect(buildProductEnquiry({ ...enquiry, storagePlan: "unlimited" }).ok).toBe(false);
     expect(buildProductEnquiry({ ...enquiry, isoInterests: ["27001"] }).ok).toBe(false);
     expect(buildProductEnquiry({ ...enquiry, isoInterests: ["9001", "14001", "45001", "9001"] }).ok).toBe(false);
   });
@@ -85,6 +86,20 @@ describe("product demo enquiry", () => {
     expect(result.brief).toContain("ISO 14001 (Planned)");
     expect(result.brief).toContain("ISO 45001 (Planned)");
     expect(result.brief).toContain("not a quote, order or subscription");
+  });
+
+  it("includes the proposed allowance and terms in both brief formats without changing seat demand", () => {
+    const result = buildProductEnquiry({ ...enquiry, seats: 6, storagePlan: "basic" });
+    if (!result.ok) throw new Error("Expected valid plan interest");
+    expect(result.brief).toContain("Proposed plan: Basic");
+    expect(result.brief).toContain("5,000 MB per company, included in the recurring price");
+    expect(result.brief).toContain("Team seats: 6");
+    expect(result.brief).toContain("Managed backups");
+    expect(result.brief).toContain("Proposed alerts at 80% and 90%");
+    expect(result.brief).toContain("Proposed expansion blocks of 25,000 MB.");
+    expect(result.brief).toContain("No automatic overage charges.");
+    expect(result.brief).toContain("signed agreement");
+    expect(new URL(result.mailto).searchParams.get("body")).toBe(result.brief);
   });
 
   it("handles malformed Unicode without breaking URI generation", () => {

@@ -5,9 +5,10 @@ import { connection } from "next/server";
 import { ArrowDown, ArrowRight, Building2, Check, CheckCircle2, ClipboardCheck, FileCheck2, Layers3, LockKeyhole, Mail, ShieldCheck, UsersRound } from "lucide-react";
 
 import { BrandMark } from "../../components/brand-mark";
-import { ThemeToggle } from "../../components/theme-toggle";
 import { ProductTour } from "../../components/product-tour";
 import { ProductDemoRequest } from "../../components/product-demo-request";
+import { ProductHeader } from "../../components/product-header";
+import { findCompanyStoragePlan } from "../../lib/company-storage-plans";
 import "./products.css";
 
 export const metadata: Metadata = {
@@ -35,16 +36,15 @@ const questions = [
   ["Can we purchase or start a free trial here?", "Commercial rollout and pricing are still in preparation. The product tour shows the current foundation. Request a demo to discuss your processes, team size, standards and availability; no purchase or automatic trial is created."],
 ];
 
-export default async function ProductsPage() {
+export default async function ProductsPage({ searchParams }: {
+  searchParams: Promise<{ plan?: string | string[] }>;
+}) {
   await connection();
+  const plan = findCompanyStoragePlan((await searchParams).plan)?.id;
   return (
     <div className="market-page">
       <a className="skip-link" href="#market-main">Skip to product content</a>
-      <header className="market-header">
-        <Link className="market-brand" href="/"><BrandMark priority /><span><strong>PERFECT MATCH QMS</strong><small>Quality Operations Cloud</small></span></Link>
-        <nav className="market-navigation" aria-label="Product navigation"><a href="#product-tour">Product tour</a><a href="#teams">For your team</a><a href="#platform">The platform</a><a href="#standards">ISO addons</a><a href="#security">Security</a></nav>
-        <div className="market-header-actions"><ThemeToggle /><Link className="market-signin" href="/">Log in</Link><a className="market-button market-button-small" href="#demo">Request a demo <ArrowRight aria-hidden="true" size={15} /></a></div>
-      </header>
+      <ProductHeader />
 
       <main id="market-main">
         <section className="market-hero market-container" aria-labelledby="product-heading">
@@ -74,7 +74,7 @@ export default async function ProductsPage() {
 
         <section className="market-section market-container market-faq" aria-labelledby="faq-heading"><div><p className="market-eyebrow">BEFORE WE TALK</p><h2 id="faq-heading">Good questions.<br />Clear answers.</h2><p>Understand the product model and current availability before planning your next step.</p></div><div>{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
 
-        <section className="market-demo-section" id="demo" aria-labelledby="demo-heading"><div className="market-container market-demo-grid"><div><p className="market-eyebrow">LET’S LOOK AT YOUR QUALITY WORK</p><h2 id="demo-heading">Bring your questions.<br /><em>We’ll bring the product.</em></h2><p>Plan a focused demonstration around the work your company needs to control.</p><ol><li><span>01</span>Choose your team size and main priority.</li><li><span>02</span>Tell us which standards you want to discuss.</li><li><span>03</span>Review and send the prepared email.</li></ol><a className="market-demo-email" href="mailto:Demo@invperfectmatch.com"><Mail aria-hidden="true" size={17} />Demo@invperfectmatch.com</a><small>Product preview. Pricing and commercial rollout are in preparation.</small></div><ProductDemoRequest /></div></section>
+        <section className="market-demo-section" id="demo" aria-labelledby="demo-heading"><div className="market-container market-demo-grid"><div><p className="market-eyebrow">LET’S LOOK AT YOUR QUALITY WORK</p><h2 id="demo-heading">Bring your questions.<br /><em>We’ll bring the product.</em></h2><p>Plan a focused demonstration around the work your company needs to control.</p><ol><li><span>01</span>Choose your team size and main priority.</li><li><span>02</span>Tell us which standards you want to discuss.</li><li><span>03</span>Review and send the prepared email.</li></ol><a className="market-demo-email" href="mailto:Demo@invperfectmatch.com"><Mail aria-hidden="true" size={17} />Demo@invperfectmatch.com</a><small>Product preview. Pricing and commercial rollout are in preparation.</small></div><ProductDemoRequest key={plan} initialPlan={plan} /></div></section>
       </main>
 
       <footer className="market-footer market-container"><div><BrandMark /><span><strong>PERFECT MATCH QMS</strong><small>Quality work. Connected evidence.</small></span></div><nav aria-label="Product resources"><a href="#product-tour">Product tour</a><Link href="/design-studio">Explore the visual library</Link><a href="mailto:Demo@invperfectmatch.com">Contact</a><Link href="/">Client login</Link></nav><p>Independent QMS platform · Company workspaces · Seats · ISO editions</p></footer>

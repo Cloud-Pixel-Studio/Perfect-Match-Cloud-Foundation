@@ -32,6 +32,21 @@ Estimación mensual en USD a ocupación completa durante un mes. Se usó Amazon 
 
 Los importes se calculan a partir de los bytes exactos de cada cuota y se redondean al final. El precio del contrato también cubre solicitudes a la nube, análisis de archivos, cómputo, base de datos, conservación de respaldos, monitoreo y soporte. Para fijarlo, sumar estos costos por empresa y dividir el total por uno menos el margen bruto objetivo. Medir descargas, cantidad de archivos y retención en el piloto antes de fijar la tarifa. Los totales de la tabla son costos de referencia del proveedor, no precios al cliente.
 
+## Desglose para el anexo comercial
+
+Completar una ficha por empresa al emitir la oferta. El resumen de demo muestra intereses y capacidad propuesta. El anexo firmado fija los valores aplicables.
+
+| Campo | Dato que debe quedar escrito |
+| --- | --- |
+| Empresa y espacio de trabajo | Razón social, identificador del espacio y plan contratado. |
+| Capacidad total | MB incluidos y capacidad adicional autorizada, expresados también en bytes. Fecha de inicio y de renovación. |
+| Alcance del producto | QMS incluido, cantidad de seats y normas ISO con sus ediciones y disponibilidad. |
+| Precio recurrente | Importe, moneda, periodicidad y desglose de cualquier ampliación autorizada. Indicar que el almacenamiento contratado y los respaldos gestionados forman parte del precio. |
+| Consumo y continuidad | Archivos que cuentan, retención de revisiones, avisos, qué ocurre al alcanzar la cuota y cómo solicitar más espacio. |
+| Cambios posteriores | Nueva capacidad, importe, fecha efectiva y constancia de aceptación del cliente. |
+
+La comparación de capacidad propuesta está en `/products/plans`. Al elegir un plan, el cliente puede preparar un correo o descargar su resumen de demo con el plan de interés y el alcance que falta confirmar.
+
 ## Implementación prevista
 
 1. Registrar la capacidad contractual en bytes con vigencia y versión. La web comercial mostrará la capacidad incluida por plan al aprobarse la oferta. El panel de la empresa mostrará MB usados, disponibles y contratados. Operación de plataforma verá consumo, alertas y cambios de capacidad sin acceder al contenido de los archivos.

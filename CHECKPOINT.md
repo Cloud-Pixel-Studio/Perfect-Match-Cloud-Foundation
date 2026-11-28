@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Transparencia de los planes · 27 noviembre 2026
+- Productos enlaza a `/products/plans`, con cuotas propuestas, reglas de uso, respaldo incluido y ampliación autorizada. El plan elegido pasa al resumen descargable y al correo preparado para revisión. La guía comercial tiene los campos del anexo por empresa. Cuotas operativas, medición y tarifas finales siguen pendientes.
+- Respaldo cifrado `CP-STORAGE-DISCLOSURE-00-20261128T015114Z` descifrado y cotejado. Pasaron lint, tipos, compilación, 362 unitarias y 5 recorridos de Productos, con Axe a 320 px en ambos temas. Escritorio claro/oscuro pasó. Las referencias visuales móvil y tablet ya fallaban en `96f2731`; el cotejo de píxeles confirmó que el nuevo cambio en la página existente se limita a la navegación. Entrega en el PR #70.
+
 ## Almacenamiento por empresa y plan · 27 noviembre 2026
 - El usuario pidió que el almacenamiento por empresa esté incluido en el precio. Propuesta en `docs/product/COMPANY_STORAGE_PLANS.md`: Básico 5 000 MB, Equipo 25 000 MB, Profesional 100 000 MB, Empresarial 250 000 MB. Cuotas y precios finales pendientes de aprobación. Se preserva el Básico con una empresa, 3 seats y 1 addon ISO.
 - El tarifario oficial de S3 Virginia se cotejó con el modelo de costo. Se documentaron revisiones, fotos, evidencias, alertas, ampliaciones y reserva atómica de capacidad. Medición, cuotas efectivas y precios finales siguen pendientes. Respaldo cifrado de código `CP-STORAGE-PLANS-00-20261128T012632Z` descifrado y cotejado.

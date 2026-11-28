@@ -1,3 +1,5 @@
+import { findCompanyStoragePlan, formatStorageCapacity, storageTerms } from "./company-storage-plans";
+
 export const DEMO_CONTACT_EMAIL = "Demo@invperfectmatch.com";
 export const DEMO_ENQUIRY_SUBJECT = "Perfect Match QMS demo request";
 
@@ -22,9 +24,10 @@ export type ProductEnquiryInput = {
   seats: number | string;
   priority: string;
   isoInterests: readonly string[];
+  storagePlan?: string;
 };
 
-type EnquiryErrors = Partial<Record<"company" | "seats" | "priority" | "isoInterests", string>>;
+type EnquiryErrors = Partial<Record<"company" | "seats" | "priority" | "isoInterests" | "storagePlan", string>>;
 
 export type ProductEnquiryResult =
   | { ok: false; errors: EnquiryErrors }
@@ -55,6 +58,8 @@ export function buildProductEnquiry(input: ProductEnquiryInput): ProductEnquiryR
   }
   const priority = productPriorities.find((option) => option.value === input.priority);
   if (!priority) errors.priority = "Choose one of the listed priorities.";
+  const plan = findCompanyStoragePlan(input.storagePlan);
+  if (input.storagePlan && !plan) errors.storagePlan = "Choose one of the listed plans.";
   if (
     input.isoInterests.length > isoInterestOptions.length ||
     input.isoInterests.some((value) => !isoInterestOptions.some((option) => option.value === value))
@@ -73,7 +78,19 @@ export function buildProductEnquiry(input: ProductEnquiryInput): ProductEnquiryR
     `Main priority: ${priority.label}`,
     `ISO interests: ${standards.length ? standards.map((option) => `${option.label} (${option.state})`).join(", ") : "None selected"}`,
     "",
-    "Requested product: Perfect Match QMS base, company workspace and team seats.",
+    "Requested product: Perfect Match QMS core, company workspace and team seats.",
+    ...(plan ? [
+      "",
+      "Commercial scope to confirm",
+      `Proposed plan: ${plan.name}`,
+      `Proposed storage: ${formatStorageCapacity(plan.capacityMb)} per company, included in the recurring price.`,
+      storageTerms.counted,
+      storageTerms.excluded,
+      `Proposed alerts at ${storageTerms.alerts[0]}% and ${storageTerms.alerts[1]}%. ${storageTerms.full}`,
+      `Proposed expansion blocks of ${formatStorageCapacity(storageTerms.expansionMb)}.`,
+      storageTerms.expansion,
+      "Final capacity, seats, ISO editions and price will be stated in the signed agreement.",
+    ] : []),
     "ISO selections express interest only; availability must be confirmed.",
     "This brief is not a quote, order or subscription.",
   ].join("\n");
