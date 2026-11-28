@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Conciliación de PDFs privados · 28 noviembre 2026
+- Comando interno de solo lectura para una empresa. Compara revisiones con objetos privados y reporta archivos ausentes, diferencias de tamaño, claves inválidas o duplicadas y objetos antiguos sin referencia. Los objetos recientes se cuentan aparte. Un acceso denegado interrumpe el informe. El detalle opcional se guarda con permisos `0600`.
+- Pasaron 162 pruebas de la suite general y 62 del conjunto de almacenamiento y límites de empresa con PostgreSQL desechable y S3 simulado. Se verificaron aislamiento, rol de inventario, paginación y protección del informe. Pasaron Ruff y mypy. Respaldo incremental cifrado `CP-PDF-RECONCILIATION-00-20261128T103516Z` descifrado y cotejado. Entrega en el PR #70. Pendientes la prueba con la identidad del almacén de la demo, la ejecución periódica y otros tipos de archivos.
+
 ## Aplicación del cupo en cargas de PDF · 28 noviembre 2026
 - `0064_document_storage_quota` exige que el PDF quepa en la cuota aprobada antes de guardar y verifica nuevamente al actualizar el total. La carga y los ajustes de cuota se coordinan por empresa. El rechazo conserva el borrador y las descargas autorizadas. Una confirmación de BD incierta conserva el objeto privado para evitar pérdida de un archivo registrado. Reconciliación y otros cargadores siguen pendientes.
 - Pasaron 62 pruebas backend, 377 unitarias web y 23 recorridos de navegador con API simulada. Se probó concurrencia, rechazo de un lote sobre cuota, reducción de capacidad y reversión sin alterar datos. Respaldo de código `CP-PDF-STORAGE-GUARD-00-20261128T101215Z` cotejado y respaldo independiente de BD sintética `CP-PDF-STORAGE-GUARD-DB-20261128T101240Z` restaurado. Entrega en el PR #70.

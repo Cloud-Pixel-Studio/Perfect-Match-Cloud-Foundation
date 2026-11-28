@@ -59,7 +59,7 @@ La comparación de capacidad propuesta está en `/products/plans`. Su asistente 
 
 **Storage usage** muestra a propietarios y administradores los bytes registrados y el número de archivos PDF de su empresa. Incluye revisiones anteriores conservadas y archivos registrados como limpios aunque estén en borrador. Los archivos rechazados o en cuarentena quedan fuera de ese total.
 
-La migración `0062_company_document_storage` calcula el total inicial a partir de las revisiones existentes. Las cargas posteriores actualizan los totales por empresa en la misma transacción que la revisión. El medidor usa metadatos confirmados en PostgreSQL. La reconciliación periódica con los objetos reales y el costo de copias técnicas quedan por implementar. El agregado no otorga permisos sobre documentos ni devuelve nombres o rutas de archivos.
+La migración `0062_company_document_storage` calcula el total inicial a partir de las revisiones existentes. Las cargas posteriores actualizan los totales por empresa en la misma transacción que la revisión. El medidor usa metadatos confirmados en PostgreSQL. El agregado no otorga permisos sobre documentos ni devuelve nombres o rutas de archivos. El costo de las copias técnicas sigue pendiente.
 
 ## Activación de la cuota aprobada
 
@@ -75,4 +75,22 @@ La migración `0064_document_storage_quota` activa el límite para empresas con 
 
 El rechazo conserva el borrador y los PDFs existentes. Si baja la cuota por debajo del consumo actual, permanecen disponibles las descargas autorizadas y el historial. Las empresas sin cuota aprobada conservan el comportamiento de carga anterior. El error informa que el PDF no cabe y remite al medidor. Los totales exactos siguen reservados a propietarios y administradores.
 
-Ante un fallo antes del intento de confirmar la transacción se intenta retirar exclusivamente el objeto de la carga fallida. Si se pierde la conexión durante la confirmación, se conserva el objeto privado para evitar borrar un PDF cuya revisión pudo quedar confirmada. La reconciliación periódica del almacén, los avisos fuera del panel, la facturación y las fotos privadas siguen pendientes.
+Ante un fallo antes del intento de confirmar la transacción se intenta retirar exclusivamente el objeto de la carga fallida. Si se pierde la conexión durante la confirmación, se conserva el objeto privado porque su revisión puede haber quedado confirmada. Los avisos fuera del panel, la facturación y las fotos privadas siguen pendientes.
+
+## Conciliación de PDFs privados
+
+El equipo de operaciones puede ejecutar un inventario manual de solo lectura para el UUID de una empresa. Compara las referencias de todas sus revisiones con el listado paginado del prefijo privado `qms/<uuid>/`. Confirma una ausencia o diferencia de tamaño con una segunda consulta de metadatos. Un acceso denegado, un listado fuera de ese prefijo o un problema de permisos en la base de datos interrumpen el informe.
+
+Desde el entorno de ejecución de la API, con las credenciales de inventario inyectadas por el gestor de secretos:
+
+```bash
+python -m pmc_api.document_storage_reconciliation --tenant "$COMPANY_UUID"
+python -m pmc_api.document_storage_reconciliation --tenant "$COMPANY_UUID" \
+  --report "$PRIVATE_REPORT_DIR/pdf-reconciliation.json"
+```
+
+- `PMC_RECONCILE_DATABASE_URL` usa el esquema `postgresql+pg8000` con una cuenta dedicada sin permisos de escritura ni superusuario. La cuenta necesita `USAGE` en el esquema `public`, `SELECT (id)` en `tenants` y `SELECT (id, tenant_id, file_object_key, file_size)` en `qms_document_revisions`. La lectura completa de revisiones requiere `BYPASSRLS`. Mantener esta credencial fuera de la API, limitar su acceso al entorno de operaciones y comprobar sus privilegios efectivos antes de habilitarla.
+- `PMC_RECONCILE_S3_ENDPOINT`, `PMC_RECONCILE_S3_DOCUMENTS_BUCKET`, `PMC_RECONCILE_S3_ACCESS_KEY`, `PMC_RECONCILE_S3_SECRET_KEY` y, si corresponde, `PMC_RECONCILE_S3_REGION` configuran el almacén. Limitar la identidad de inventario al listado del prefijo de la empresa y a `HEAD` sobre sus objetos. En AWS S3, `HEAD` requiere `s3:GetObject`, que también permite leer contenido. Usar credenciales de alcance limitado y reservarlas para esta operación. Una ausencia verificada devuelve 404. Un 403 se registra como inventario incompleto. [Permisos de HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html).
+- La salida normal contiene cantidades. Con `--report` se crea un archivo nuevo, con permisos `0600`, en un directorio privado administrado por operaciones. El detalle incluye claves internas, IDs de revisión y tamaños donde corresponda. El comando no descarga archivos ni incluye nombres de documentos. El código de salida es `0` sin hallazgos que requieran revisión, `1` con hallazgos y `2` si el informe queda incompleto.
+
+Los objetos sin referencia de menos de 24 horas se cuentan por separado para dar margen a las cargas en curso. Cualquier objeto más antiguo sin referencia es un candidato a investigación. Repetir la conciliación antes de actuar y verificar la bitácora y los respaldos si la diferencia persiste. Cada ejecución conserva los objetos, las revisiones y los totales. Inventariar tamaño no verifica el contenido ni ejecuta una restauración. La programación periódica y la conciliación de otros tipos de adjuntos siguen pendientes.

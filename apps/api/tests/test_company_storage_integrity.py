@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID, uuid4
 
 import pytest
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import Connection, Engine, create_engine, event, text
 from sqlalchemy.exc import DBAPIError
 from test_module_operability_http_integrity import PDF, document, release
 from test_tenant_suspension_integrity import USERS, A, B, Boundary, context
@@ -14,6 +14,7 @@ from test_tenant_suspension_integrity import boundary as boundary
 
 from pmc_api import audit_service, documents
 from pmc_api.antivirus import ScanVerdict
+from pmc_api.document_storage_reconciliation import InventoryError, load_references
 
 pytestmark = [
     pytest.mark.tenant_suspension_integrity,
@@ -53,6 +54,53 @@ def _file_path(boundary: Boundary, doc_id: str, revision_code: str) -> str:
         expected=201,
     )
     return f"/documents/{doc_id}/revisions/{revision['id']}/file"
+
+
+def test_document_inventory_requires_dedicated_role_and_scopes_references(
+    boundary: Boundary, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, revision, stored = document(boundary, monkeypatch)
+    ((_, key),) = stored.objects
+    with pytest.raises(DBAPIError):
+        load_references(boundary.runtime, A)
+    with pytest.raises(InventoryError, match="dedicated"):
+        load_references(boundary.admin, A)
+
+    with boundary.admin.begin() as db:
+        db.execute(text("CREATE ROLE pmcloud_test_document_inventory NOLOGIN BYPASSRLS"))
+        db.execute(text("GRANT SELECT (id) ON tenants TO pmcloud_test_document_inventory"))
+        db.execute(
+            text("""
+                GRANT SELECT (id, tenant_id, file_object_key, file_size)
+                ON qms_document_revisions TO pmcloud_test_document_inventory
+            """)
+        )
+    engine = create_engine(boundary.admin.url)
+
+    @event.listens_for(engine, "begin")
+    def select_inventory_role(db: Connection) -> None:
+        db.exec_driver_sql("SET LOCAL ROLE pmcloud_test_document_inventory")
+
+    try:
+        references = load_references(engine, A)
+        assert [(ref.revision_id, ref.key, ref.size) for ref in references] == [
+            (UUID(revision["id"]), key, len(PDF))
+        ]
+        assert load_references(engine, B) == []
+        with pytest.raises(InventoryError, match="does not exist"):
+            load_references(engine, uuid4())
+        with pytest.raises(DBAPIError), engine.begin() as db:
+            db.execute(text("SELECT title FROM qms_documents"))
+        with pytest.raises(DBAPIError), engine.begin() as db:
+            db.execute(text("UPDATE qms_document_revisions SET file_size = 0"))
+    finally:
+        engine.dispose()
+        with boundary.admin.begin() as db:
+            db.execute(text("REVOKE ALL ON tenants FROM pmcloud_test_document_inventory"))
+            db.execute(
+                text("REVOKE ALL ON qms_document_revisions FROM pmcloud_test_document_inventory")
+            )
+            db.execute(text("DROP ROLE pmcloud_test_document_inventory"))
 
 
 def test_aggregate_counts_retained_revisions_and_excludes_rejected_files(
