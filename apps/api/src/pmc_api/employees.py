@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 
 from pmc_api.audit_service import record_employee
 from pmc_api.auth import Authenticated, require_csrf
-from pmc_api.database import get_db, set_request_context
-from pmc_api.models import ApplicationSession, EmployeeProfile, OrganizationUnit
-from pmc_api.tenant_access import TenantAccess, require_tenant_access
+from pmc_api.database import get_db
+from pmc_api.models import EmployeeProfile, OrganizationUnit
+from pmc_api.tenant_access import TenantAccess, require_selected_tenant_access
 
 router = APIRouter(prefix="/employees/{tenant_id}", tags=["employees"])
 DBSession = Annotated[Session, Depends(get_db)]
@@ -70,21 +70,9 @@ class DirectoryPage(BaseModel):
 
 
 def _context(db: Session, auth: Authenticated, tenant_id: UUID, response: Response) -> TenantAccess:
-    set_request_context(db, user_id=auth.user.id, session_hash=auth.record.token_hash)
-    current = db.scalar(
-        select(ApplicationSession)
-        .where(ApplicationSession.id == auth.record.id, ApplicationSession.user_id == auth.user.id)
-        .with_for_update(read=True)
-        .execution_options(populate_existing=True)
-    )
-    if current is None or current.revoked_at or current.expires_at <= datetime.now(UTC):
-        raise HTTPException(401, "session expired or invalid")
-    if current.current_tenant_id != tenant_id:
-        raise HTTPException(409, "company selection changed")
-    actor = require_tenant_access(db, user_id=auth.user.id, tenant_id=tenant_id)
+    actor = require_selected_tenant_access(db, auth, tenant_id)
     if actor.role not in {"owner", "admin"}:
         raise HTTPException(403, "employee administration requires owner or admin")
-    set_request_context(db, user_id=actor.user_id, tenant_id=actor.tenant_id)
     response.headers["X-Tenant-ID"] = str(tenant_id)
     response.headers["Cache-Control"] = "private, no-store"
     return actor

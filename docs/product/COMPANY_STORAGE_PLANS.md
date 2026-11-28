@@ -55,4 +55,10 @@ La comparación de capacidad propuesta está en `/products/plans`. Su asistente 
 3. Reservar los bytes antes de escribir el objeto privado. La reserva se hará atómicamente por empresa para que dos cargas simultáneas no rebasen el cupo. Confirmar el uso al conservar el archivo, liberar reservas de cargas rechazadas y reconciliar operaciones interrumpidas con el almacén. Aplicar el mismo control a las fotos, versiones y adjuntos según se incorporen. Registrar las ampliaciones y cambios sin copiar contenido de clientes a la bitácora.
 4. Probar límites exactos, empresa sin autorización, cargas concurrentes, reemplazos, fallos de almacén, archivos archivados, retención, restauración y reducción de plan. Habilitar el bloqueo cuando se hayan conciliado los archivos existentes y se haya verificado el límite en todos los cargadores aplicables.
 
-Actualmente hay almacenamiento por archivo para documentos. La cuota contratada, la medición por plan, las ampliaciones facturables y las fotos privadas persistentes quedan pendientes de implementación.
+## Medición disponible en Control de empresa
+
+**Storage usage** muestra a propietarios y administradores los bytes registrados y el número de archivos PDF de su empresa. Incluye revisiones anteriores conservadas y archivos registrados como limpios aunque estén en borrador. Los archivos rechazados o en cuarentena quedan fuera de ese total. El panel muestra la capacidad contratada como pendiente de activación.
+
+La migración `0062_company_document_storage` calcula el total inicial a partir de las revisiones existentes. Las cargas posteriores actualizan los totales por empresa en la misma transacción que la revisión. El medidor usa metadatos confirmados en PostgreSQL. La reconciliación periódica con los objetos reales y el costo de copias técnicas quedan por implementar. El agregado no otorga permisos sobre documentos ni devuelve nombres o rutas de archivos.
+
+La cuota contratada, su aplicación en los cargadores, las ampliaciones facturables y las fotos privadas persistentes quedan pendientes de implementación.

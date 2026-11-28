@@ -49,6 +49,45 @@ test("a collaborator can see their profile and a direct hash does not open compa
   await page.goto("/#employees-heading");
   await expect(nav.getByRole("link", { name: "Employee directory" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Employee directory" })).toHaveCount(0);
+  await page.goto("/#company-storage-heading");
+  await expect(nav.getByRole("link", { name: "Storage usage" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Storage usage" })).toHaveCount(0);
+});
+
+test("company storage shows document totals and clears responses from another company", async ({ page }, info) => {
+  await useCompany(page, "owner");
+  const foreignTenant = "10000000-0000-4000-8000-000000000002";
+  let mismatched = false;
+  let recordedBytes = 1_987_400;
+  await page.route(`**/api/identity/company-storage/${tenant}`, route => route.fulfill({
+    headers: { "X-Tenant-ID": tenant },
+    json: { tenant_id: mismatched ? foreignTenant : tenant, recorded_bytes: recordedBytes, document_file_count: recordedBytes ? 3 : 0 },
+  }));
+  await page.goto("/#company-control-heading");
+  await page.getByRole("button", { name: /Storage usage/ }).click();
+  await expect(page).toHaveURL(/#company-storage-heading$/);
+  const panel = page.getByRole("region", { name: "Storage usage" });
+  await expect(panel.getByText("1,987,400 bytes")).toBeVisible();
+  await expect(panel.getByText("1.99 MB", { exact: false })).toBeVisible();
+  await expect(panel.getByText("Pending activation", { exact: false })).toBeVisible();
+  await panel.screenshot({ path: info.outputPath("company-storage-desktop.png") });
+  mismatched = true;
+  await panel.getByRole("button", { name: "Refresh usage" }).click();
+  await expect(panel.getByRole("alert")).toContainText("could not be loaded");
+  await expect(panel.getByText("1,987,400 bytes")).toHaveCount(0);
+  mismatched = false;
+  recordedBytes = 36;
+  await panel.getByRole("button", { name: "Refresh usage" }).click();
+  await expect(panel.getByText("Less than 0.01 MB", { exact: false })).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 760 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
+  const a11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(a11y.violations).toEqual([]);
+  await page.getByRole("checkbox", { name: "Use dark theme" }).press("Space");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const darkA11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(darkA11y.violations).toEqual([]);
+  await panel.screenshot({ path: info.outputPath("company-storage-mobile.png") });
 });
 
 test("company administration saves employee profiles and rejects an unexpected company response", async ({ page }, info) => {

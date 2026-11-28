@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, CalendarRange, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, Settings2, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Building2, CalendarRange, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, HardDrive, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, Settings2, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
@@ -20,6 +20,7 @@ import { AuditWorkspace } from "./audit-workspace";
 import { InternalAuditsWorkspace } from "./internal-audits-workspace";
 import { GuidedJourneyWorkspace } from "./guided-journey-workspace";
 import { EmployeesWorkspace } from "./employees-workspace";
+import { CompanyStorageWorkspace } from "./company-storage-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
@@ -48,6 +49,7 @@ const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   organization: Building2,
   "company-control": Settings2,
   employees: UserRound,
+  "company-storage": HardDrive,
   permissions: KeyRound,
   workflows: WorkflowIcon,
   audit: ScrollText,
@@ -305,6 +307,7 @@ export function IdentityShell() {
           {presentedModule === "my-profile" && <PersonalProfile name={identity.display_name} email={identity.email} company={current.name} role={current.role} />}
           {presentedModule === "company-control" && <CompanyControl name={current.name} role={current.role} onNavigate={navigateWorkspace} />}
           {presentedModule === "employees" && <EmployeesWorkspace key={`employees-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} company={current.name} />}
+          {presentedModule === "company-storage" && <CompanyStorageWorkspace key={`storage-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} company={current.name} />}
           {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} onDraftChange={onGuideDraftChange} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}

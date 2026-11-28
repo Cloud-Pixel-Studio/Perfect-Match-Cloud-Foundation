@@ -15,6 +15,7 @@ from pmc_api.auth import router as auth_router
 from pmc_api.capa import router as capa_router
 from pmc_api.capa_links import router as capa_links_router
 from pmc_api.capa_trace_links import router as capa_trace_links_router
+from pmc_api.company_storage import router as company_storage_router
 from pmc_api.config import get_settings
 from pmc_api.control_definitions import router as control_definitions_router
 from pmc_api.control_instance_activities import router as control_instance_activities_router
@@ -93,6 +94,7 @@ app.include_router(tenant_router)
 app.include_router(audit_router)
 app.include_router(organization_router)
 app.include_router(employees_router)
+app.include_router(company_storage_router)
 app.include_router(qms_access_router)
 app.include_router(qms_context_router)
 app.include_router(qms_party_document_links_router)

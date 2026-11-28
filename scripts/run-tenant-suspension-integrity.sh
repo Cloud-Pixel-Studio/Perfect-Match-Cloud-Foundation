@@ -30,7 +30,7 @@ done
   if [ "${PMC_TEST_SCHEMA_REVISION:-head}" = head ]; then
     uv run --no-sync alembic downgrade 0048_audit_competence
     uv run --no-sync alembic upgrade head
-    tests+=(tests/test_employee_directory_integrity.py)
+    tests+=(tests/test_employee_directory_integrity.py tests/test_company_storage_integrity.py)
   fi
   uv run --no-sync pytest -m tenant_suspension_integrity "${tests[@]}" "$@"
 )

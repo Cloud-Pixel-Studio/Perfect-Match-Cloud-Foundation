@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Medidor de almacenamiento documental · 28 noviembre 2026
+- **Control de empresa → Storage usage** muestra MB, bytes y número de PDFs limpios registrados, incluidas revisiones retenidas. Solo owner/admin de la empresa activa. El agregado con RLS forzado conserva los permisos documentales existentes. La capacidad contractual se muestra pendiente y todavía no limita cargas.
+- `0062_company_document_storage` pasó reversión y reconstrucción sobre tres revisiones existentes. Pasaron 41 integraciones PostgreSQL, 377 unitarias web y 20 recorridos de navegador con API simulada. Se verificaron 320 px en ambos temas, cargas concurrentes y rollback. Respaldo de código `CP-STORAGE-METER-00-20261128T082448Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-METER-DB-20261128T082449Z` restaurado. Entrega en el PR #70.
+
 ## Asistente para elegir plan · 27 noviembre 2026
 - Comparados Qualio, Greenlight Guru, monday.com y Jira en sus fuentes oficiales. `/products/plans` estima la menor cuota propuesta usando los MB declarados, detecta seats adicionales en Básico y permite solicitar cotización por encima de 250 000 MB. El resumen editable conserva el cálculo y pide cotizar por separado los costos recurrentes y los servicios únicos. Las cuotas operativas y los precios comerciales siguen pendientes.
 - Respaldo incremental cifrado `CP-PLAN-GUIDE-00-20261128T032356Z` verificado sobre el respaldo `CP-STORAGE-DISCLOSURE-00-20261128T015114Z`. Pasaron 377 unitarias web, 6 recorridos de Productos, Axe con resultado visible a 320 px en ambos temas y dos comparaciones de escritorio. Entrega en la rama del PR #70.

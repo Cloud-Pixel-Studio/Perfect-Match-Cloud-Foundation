@@ -49,7 +49,7 @@ describe("persona-aware workspace navigation", () => {
 
   it("does not treat a tenant owner role as QMS operating authority", () => {
     expect(ids("owner", [])).toEqual([
-      "overview", "actions", "my-profile", "implementation-guide", "workflows", "company-control", "employees", "organization", "permissions", "audit",
+      "overview", "actions", "my-profile", "implementation-guide", "workflows", "company-control", "employees", "company-storage", "organization", "permissions", "audit",
     ]);
   });
 
@@ -67,6 +67,7 @@ describe("persona-aware workspace navigation", () => {
     for (const role of ["member", "auditor"]) {
       expect(ids(role, [])).toContain("my-profile");
       expect(ids(role, ["context.manage"])).not.toContain("company-control");
+      expect(ids(role, ["documents.read"])).not.toContain("company-storage");
     }
     expect(workspaceFromHash("#company-control-heading")).toBe("company-control");
   });
