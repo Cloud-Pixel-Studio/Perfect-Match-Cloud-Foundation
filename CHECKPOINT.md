@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Almacenamiento por empresa y plan · 27 noviembre 2026
+- El usuario pidió que el almacenamiento por empresa esté incluido en el precio. Propuesta en `docs/product/COMPANY_STORAGE_PLANS.md`: Básico 5 000 MB, Equipo 25 000 MB, Profesional 100 000 MB, Empresarial 250 000 MB. Cuotas y precios finales pendientes de aprobación. Se preserva el Básico con una empresa, 3 seats y 1 addon ISO.
+- El tarifario oficial de S3 Virginia se cotejó con el modelo de costo. Se documentaron revisiones, fotos, evidencias, alertas, ampliaciones y reserva atómica de capacidad. Medición, cuotas efectivas y precios finales siguen pendientes. Respaldo cifrado de código `CP-STORAGE-PLANS-00-20261128T012632Z` descifrado y cotejado.
+
 ## Directorio de trabajadores persistente · 27 noviembre 2026
 - **Control de empresa → Employee directory** permite a propietarios y administradores buscar, crear, editar, archivar y restaurar fichas por unidad. Guarda nombre y cargo sin crear cuenta ni consumir seat. La API fija la empresa en la ruta y en la sesión. PostgreSQL exige empresa activa y RLS. La bitácora conserva actor, fecha y campos modificados sin copiar nombres ni cargos.
 - Migración `0061_employee_directory`: regresión desde `0048`, reversión en vacío y veto con un registro existente. Respaldo cifrado de código `CP-EMPLOYEE-DIRECTORY-00-20261128T011252Z` cotejado. Respaldo separado de BD sintética `CP-EMPLOYEE-DIRECTORY-DB-20261128T012119Z` restaurado y verificado con ficha, bitácora y RLS.

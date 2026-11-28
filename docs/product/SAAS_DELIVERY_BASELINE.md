@@ -12,6 +12,10 @@ contracted and planned capabilities. No fabricated compliance badges or enabled
 checkout for unvalidated products. Edition changes preserve prior evidence and
 mapping versions. Standard publications and certification are not included.
 
+Each company plan will include private storage in the recurring contract price.
+See the [proposed company storage quotas](COMPANY_STORAGE_PLANS.md) for limits,
+cost assumptions and the implementation criteria.
+
 ## Architecture recommendation
 
 Keep the existing modular application: Next.js/React/TypeScript frontend,
