@@ -24,8 +24,9 @@ La ficha laboral y la cuenta de acceso tienen ciclos de vida independientes. Una
 ## Entrega actual
 
 - **Mi perfil** y **Control de empresa** se integran en el SaaS autenticado. Control de empresa abre las pantallas operativas existentes según la autoridad de la sesión.
+- **Directorio de trabajadores** está disponible en Control de empresa para propietarios y administradores. Guarda nombre, cargo y unidad organizativa. La ficha es independiente de la cuenta de inicio de sesión y del seat. Permite buscar, editar, archivar y restaurar, con aislamiento de la empresa en PostgreSQL y registro de quién hizo cada cambio. La bitácora identifica los campos modificados sin copiar nombres ni cargos.
 - `/design-studio/control-centers` ofrece datos sintéticos y permite ensayar la alta, edición, foto, archivo, restauración y cursos. También permite explorar personalización de empresa y el panel interno. Activar con `PMQMS_CONTROL_PREVIEW=1` en el proceso web de revisión. La ruta devuelve 404 de forma predeterminada. Los cambios de la vista previa se mantienen en memoria y se reinician al recargar.
-- Siguientes entregas de Personas: ficha persistente y permisos por unidad, fotos privadas, catálogo y sesiones, asignaciones y resultados, y finalmente evaluaciones, evidencias, vencimientos y acuses. El registro de formación aportará evidencias de 7.2 y 7.3 con aprobación y trazabilidad.
+- Siguientes entregas de Personas: fotos privadas en la ficha autenticada, delegación por unidad, catálogo y sesiones, asignaciones y resultados, y finalmente evaluaciones, evidencias, vencimientos y acuses. El registro de formación aportará evidencias de 7.2 y 7.3 con aprobación y trazabilidad.
 
 ## Retratos de ejemplo
 

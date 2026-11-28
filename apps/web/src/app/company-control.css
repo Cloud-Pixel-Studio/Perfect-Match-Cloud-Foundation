@@ -272,6 +272,12 @@
 .cc-brand-preview[data-accent="plum"] { border-top-color: #95599c; }
 .cc-brand-preview small { color: var(--pm-text-muted); }
 .cc-prototype :focus-visible, .cc-workspace :focus-visible { outline: 3px solid var(--pm-focus); outline-offset: 3px; }
+.cc-employee-workspace-grid .cc-card > .cc-form { margin-block: var(--pm-space-4); }
+.cc-employee-workspace-grid .cc-form .cc-directory-check { display: flex; align-items: center; gap: .4rem; }
+.cc-employee-workspace-grid .cc-directory-check input { width: auto; min-height: auto; }
+.cc-employee-workspace-grid .cc-facts { margin: 0; }
+.cc-employee-workspace-grid .cc-facts dt { display: flex; align-items: center; gap: .35rem; }
+.cc-employee-workspace-grid .cc-employee-identity h3 { font-size: clamp(1.35rem, 2.6vw, 1.85rem); margin-block: .4rem .23rem; }
 
 @media (max-width: 920px) {
   .cc-prototype-layout { grid-template-columns: minmax(0, 1fr); }

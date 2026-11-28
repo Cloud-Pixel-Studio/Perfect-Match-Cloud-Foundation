@@ -24,6 +24,20 @@ class Base(DeclarativeBase):
     pass
 
 
+class EmployeeProfile(Base):
+    __tablename__ = "employee_profiles"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    full_name: Mapped[str]
+    job_title: Mapped[str]
+    status: Mapped[str]
+    row_version: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class QMSContextRecord(Base):
     __tablename__ = "qms_context_records"
 

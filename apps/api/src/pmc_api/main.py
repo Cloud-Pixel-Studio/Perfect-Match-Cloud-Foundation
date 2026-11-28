@@ -22,6 +22,7 @@ from pmc_api.control_instance_evidence import router as control_instance_evidenc
 from pmc_api.controls import router as controls_router
 from pmc_api.database import database_is_ready
 from pmc_api.documents import router as documents_router
+from pmc_api.employees import router as employees_router
 from pmc_api.internal_audit_agenda import router as internal_audit_agenda_router
 from pmc_api.internal_audit_competence import router as internal_audit_competence_router
 from pmc_api.internal_audit_criteria import router as internal_audit_criteria_router
@@ -91,6 +92,7 @@ app.include_router(action_center_router)
 app.include_router(tenant_router)
 app.include_router(audit_router)
 app.include_router(organization_router)
+app.include_router(employees_router)
 app.include_router(qms_access_router)
 app.include_router(qms_context_router)
 app.include_router(qms_party_document_links_router)

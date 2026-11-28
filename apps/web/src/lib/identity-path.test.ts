@@ -7,6 +7,11 @@ test("resource UUIDs are accepted for organization and workflow routes", () => {
   expect(isAllowedIdentityPath(["action-center"])).toBe(true);
   expect(isAllowedIdentityPath(["context", "interested-parties", id, "history"])).toBe(true);
   expect(isAllowedIdentityPath(["organization", "units", id])).toBe(true);
+  expect(isAllowedIdentityPath(["employees", id])).toBe(true);
+  expect(isAllowedIdentityPath(["employees", id, id, "archive"])).toBe(true);
+  expect(isAllowedIdentityPath(["employees", id, id, "restore"])).toBe(true);
+  expect(isAllowedIdentityPath(["employees", id, id, "photo"])).toBe(false);
+  expect(isAllowedIdentityPath(["employees", "organization", id])).toBe(false);
   expect(isAllowedIdentityPath(["workflows", id, "versions"])).toBe(true);
   expect(isAllowedIdentityPath(["workflow-instances", id, "transitions"])).toBe(true);
   expect(isAllowedIdentityPath(["documents", id, "revisions", id, "file"])).toBe(true);

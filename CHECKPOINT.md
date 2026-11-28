@@ -1,5 +1,10 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Directorio de trabajadores persistente · 27 noviembre 2026
+- **Control de empresa → Employee directory** permite a propietarios y administradores buscar, crear, editar, archivar y restaurar fichas por unidad. Guarda nombre y cargo sin crear cuenta ni consumir seat. La API fija la empresa en la ruta y en la sesión. PostgreSQL exige empresa activa y RLS. La bitácora conserva actor, fecha y campos modificados sin copiar nombres ni cargos.
+- Migración `0061_employee_directory`: regresión desde `0048`, reversión en vacío y veto con un registro existente. Respaldo cifrado de código `CP-EMPLOYEE-DIRECTORY-00-20261128T011252Z` cotejado. Respaldo separado de BD sintética `CP-EMPLOYEE-DIRECTORY-DB-20261128T012119Z` restaurado y verificado con ficha, bitácora y RLS.
+- Pasaron 38 integraciones en PostgreSQL desechable, 361 unitarias web y 16 recorridos en Chromium con API simulada. La ficha pasó Axe en ambos temas a 375 px. Entrega en la rama del PR #70. Quedan pendientes fotos privadas persistentes, formación y delegación por unidad. La demo AWS sigue en la versión anterior.
+
 ## Retratos en fichas de Personas · 27 noviembre 2026
 - Respaldo cifrado `CP-EMPLOYEE-PROFILES-00-20261128T010247Z` descifrado y cotejado, con bundle Git verificado.
 - La vista de diseño de Personas muestra tres retratos ficticios, un visor ampliado y un resumen individual de formación. El formulario permite cargar y reemplazar la foto de ejemplo con validación local de formato y dimensiones.

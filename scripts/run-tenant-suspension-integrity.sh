@@ -25,10 +25,12 @@ for attempt in $(seq 1 20); do
 done
 (
   cd apps/api
+  tests=(tests/test_tenant_suspension_integrity.py tests/test_module_operability_http_integrity.py)
   uv run --no-sync alembic upgrade "${PMC_TEST_SCHEMA_REVISION:-head}"
   if [ "${PMC_TEST_SCHEMA_REVISION:-head}" = head ]; then
     uv run --no-sync alembic downgrade 0048_audit_competence
     uv run --no-sync alembic upgrade head
+    tests+=(tests/test_employee_directory_integrity.py)
   fi
-  uv run --no-sync pytest -m tenant_suspension_integrity tests/test_tenant_suspension_integrity.py tests/test_module_operability_http_integrity.py "$@"
+  uv run --no-sync pytest -m tenant_suspension_integrity "${tests[@]}" "$@"
 )

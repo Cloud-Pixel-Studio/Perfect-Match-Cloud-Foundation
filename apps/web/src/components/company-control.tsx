@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowUpRight, Building2, CalendarCheck, KeyRound, ScrollText, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowUpRight, Building2, CalendarCheck, KeyRound, ScrollText, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import type { WorkspaceId } from "../lib/workspace-navigation";
 import { ThemeToggle } from "./theme-toggle";
 
 const companyAreas = [
   { id: "organization", icon: Building2, name: "Organization structure", description: "Manage sites, departments and unit assignments." },
+  { id: "employees", icon: UsersRound, name: "Employee directory", description: "Create, update and archive employee profiles." },
   { id: "permissions", icon: KeyRound, name: "Permissions", description: "Assign QMS responsibilities by organizational unit." },
   { id: "implementation-guide", icon: CalendarCheck, name: "QMS implementation", description: "Plan a rollout and review your company’s implementation records." },
   { id: "audit", icon: ScrollText, name: "Audit trail", description: "Review recorded changes and the people who made them." },

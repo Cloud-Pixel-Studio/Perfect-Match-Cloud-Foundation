@@ -12,6 +12,7 @@ export type WorkspaceId =
   | "capa"
   | "organization"
   | "company-control"
+  | "employees"
   | "permissions"
   | "workflows"
   | "audit";
@@ -74,6 +75,7 @@ export const workspaceSections: { label: string; items: WorkspaceItem[] }[] = [
     label: "Administration",
     items: [
       { id: "company-control", label: "Company control", description: "Open the settings and governance for this company.", hash: "company-control-heading" },
+      { id: "employees", label: "Employee directory", description: "Manage employee profiles and organizational assignments.", hash: "employees-heading" },
       { id: "organization", label: "Organization", description: "Units, assignments and scope.", hash: "organization-workspace-heading" },
       { id: "permissions", label: "Permissions", description: "Grant explicit QMS responsibilities.", hash: "qms-access-heading" },
       { id: "audit", label: "Audit trail", description: "Review recorded changes.", hash: "audit-heading" },
@@ -99,7 +101,7 @@ export function workspaceSectionsForContext(role: string, capabilities: Iterable
   const assurance = administration || role === "auditor";
   const visible = (id: WorkspaceId) => {
     if (id === "overview" || id === "actions" || id === "my-profile" || id === "workflows" || id === "permissions") return true;
-    if (id === "company-control") return administration;
+    if (id === "company-control" || id === "employees") return administration;
     if (id === "implementation-guide") return administration
       || assigned.includes("projects.read") || assigned.includes("context.read");
     if (id === "organization" || id === "audit") return assurance;

@@ -46,6 +46,98 @@ test("a collaborator can see their profile and a direct hash does not open compa
   await expect(page.getByRole("heading", { name: "Company control" })).toHaveCount(0);
   await nav.getByRole("link", { name: "My profile", exact: true }).click();
   await expect(page.getByRole("region", { name: "Account details" }).getByText("member", { exact: true })).toBeVisible();
+  await page.goto("/#employees-heading");
+  await expect(nav.getByRole("link", { name: "Employee directory" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Employee directory" })).toHaveCount(0);
+});
+
+test("company administration saves employee profiles and rejects an unexpected company response", async ({ page }, info) => {
+  await useCompany(page, "owner");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  const employeeId = "30000000-0000-4000-8000-000000000001";
+  const unit = "40000000-0000-4000-8000-000000000001";
+  let saved: { full_name: string; job_title: string; status: string; row_version: number; id: string; unit_id: string; tenant_id: string } | undefined;
+  let mismatched = false;
+  await page.route("**/api/identity/organization/units?*", route => route.fulfill({
+    headers: { "X-Tenant-ID": tenant },
+    json: [{ id: unit, tenant_id: tenant, status: "active", name: "Quality", code: "Q" }],
+  }));
+  await page.route("**/api/identity/employees/**", route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const headers = { "X-Tenant-ID": mismatched ? "different-company" : tenant };
+    if (request.method() === "GET") {
+      const items = saved && (saved.status === "active" || url.searchParams.get("include_archived") === "true") ? [saved] : [];
+      return route.fulfill({ headers, json: { items, has_more: false } });
+    }
+    const payload = request.postDataJSON();
+    if (request.method() === "POST" && url.pathname.endsWith(tenant)) {
+      expect(payload).toEqual({ full_name: "Ana Montes", job_title: "Inspector", unit_id: unit });
+      saved = { ...payload, id: employeeId, tenant_id: tenant, status: "active", row_version: 1 };
+      return route.fulfill({ headers, json: saved, status: 201 });
+    }
+    if (!saved) throw new Error("Employee fixture was not saved");
+    expect(payload.expected_version).toBe(saved.row_version);
+    if (request.method() === "PATCH") {
+      expect(payload.job_title).toBe("Lead inspector");
+      saved = { ...saved, job_title: payload.job_title, row_version: saved.row_version + 1 };
+    } else {
+      saved = { ...saved, status: url.pathname.endsWith("/archive") ? "archived" : "active", row_version: saved.row_version + 1 };
+    }
+    return route.fulfill({ headers, json: saved });
+  });
+  await page.goto("/#company-control-heading");
+  await page.getByRole("button", { name: /Employee directory/ }).click();
+  await expect(page).toHaveURL(/#employees-heading$/);
+  await page.getByRole("button", { name: "Add employee" }).click();
+  const form = page.getByRole("form", { name: "New employee" });
+  await form.getByLabel("Full name").fill("Ana Montes");
+  await form.getByLabel("Job title").fill("Inspector");
+  await form.getByLabel("Organization unit").selectOption(unit);
+  await form.getByRole("button", { name: "Save profile" }).click();
+  const profile = page.getByRole("region", { name: "Ana Montes" });
+  await expect(profile.getByText("Inspector", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(profile).toBeVisible();
+  await profile.getByRole("button", { name: "Edit profile" }).click();
+  const editor = page.getByRole("form", { name: "Edit employee" });
+  await editor.getByLabel("Job title").fill("Lead inspector");
+  await editor.getByRole("button", { name: "Save profile" }).click();
+  await expect(profile.getByText("Lead inspector")).toBeVisible();
+  await profile.getByRole("button", { name: "Archive employee" }).click();
+  await expect(profile).toHaveCount(0);
+  await page.getByRole("checkbox", { name: "Include archived" }).check();
+  await expect(profile.getByText("Archived", { exact: true })).toBeVisible();
+  await profile.getByRole("button", { name: "Restore employee" }).click();
+  await expect(profile.getByText("Active", { exact: true })).toBeVisible();
+  await page.screenshot({ path: info.outputPath("authenticated-employee-directory.png") });
+  await page.setViewportSize({ width: 375, height: 812 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(376);
+  const a11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(a11y.violations).toEqual([]);
+  await page.getByRole("checkbox", { name: "Use dark theme" }).press("Space");
+  const darkA11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(darkA11y.violations).toEqual([]);
+  await profile.screenshot({ path: info.outputPath("authenticated-employee-mobile.png") });
+  mismatched = true;
+  await page.reload();
+  await expect(page.getByRole("alert").getByText("The employee directory could not be loaded.")).toBeVisible();
+  await expect(profile).toHaveCount(0);
+  await page.route("**/api/identity/audit/events?*", route => route.fulfill({
+    json: {
+      items: [{
+        id: employeeId, occurred_at: "2026-11-27T19:00:00Z", actor_display_name: "Synthetic account",
+        actor_role: "owner", action: "employee.updated", resource_type: "employee_profile",
+        resource_id: employeeId, request_id: unit, schema_version: 1, changed_fields: ["row_version"],
+        old_values: { row_version: 1 }, new_values: { row_version: 2 }, metadata: { profile_fields: ["job_title"] },
+      }],
+      next_cursor: null,
+    },
+  }));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole("link", { name: "Audit trail", exact: true }).click();
+  await page.locator(".audit-event summary").getByText("Employee · Updated", { exact: true }).click();
+  await expect(page.getByText("Profile changes recorded for Job Title.", { exact: true })).toBeVisible();
 });
 
 test("the explicitly enabled design preview supports employee, training, branding and operations review", async ({ page }, info) => {

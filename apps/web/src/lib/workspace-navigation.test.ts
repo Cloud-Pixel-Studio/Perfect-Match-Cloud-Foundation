@@ -49,7 +49,7 @@ describe("persona-aware workspace navigation", () => {
 
   it("does not treat a tenant owner role as QMS operating authority", () => {
     expect(ids("owner", [])).toEqual([
-      "overview", "actions", "my-profile", "implementation-guide", "workflows", "company-control", "organization", "permissions", "audit",
+      "overview", "actions", "my-profile", "implementation-guide", "workflows", "company-control", "employees", "organization", "permissions", "audit",
     ]);
   });
 

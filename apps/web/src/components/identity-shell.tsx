@@ -19,6 +19,7 @@ import { ActionCenterWorkspace } from "./action-center-workspace";
 import { AuditWorkspace } from "./audit-workspace";
 import { InternalAuditsWorkspace } from "./internal-audits-workspace";
 import { GuidedJourneyWorkspace } from "./guided-journey-workspace";
+import { EmployeesWorkspace } from "./employees-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
@@ -46,6 +47,7 @@ const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   capa: ClipboardCheck,
   organization: Building2,
   "company-control": Settings2,
+  employees: UserRound,
   permissions: KeyRound,
   workflows: WorkflowIcon,
   audit: ScrollText,
@@ -302,6 +304,7 @@ export function IdentityShell() {
           {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${identity.id}-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
           {presentedModule === "my-profile" && <PersonalProfile name={identity.display_name} email={identity.email} company={current.name} role={current.role} />}
           {presentedModule === "company-control" && <CompanyControl name={current.name} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "employees" && <EmployeesWorkspace key={`employees-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} company={current.name} />}
           {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} onDraftChange={onGuideDraftChange} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}
