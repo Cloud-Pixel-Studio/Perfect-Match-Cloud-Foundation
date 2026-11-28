@@ -1,5 +1,10 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Retratos en fichas de Personas · 27 noviembre 2026
+- Respaldo cifrado `CP-EMPLOYEE-PROFILES-00-20261128T010247Z` descifrado y cotejado, con bundle Git verificado.
+- La vista de diseño de Personas muestra tres retratos ficticios, un visor ampliado y un resumen individual de formación. El formulario permite cargar y reemplazar la foto de ejemplo con validación local de formato y dimensiones.
+- Pasaron lint, TypeScript, compilación, 361 pruebas unitarias y 15 recorridos en Chromium. Se comprobó teclado y Axe en el visor, ambos temas a 375 px y ausencia de desplazamiento horizontal a 320 px. Entrega en la rama del PR #70. Empleados y fotos permanecen en memoria en la vista previa.
+
 ## Nombres visibles de los paneles · 27 noviembre 2026
 - El usuario pidió quitar «SaaS» de la interfaz. Se aplicó en el panel de Operación de plataforma, la guía de implementación y el catálogo visual. La descarga de la presentación usa `product-overview.png` y conserva su dirección anterior.
 - Respaldo cifrado `CP-PLATFORM-LABELS-00-20261128T005546Z` descifrado y cotejado. Pasaron 361 unitarias web y 15 recorridos de paneles, guías y catálogo visual. Vista local actualizada. Entrega en la rama del PR #70.

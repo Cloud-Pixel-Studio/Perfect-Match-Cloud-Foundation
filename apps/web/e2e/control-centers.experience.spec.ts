@@ -56,16 +56,47 @@ test("the explicitly enabled design preview supports employee, training, brandin
   }
   expect(response?.ok()).toBe(true);
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.screenshot({ path: info.outputPath("people-preview.png"), fullPage: true });
+  const lucia = page.getByRole("region", { name: "Lucía Rivera" });
+  const portrait = lucia.getByAltText("Photo of Lucía Rivera", { exact: true });
+  await expect(portrait).toBeVisible();
+  await expect.poll(() => portrait.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(512);
+  await page.screenshot({ path: info.outputPath("employee-profile-desktop.png") });
+  const viewPhoto = lucia.getByRole("button", { name: "View profile photo of Lucía Rivera" });
+  await viewPhoto.press("Enter");
+  const photoDialog = page.getByRole("dialog", { name: "Profile photo of Lucía Rivera" });
+  await expect(photoDialog.getByAltText("Profile portrait of Lucía Rivera")).toBeVisible();
+  const dialogA11y = await new AxeBuilder({ page }).include("dialog[open]").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(dialogA11y.violations).toEqual([]);
+  await page.screenshot({ path: info.outputPath("employee-photo-viewer.png") });
+  await page.keyboard.press("Escape");
+  await expect(photoDialog).toBeHidden();
+  await expect(viewPhoto).toBeFocused();
   await page.getByRole("button", { name: "Add employee" }).click();
   const employee = page.getByRole("form", { name: "Add employee" });
   await employee.getByLabel("Full name").fill("Ana Montes");
   await employee.getByLabel("Job title").fill("Quality technician");
-  await employee.getByLabel("Employee photo").setInputFiles("public/brand/raster/favicon-64.png");
+  const saveEmployee = employee.getByRole("button", { name: "Save sample employee" });
+  await saveEmployee.click();
+  await expect(employee.getByRole("alert")).toHaveText("Add a profile photo before saving.");
+  const profilePhoto = employee.getByLabel("Profile photo");
+  await profilePhoto.setInputFiles({
+    name: "broken.png", mimeType: "image/png", buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
+  await expect(employee.getByRole("alert")).toHaveText("This image could not be opened.");
+  await profilePhoto.setInputFiles("public/brand/control-centers/portraits/elena-cruz.jpg");
   await expect(employee.getByRole("img", { name: "Employee photo preview" })).toBeVisible();
-  await employee.getByRole("button", { name: "Save sample employee" }).click();
+  await saveEmployee.click();
   const record = page.getByRole("region", { name: "Ana Montes" });
-  await expect(record.getByRole("img", { name: "Photo of Ana Montes" })).toBeVisible();
+  await expect(record.getByAltText("Photo of Ana Montes")).toBeVisible();
+  await record.getByRole("button", { name: "Edit profile" }).click();
+  const editor = page.getByRole("form", { name: "Edit employee" });
+  const editedPhoto = editor.getByAltText("Photo of Ana Montes");
+  const originalPhoto = await editedPhoto.getAttribute("src");
+  await editor.getByLabel("Profile photo").setInputFiles("public/brand/control-centers/portraits/marcos-pena.jpg");
+  await expect(editedPhoto).not.toHaveAttribute("src", originalPhoto!);
+  const replacementPhoto = await editedPhoto.getAttribute("src");
+  await editor.getByRole("button", { name: "Save sample employee" }).click();
+  await expect(record.getByAltText("Photo of Ana Montes")).toHaveAttribute("src", replacementPhoto!);
 
   await page.getByRole("button", { name: "New course" }).click();
   const course = page.getByRole("form", { name: "New course" });
@@ -76,7 +107,8 @@ test("the explicitly enabled design preview supports employee, training, brandin
   await assign.getByLabel("Due date").fill("2026-12-08");
   await assign.getByRole("button", { name: "Assign course" }).click();
   await record.getByRole("button", { name: "Record completion for Sampling inspection" }).click();
-  await expect(record.getByText("Completed", { exact: true })).toBeVisible();
+  const assigned = record.getByRole("region", { name: "Assigned training" });
+  await expect(assigned.getByText("Completed", { exact: true })).toBeVisible();
   await record.getByRole("button", { name: "Archive employee" }).click();
   await expect(record.getByText("Archived", { exact: true })).toBeVisible();
   await record.getByRole("button", { name: "Restore employee" }).click();
@@ -104,14 +136,18 @@ test("the explicitly enabled design preview supports employee, training, brandin
 
   await page.setViewportSize({ width: 375, height: 812 });
   await nav.getByRole("button", { name: "People & training" }).click();
-  await expect(record.getByText("Completed", { exact: true })).toBeVisible();
+  await expect(assigned.getByText("Completed", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "People & training" })).toBeVisible();
   const a11y = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(a11y.violations).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(376);
   await page.getByRole("checkbox", { name: "Use dark theme" }).press("Space");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: /Lucía Rivera.*Quality coordinator/ }).click();
+  await expect(portrait).toBeVisible();
   const darkA11y = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(darkA11y.violations).toEqual([]);
-  await page.screenshot({ path: info.outputPath("people-mobile-dark.png"), fullPage: true });
+  await lucia.screenshot({ path: info.outputPath("employee-profile-mobile.png") });
+  await page.setViewportSize({ width: 320, height: 720 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
 });

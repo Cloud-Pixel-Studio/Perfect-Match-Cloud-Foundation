@@ -1,8 +1,8 @@
 "use client";
 
-import { Building2, GraduationCap, KeyRound, Layers3, Search, ShieldCheck, UserRound, UserRoundPlus, UsersRound } from "lucide-react";
+import { Building2, GraduationCap, KeyRound, Layers3, Maximize2, Search, ShieldCheck, UserRound, UserRoundPlus, UsersRound, X } from "lucide-react";
 import Image from "next/image";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { BrandMark } from "./brand-mark";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -16,9 +16,9 @@ type Person = { id: string; name: string; title: string; unit: string; status: "
 type Course = { id: string; title: string };
 type Enrollment = { personId: string; courseId: string; dueOn: string; completed: boolean };
 const initialPeople: Person[] = [
-  { id: "EMP-101", name: "Lucía Rivera", title: "Quality coordinator", unit: "Quality", status: "Active" },
-  { id: "EMP-102", name: "Marcos Peña", title: "Receiving supervisor", unit: "Operations", status: "Active" },
-  { id: "EMP-103", name: "Elena Cruz", title: "Inspection technician", unit: "Operations", status: "Active" },
+  { id: "EMP-101", name: "Lucía Rivera", title: "Quality coordinator", unit: "Quality", status: "Active", photo: "/brand/control-centers/portraits/lucia-rivera.jpg" },
+  { id: "EMP-102", name: "Marcos Peña", title: "Receiving supervisor", unit: "Operations", status: "Active", photo: "/brand/control-centers/portraits/marcos-pena.jpg" },
+  { id: "EMP-103", name: "Elena Cruz", title: "Inspection technician", unit: "Operations", status: "Active", photo: "/brand/control-centers/portraits/elena-cruz.jpg" },
 ];
 const initialCourses: Course[] = [
   { id: "COURSE-01", title: "Controlled documentation" },
@@ -35,12 +35,34 @@ const previewDate = "2026-11-27";
 const units = ["Quality", "Operations", "Administration"];
 const displayDate = (date: string) => new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(date + "T00:00:00Z"));
 
-function PersonAvatar({ person }: { person: Person }) {
-  return <span className="cc-avatar">
+function PersonAvatar({ person, portrait = false }: { person: Person; portrait?: boolean }) {
+  const size = portrait ? 144 : 40;
+  return <span className={portrait ? "cc-avatar cc-avatar-portrait" : "cc-avatar"}>
     {person.photo
-      ? <Image src={person.photo} width={64} height={64} alt={person.name ? `Photo of ${person.name}` : "Employee photo preview"} unoptimized />
-      : <span aria-hidden="true">{person.name.split(/\s+/).slice(0, 2).map(name => name[0]).join("").toUpperCase() || "—"}</span>}
+      ? <Image src={person.photo} width={size} height={size} alt={portrait ? person.name ? `Photo of ${person.name}` : "Employee photo preview" : ""} unoptimized />
+      : <UserRound aria-hidden="true" size={portrait ? 38 : 18} />}
   </span>;
+}
+
+function ProfilePortrait({ person }: { person: Person }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  if (!person.photo) return <PersonAvatar person={person} portrait />;
+  return <>
+    <button className="cc-profile-portrait" type="button" ref={trigger} aria-label={`View profile photo of ${person.name}`}
+      aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>
+      <PersonAvatar person={person} portrait />
+      <span className="cc-photo-expand"><Maximize2 size={15} aria-hidden="true" /></span>
+    </button>
+    <dialog ref={dialog} className="cc-photo-dialog" aria-label={`Profile photo of ${person.name}`}
+      onClose={() => trigger.current?.focus()}>
+      <div className="cc-photo-dialog-heading">
+        <strong>{person.name}</strong>
+        <button className="cc-secondary" type="button" onClick={() => dialog.current?.close()}><X size={17} aria-hidden="true" /> Close photo</button>
+      </div>
+      <Image src={person.photo} width={512} height={512} alt={`Profile portrait of ${person.name}`} unoptimized />
+    </dialog>
+  </>;
 }
 
 async function localPhoto(file: File) {
@@ -48,6 +70,10 @@ async function localPhoto(file: File) {
   const bytes = new Uint8Array(await file.slice(0, 8).arrayBuffer());
   const signature = file.type === "image/png" ? [137, 80, 78, 71, 13, 10, 26, 10] : [255, 216, 255];
   if (!signature.every((byte, index) => bytes[index] === byte)) throw new Error("Choose a valid PNG or JPG.");
+  const image = await createImageBitmap(file).catch(() => { throw new Error("This image could not be opened."); });
+  const exceedsSize = image.width > 4096 || image.height > 4096;
+  image.close();
+  if (exceedsSize) throw new Error("Choose an image up to 4096 pixels wide and tall.");
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("The photo could not be read."));
@@ -71,26 +97,33 @@ function PersonEditor({ person, onSave, onCancel }: { person: Person; onSave: (p
       setIssue("Enter a name, a job title and a department.");
       return;
     }
+    if (!photo) {
+      setIssue("Add a profile photo before saving.");
+      return;
+    }
     onSave({ ...person, id: person.id || crypto.randomUUID(), name, title, unit, photo });
   }
   return <form className="cc-card cc-form" onSubmit={submit} aria-label={isNew ? "Add employee" : "Edit employee"}>
     <h3>{isNew ? "New employee" : "Edit employee"}</h3>
+    <div className="cc-editor-photo">
+      <PersonAvatar person={{ ...person, photo }} portrait />
+      <div>
+        <label>Profile photo<input type="file" accept="image/png,image/jpeg" aria-describedby="cc-profile-photo-guide" onChange={async event => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+          setIssue(""); setReading(true);
+          try { setPhoto(await localPhoto(file)); }
+          catch (cause) { setIssue(cause instanceof Error ? cause.message : "The photo could not be read."); }
+          finally { setReading(false); }
+        }} disabled={reading} /></label>
+        <p id="cc-profile-photo-guide">Use a clear face photo in JPG or PNG, up to 2 MB.</p>
+      </div>
+    </div>
     <div className="cc-form-grid">
       <label>Full name<input name="name" defaultValue={person.name} maxLength={90} required /></label>
       <label>Job title<input name="title" defaultValue={person.title} maxLength={90} required /></label>
       <label>Department<select name="unit" defaultValue={person.unit}>{units.map(unit => <option key={unit}>{unit}</option>)}</select></label>
-      <label>Employee photo<input type="file" accept="image/png,image/jpeg" onChange={async event => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        setIssue(""); setReading(true);
-        try { setPhoto(await localPhoto(file)); }
-        catch (cause) { setIssue(cause instanceof Error ? cause.message : "The photo could not be read."); }
-        finally { setReading(false); }
-      }} disabled={reading} /></label>
     </div>
-    {photo && <div className="cc-person-photo"><PersonAvatar person={{ ...person, photo }} />
-      <button className="cc-secondary" type="button" onClick={() => setPhoto(undefined)} disabled={reading}>Remove photo</button>
-    </div>}
     {issue && <p role="alert">{issue}</p>}
     <div className="cc-actions">
       <button type="submit" className="cc-primary" disabled={reading}>Save sample employee</button>
@@ -116,6 +149,8 @@ function PeoplePreview() {
   const openEnrollments = enrollments.filter(item => activeIDs.has(item.personId) && !item.completed);
   const assigned = enrollments.filter(item => item.personId === selected);
   const available = courses.filter(course => !assigned.some(item => item.courseId === course.id));
+  const completed = assigned.filter(item => item.completed).length;
+  const overdue = assigned.filter(item => !item.completed && item.dueOn < previewDate).length;
 
   function addCourse(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -178,11 +213,21 @@ function PeoplePreview() {
         </li>)}</ul> : <p>No employees match the selected filters.</p>}
       </section>
       {current && <section className="cc-card" aria-labelledby="employee-profile-heading">
-        <header className="cc-profile-header">
-          <PersonAvatar person={current} />
-          <div><span className="cc-chip">{current.status}</span><h3 id="employee-profile-heading">{current.name}</h3><p>{current.title} · {current.unit}</p></div>
-          <button type="button" className="cc-secondary" onClick={() => setDraft(current)}>Edit profile</button>
+        <header className="cc-employee-identity">
+          <ProfilePortrait key={current.id} person={current} />
+          <div>
+            <span className="cc-chip">{current.status}</span>
+            <h3 id="employee-profile-heading">{current.name}</h3>
+            <p>{current.title}</p>
+            <p>{current.unit} department</p>
+          </div>
+          <button type="button" className="cc-secondary cc-profile-edit" onClick={() => setDraft(current)}>Edit profile</button>
         </header>
+        <dl className="cc-training-summary" aria-label="Employee training summary">
+          <div><dt>Assigned</dt><dd>{assigned.length}</dd></div>
+          <div><dt>Completed</dt><dd>{completed}</dd></div>
+          <div><dt>Overdue</dt><dd className={overdue ? "cc-overdue" : undefined}>{overdue}</dd></div>
+        </dl>
         <section className="cc-profile-training" aria-label="Assigned training">
           <h4>Assigned training</h4>
           {assigned.length ? <ul className="cc-training-list">{assigned.map(item => {
