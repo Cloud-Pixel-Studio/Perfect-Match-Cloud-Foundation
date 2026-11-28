@@ -1,5 +1,12 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Paneles de empresa, plataforma y Personas · 27 noviembre 2026
+- Rama `codex/company-control-design` sobre `0884184` y base remota PR #69. Respaldo cifrado `CP-CONTROL-CENTERS-00-20261128T000021Z` descifrado y comparado, con bundle Git verificado.
+- Mi perfil y Control de empresa están integrados en el panel autenticado. Control de empresa aparece para propietarios y administradores y abre las áreas operativas existentes.
+- Revisado `pm_qms_people` de Odoo. La vista de diseño permite ensayar fichas con foto, cursos y asignaciones, personalización de empresa y una consola de operación del SaaS. Usa datos sintéticos en memoria y devuelve 404 por defecto. El diseño separa ficha laboral, cuenta de login y seat.
+- Verificación local web: 361 unitarias, lint, TypeScript, compilación y 18 recorridos con API simulada. Se comprobó acceso por rol, cierre por defecto y accesibilidad básica de la vista de Personas a 375 px en ambos temas.
+- Pendientes persistencia y permisos de Personas y formación, fotos privadas, personalización del tenant y consola interna con autoridad de plataforma. La demo de AWS conserva su versión anterior.
+
 ## Identificación de autores y aprobadores · 27 noviembre 2026
 - Respaldo cifrado `CP-QMS-HISTORY-ACTORS-00-20261127T232738Z` sobre `7c7226a`, descifrado y comparado, con bundle Git verificado.
 - El historial de contexto, partes interesadas y alcance identifica al actor en cada versión. Distingue creación, edición, revisión, aprobación del alcance y retiro. El actor conserva su ID y, con `0060_context_revision_actor`, su nombre al momento de la acción. Las versiones antiguas marcan el nombre del perfil actual si está disponible o muestran el ID original.

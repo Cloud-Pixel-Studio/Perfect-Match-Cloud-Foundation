@@ -43,13 +43,13 @@ describe("persona-aware workspace navigation", () => {
 
   it("shows a collaborator only assigned QMS families and self-service access", () => {
     expect(ids("member", ["documents.read", "risks.manage"])).toEqual([
-      "overview", "actions", "workflows", "documents", "risks", "permissions",
+      "overview", "actions", "my-profile", "workflows", "documents", "risks", "permissions",
     ]);
   });
 
   it("does not treat a tenant owner role as QMS operating authority", () => {
     expect(ids("owner", [])).toEqual([
-      "overview", "actions", "implementation-guide", "workflows", "organization", "permissions", "audit",
+      "overview", "actions", "my-profile", "implementation-guide", "workflows", "company-control", "organization", "permissions", "audit",
     ]);
   });
 
@@ -62,21 +62,30 @@ describe("persona-aware workspace navigation", () => {
     expect(workspaceFromHash("#implementation-guide-heading")).toBe("implementation-guide");
   });
 
+  it("offers personal account access and reserves company control for company administrators", () => {
+    for (const role of ["owner", "admin"]) expect(ids(role, [])).toContain("company-control");
+    for (const role of ["member", "auditor"]) {
+      expect(ids(role, [])).toContain("my-profile");
+      expect(ids(role, ["context.manage"])).not.toContain("company-control");
+    }
+    expect(workspaceFromHash("#company-control-heading")).toBe("company-control");
+  });
+
   it("gives an auditor assurance navigation plus explicitly granted read areas", () => {
     expect(ids("auditor", ["documents.read", "controls.read"])).toEqual([
-      "overview", "actions", "workflows", "documents", "controls", "organization", "permissions", "audit",
+      "overview", "actions", "my-profile", "workflows", "documents", "controls", "organization", "permissions", "audit",
     ]);
   });
 
   it("does not expose the controls workspace for an evidence-review grant alone", () => {
     expect(ids("member", ["evidence.review"])).toEqual([
-      "overview", "actions", "workflows", "permissions",
+      "overview", "actions", "my-profile", "workflows", "permissions",
     ]);
   });
 
   it("separates internal-audit responsibilities from technical audit-trail roles", () => {
     expect(ids("member", ["audits.read"])).toEqual([
-      "overview", "actions", "workflows", "internal-audits", "permissions",
+      "overview", "actions", "my-profile", "workflows", "internal-audits", "permissions",
     ]);
     expect(ids("owner", [])).not.toContain("internal-audits");
     expect(ids("auditor", [])).not.toContain("internal-audits");
