@@ -53,4 +53,9 @@ test("visual library preserves the chosen theme and downloads a real PNG", async
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("platform-hero.png");
   expect(await download.failure()).toBeNull();
+  const overviewPromise = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download PNG: Presentación de Perfect Match QMS", exact: true }).click();
+  const overview = await overviewPromise;
+  expect(overview.suggestedFilename()).toBe("product-overview.png");
+  expect(await overview.failure()).toBeNull();
 });

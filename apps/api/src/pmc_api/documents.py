@@ -226,6 +226,24 @@ def _commit(
         raise
 
 
+def _reserve_upload_space(db: Session, unit_id: UUID, size: int) -> None:
+    try:
+        db.execute(
+            text("SELECT public.reserve_document_storage(:unit, :size)"),
+            {"unit": unit_id, "size": size},
+        )
+    except DBAPIError as error:
+        original = error.orig
+        args = getattr(original, "args", ())
+        detail = args[0] if args and isinstance(args[0], dict) else {}
+        code = getattr(original, "sqlstate", None) or detail.get("C")
+        if code == "P0064":
+            raise HTTPException(507, "PDF exceeds the company's remaining storage") from error
+        if code == "42501":
+            raise HTTPException(403, "document upload is not permitted") from error
+        raise
+
+
 def _dvalues(d: QMSDocument) -> dict[str, object]:
     return {
         "unit_id": str(d.unit_id),
@@ -642,6 +660,7 @@ async def quarantine_revision_file(
         except ScanUnavailable as error:
             raise HTTPException(503, "document security scan unavailable; retry upload") from error
         payload.seek(0)
+        _reserve_upload_space(db, doc.unit_id, total)
         storage = get_object_storage()
         bucket = get_settings().s3_documents_bucket
         try:
@@ -653,7 +672,12 @@ async def quarantine_revision_file(
             }:
                 raise HTTPException(503, "private document storage unavailable") from error
         key = f"qms/{actor.tenant_id}/{doc.id}/{revision.id}/{uuid4().hex}"
-        storage.put_object(bucket, key, cast(BinaryIO, payload))
+        try:
+            storage.put_object(bucket, key, cast(BinaryIO, payload))
+        except Exception as error:
+            with suppress(Exception):
+                storage.delete_object(bucket, key)
+            raise HTTPException(503, "private document storage unavailable") from error
     before = _rvalues(revision)
     revision.file_object_key = key
     revision.file_sha256 = digest.hexdigest()
@@ -663,12 +687,24 @@ async def quarantine_revision_file(
     revision.row_version += 1
     try:
         db.flush()
-        _commit(db, actor, request, "revision.updated", revision.id, before, _rvalues(revision))
+        _audit(
+            db,
+            actor,
+            request.state.request_id,
+            "revision.updated",
+            revision.id,
+            before,
+            _rvalues(revision),
+        )
+        db.flush()
     except Exception:
         db.rollback()
         with suppress(Exception):
             storage.delete_object(bucket, key)
         raise
+    # A connection failure here may leave the commit result unknown. Keep the
+    # private object so a possibly committed revision never loses its content.
+    db.commit()
     return {
         "revision_id": str(revision.id),
         "file_state": revision.file_state,

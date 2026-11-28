@@ -5,7 +5,17 @@ const allowedRoots = new Set([
 const namedSegment = /^[a-z][a-z-]*$/;
 const uuidSegment = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export const employeePhotoUploadLimit = 2_000_000;
+
 export function isAllowedIdentityPath(path: string[]): boolean {
+  if (path[0] === "company-storage") {
+    return path.length === 2 && uuidSegment.test(path[1]);
+  }
+  if (path[0] === "employees") {
+    return path.length >= 2 && path.length <= 4 && uuidSegment.test(path[1])
+      && (path.length < 3 || uuidSegment.test(path[2]))
+      && (path.length < 4 || ["archive", "restore", "photo"].includes(path[3]));
+  }
   return path.length > 0 && path.length <= 16 && allowedRoots.has(path[0]) &&
     path.slice(1).every((segment) => namedSegment.test(segment) || uuidSegment.test(segment));
 }

@@ -1,5 +1,63 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Fotos privadas del directorio · 28 noviembre 2026
+- **Control de empresa → Employee directory** permite cargar, reemplazar y retirar fotos de ficha. Propietarios y administradores de la empresa activa pueden verlas. ClamAV debe aprobar la entrada y el servidor guarda solo el JPEG reducido sin metadatos de origen. La bitácora identifica el actor y el cambio. Archivar conserva la foto.
+- `0065_employee_portraits` aplica el mismo cupo a PDFs limpios y fotos. PostgreSQL confirma foto, consumo y bitácora juntos y protege contra cargas concurrentes. Pasaron 162 pruebas de API generales, 66 del conjunto con PostgreSQL, 379 unitarias web, siete recorridos del centro de control con API simulada y compilación. El retrato pasó Axe en ambos temas a 375 px. Se comprobó reversión sin fotos y veto al existir una.
+- Respaldo de código `CP-EMPLOYEE-PHOTO-00-20261128T104614Z` cotejado. Respaldo de BD sintética `CP-EMPLOYEE-PHOTO-DB-20261128T104702Z` restaurado en una instancia aparte y verificado sobre `0064`. Entrega en el PR #70. Pendiente verificar ClamAV y el recorrido completo en la demo, además de formación y delegación por unidad.
+
+## Conciliación de PDFs privados · 28 noviembre 2026
+- Comando interno de solo lectura para una empresa. Compara revisiones con objetos privados y reporta archivos ausentes, diferencias de tamaño, claves inválidas o duplicadas y objetos antiguos sin referencia. Los objetos recientes se cuentan aparte. Un acceso denegado interrumpe el informe. El detalle opcional se guarda con permisos `0600`.
+- Pasaron 162 pruebas de la suite general y 62 del conjunto de almacenamiento y límites de empresa con PostgreSQL desechable y S3 simulado. Se verificaron aislamiento, rol de inventario, paginación y protección del informe. Pasaron Ruff y mypy. Respaldo incremental cifrado `CP-PDF-RECONCILIATION-00-20261128T103516Z` descifrado y cotejado. Entrega en el PR #70. Pendientes la prueba con la identidad del almacén de la demo, la ejecución periódica y otros tipos de archivos.
+
+## Aplicación del cupo en cargas de PDF · 28 noviembre 2026
+- `0064_document_storage_quota` exige que el PDF quepa en la cuota aprobada antes de guardar y verifica nuevamente al actualizar el total. La carga y los ajustes de cuota se coordinan por empresa. El rechazo conserva el borrador y las descargas autorizadas. Una confirmación de BD incierta conserva el objeto privado para evitar pérdida de un archivo registrado. Reconciliación y otros cargadores siguen pendientes.
+- Pasaron 62 pruebas backend, 377 unitarias web y 23 recorridos de navegador con API simulada. Se probó concurrencia, rechazo de un lote sobre cuota, reducción de capacidad y reversión sin alterar datos. Respaldo de código `CP-PDF-STORAGE-GUARD-00-20261128T101215Z` cotejado y respaldo independiente de BD sintética `CP-PDF-STORAGE-GUARD-DB-20261128T101240Z` restaurado. Entrega en el PR #70.
+
+## Cuota contratada y avisos de almacenamiento · 28 noviembre 2026
+- `0063_company_storage_allowance` registra cuotas aprobadas por empresa desde operaciones autorizadas. Conserva versiones, identidad de la conexión y referencia de aprobación. Los reintentos idénticos no duplican registros. El panel muestra lo contratado, los MB disponibles según PDFs y avisos al 80 %, 90 % y al agotar o superar la cuota. Las cargas todavía no se bloquean.
+- Pasaron 52 pruebas backend, incluidas 43 con PostgreSQL, y 21 recorridos con API simulada. Se verificaron simultaneidad, aislamiento, límites y rechazo de una reversión con historial. Respaldo cifrado `CP-STORAGE-ALLOWANCE-00-20261128T091747Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-ALLOWANCE-DB-20261128T091818Z` restaurado. Entrega en el PR #70.
+
+## Prioridad permanente de seguridad · 28 noviembre 2026
+- El usuario estableció la integridad de los datos de clientes como prioridad. La regla queda en `AGENTS.md` y exige sostener el aislamiento entre empresas, los permisos, la trazabilidad y la recuperación verificable según el riesgo del cambio.
+- Respaldo incremental cifrado `CP-DATA-INTEGRITY-POLICY-00-20261128T083322Z` cotejado sobre el respaldo del medidor.
+
+## Medidor de almacenamiento documental · 28 noviembre 2026
+- **Control de empresa → Storage usage** muestra MB, bytes y número de PDFs limpios registrados, incluidas revisiones retenidas. Solo owner/admin de la empresa activa. El agregado con RLS forzado conserva los permisos documentales existentes. La capacidad contractual se muestra pendiente y todavía no limita cargas.
+- `0062_company_document_storage` pasó reversión y reconstrucción sobre tres revisiones existentes. Pasaron 41 integraciones PostgreSQL, 377 unitarias web y 20 recorridos de navegador con API simulada. Se verificaron 320 px en ambos temas, cargas concurrentes y rollback. Respaldo de código `CP-STORAGE-METER-00-20261128T082448Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-METER-DB-20261128T082449Z` restaurado. Entrega en el PR #70.
+
+## Asistente para elegir plan · 27 noviembre 2026
+- Comparados Qualio, Greenlight Guru, monday.com y Jira en sus fuentes oficiales. `/products/plans` estima la menor cuota propuesta usando los MB declarados, detecta seats adicionales en Básico y permite solicitar cotización por encima de 250 000 MB. El resumen editable conserva el cálculo y pide cotizar por separado los costos recurrentes y los servicios únicos. Las cuotas operativas y los precios comerciales siguen pendientes.
+- Respaldo incremental cifrado `CP-PLAN-GUIDE-00-20261128T032356Z` verificado sobre el respaldo `CP-STORAGE-DISCLOSURE-00-20261128T015114Z`. Pasaron 377 unitarias web, 6 recorridos de Productos, Axe con resultado visible a 320 px en ambos temas y dos comparaciones de escritorio. Entrega en la rama del PR #70.
+
+## Transparencia de los planes · 27 noviembre 2026
+- Productos enlaza a `/products/plans`, con cuotas propuestas, reglas de uso, respaldo incluido y ampliación autorizada. El plan elegido pasa al resumen descargable y al correo preparado para revisión. La guía comercial tiene los campos del anexo por empresa. Cuotas operativas, medición y tarifas finales siguen pendientes.
+- Respaldo cifrado `CP-STORAGE-DISCLOSURE-00-20261128T015114Z` descifrado y cotejado. Pasaron lint, tipos, compilación, 362 unitarias y 5 recorridos de Productos, con Axe a 320 px en ambos temas. Escritorio claro/oscuro pasó. Las referencias visuales móvil y tablet ya fallaban en `96f2731`; el cotejo de píxeles confirmó que el nuevo cambio en la página existente se limita a la navegación. Entrega en el PR #70.
+
+## Almacenamiento por empresa y plan · 27 noviembre 2026
+- El usuario pidió que el almacenamiento por empresa esté incluido en el precio. Propuesta en `docs/product/COMPANY_STORAGE_PLANS.md`: Básico 5 000 MB, Equipo 25 000 MB, Profesional 100 000 MB, Empresarial 250 000 MB. Cuotas y precios finales pendientes de aprobación. Se preserva el Básico con una empresa, 3 seats y 1 addon ISO.
+- El tarifario oficial de S3 Virginia se cotejó con el modelo de costo. Se documentaron revisiones, fotos, evidencias, alertas, ampliaciones y reserva atómica de capacidad. Medición, cuotas efectivas y precios finales siguen pendientes. Respaldo cifrado de código `CP-STORAGE-PLANS-00-20261128T012632Z` descifrado y cotejado.
+
+## Directorio de trabajadores persistente · 27 noviembre 2026
+- **Control de empresa → Employee directory** permite a propietarios y administradores buscar, crear, editar, archivar y restaurar fichas por unidad. Guarda nombre y cargo sin crear cuenta ni consumir seat. La API fija la empresa en la ruta y en la sesión. PostgreSQL exige empresa activa y RLS. La bitácora conserva actor, fecha y campos modificados sin copiar nombres ni cargos.
+- Migración `0061_employee_directory`: regresión desde `0048`, reversión en vacío y veto con un registro existente. Respaldo cifrado de código `CP-EMPLOYEE-DIRECTORY-00-20261128T011252Z` cotejado. Respaldo separado de BD sintética `CP-EMPLOYEE-DIRECTORY-DB-20261128T012119Z` restaurado y verificado con ficha, bitácora y RLS.
+- Pasaron 38 integraciones en PostgreSQL desechable, 361 unitarias web y 16 recorridos en Chromium con API simulada. La ficha pasó Axe en ambos temas a 375 px. Entrega en la rama del PR #70. Quedan pendientes fotos privadas persistentes, formación y delegación por unidad. La demo AWS sigue en la versión anterior.
+
+## Retratos en fichas de Personas · 27 noviembre 2026
+- Respaldo cifrado `CP-EMPLOYEE-PROFILES-00-20261128T010247Z` descifrado y cotejado, con bundle Git verificado.
+- La vista de diseño de Personas muestra tres retratos ficticios, un visor ampliado y un resumen individual de formación. El formulario permite cargar y reemplazar la foto de ejemplo con validación local de formato y dimensiones.
+- Pasaron lint, TypeScript, compilación, 361 pruebas unitarias y 15 recorridos en Chromium. Se comprobó teclado y Axe en el visor, ambos temas a 375 px y ausencia de desplazamiento horizontal a 320 px. Entrega en la rama del PR #70. Empleados y fotos permanecen en memoria en la vista previa.
+
+## Nombres visibles de los paneles · 27 noviembre 2026
+- El usuario pidió quitar «SaaS» de la interfaz. Se aplicó en el panel de Operación de plataforma, la guía de implementación y el catálogo visual. La descarga de la presentación usa `product-overview.png` y conserva su dirección anterior.
+- Respaldo cifrado `CP-PLATFORM-LABELS-00-20261128T005546Z` descifrado y cotejado. Pasaron 361 unitarias web y 15 recorridos de paneles, guías y catálogo visual. Vista local actualizada. Entrega en la rama del PR #70.
+
+## Paneles de empresa, plataforma y Personas · 27 noviembre 2026
+- Rama `codex/company-control-design` sobre `0884184` y base remota PR #69. Respaldo cifrado `CP-CONTROL-CENTERS-00-20261128T000021Z` descifrado y comparado, con bundle Git verificado.
+- Mi perfil y Control de empresa están integrados en el panel autenticado. Control de empresa aparece para propietarios y administradores y abre las áreas operativas existentes.
+- Revisado `pm_qms_people` de Odoo. La vista de diseño permite ensayar fichas con foto, cursos y asignaciones, personalización de empresa y una consola de operación del SaaS. Usa datos sintéticos en memoria y devuelve 404 por defecto. El diseño separa ficha laboral, cuenta de login y seat.
+- Verificación local web: 361 unitarias, lint, TypeScript, compilación y 18 recorridos con API simulada. Se comprobó acceso por rol, cierre por defecto y accesibilidad básica de la vista de Personas a 375 px en ambos temas.
+- Pendientes persistencia y permisos de Personas y formación, fotos privadas, personalización del tenant y consola interna con autoridad de plataforma. La demo de AWS conserva su versión anterior.
+
 ## Identificación de autores y aprobadores · 27 noviembre 2026
 - Respaldo cifrado `CP-QMS-HISTORY-ACTORS-00-20261127T232738Z` sobre `7c7226a`, descifrado y comparado, con bundle Git verificado.
 - El historial de contexto, partes interesadas y alcance identifica al actor en cada versión. Distingue creación, edición, revisión, aprobación del alcance y retiro. El actor conserva su ID y, con `0060_context_revision_actor`, su nombre al momento de la acción. Las versiones antiguas marcan el nombre del perfil actual si está disponible o muestran el ID original.

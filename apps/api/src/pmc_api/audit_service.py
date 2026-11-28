@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 from pmc_api.models import AuditEvent
 
 AUDIT_SCHEMA_VERSION = 1
+EMPLOYEE_ACTIONS = {
+    f"employee.{action}": "employee_profile"
+    for action in ("created", "updated", "archived", "restored")
+}
 QMS_CONTEXT_ACTIONS = {
     f"qms_context.{action}": "qms_context_record"
     for action in ("created", "updated", "reviewed", "retired")
@@ -702,6 +706,7 @@ def _record(
 ) -> AuditEvent:
     expected_resource = {
         **ORGANIZATION_ACTIONS,
+        **EMPLOYEE_ACTIONS,
         **WORKFLOW_ACTIONS,
         **QMS_ACCESS_ACTIONS,
         **INTERNAL_AUDIT_ACTIONS,
@@ -891,6 +896,42 @@ def _workflow_builder(action: str) -> Callable[..., AuditEvent]:
         return _record_workflow(db, action=action, **kwargs)  # type: ignore[arg-type]
 
     return record
+
+
+def record_employee(
+    db: Session,
+    *,
+    action: str,
+    fields: list[str],
+    tenant_id: UUID,
+    actor_user_id: UUID,
+    actor_display_name: str,
+    actor_role: str,
+    resource_id: UUID,
+    request_id: UUID,
+    old_values: dict[str, object] | None,
+    new_values: dict[str, object],
+) -> AuditEvent:
+    allowed = {"unit_id", "status", "row_version"}
+    for value in (old_values, new_values):
+        if value is not None and set(value) != allowed:
+            raise AuditPayloadError("employee audit payload fields are invalid")
+    if not set(fields).issubset({"full_name", "job_title", "unit_id", "status", "portrait"}):
+        raise AuditPayloadError("employee audit changes are invalid")
+    return _record(
+        db,
+        action=action,
+        resource_type="employee_profile",
+        metadata={"profile_fields": fields},
+        tenant_id=tenant_id,
+        actor_user_id=actor_user_id,
+        actor_display_name=actor_display_name,
+        actor_role=actor_role,
+        resource_id=resource_id,
+        request_id=request_id,
+        old_values=old_values,
+        new_values=new_values,
+    )
 
 
 def record_qms_context(db: Session, **kwargs: object) -> AuditEvent:

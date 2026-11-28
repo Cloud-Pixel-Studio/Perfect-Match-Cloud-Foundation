@@ -54,3 +54,14 @@ La mera existencia de estas implementaciones no equivale a una prueba superada. 
 La evaluación inicial debe cubrir reflow móvil/tablet/escritorio, temas claro/oscuro, foco visible, navegación de tabs, FAQ con teclado, contraste automatizado, enlace de correo y contenido real del brief descargado. Axe y capturas no sustituyen una evaluación completa WCAG o aceptación con usuarios de calidad.
 
 Tras contar con una web publicada y una política de privacidad aprobada, se podrá medir si los visitantes encuentran el recorrido y completan una solicitud. No se instala analítica ni se contacta a terceros en este hito. Las siguientes necesidades comerciales son confirmar disponibilidad/precios, definir recepción de solicitudes y completar el área cliente y enforcement de suscripciones sin confundirlas con esta mejora de presentación.
+
+## Elección de plan y cotización · 27 de noviembre de 2026
+
+| Referencia oficial | Qué puede evaluar el comprador | Aplicación en Perfect Match QMS |
+| --- | --- | --- |
+| [Qualio](https://www.qualio.com/pricing) | Distingue etapas de adopción, usuarios editores y básicos, capacidades de calidad y cargo de implementación. | Ayudar a elegir según necesidades reales. Confirmar el número de seats y conservar la autoridad QMS como un permiso independiente. |
+| [Greenlight Guru](https://www.greenlight.guru/quality-pricing) | Explica el alcance base de su QMS, el punto de partida de la suscripción y los servicios de implementación cotizados aparte. | Separar en la oferta la suscripción recurrente, los servicios únicos que correspondan y el total del primer año. |
+| [monday.com](https://monday.com/pricing) | Deja elegir tamaño del equipo y frecuencia de facturación. Expone el total para el equipo junto con la tarifa unitaria. | Capturar seats al comparar. Cuando se aprueben precios, mostrar el costo de la empresa por periodo y el total comprometido. |
+| [Atlassian Jira](https://www.atlassian.com/en/software/jira/pricing) y [licenciamiento](https://www.atlassian.com/licensing/cloud) | Publica límites de almacenamiento, diferencias de soporte y reglas de compra mensual y anual. | Mostrar la capacidad por empresa, qué ocupa espacio y qué pasa al llegar al límite. Definir soporte y frecuencia en la oferta cuando se aprueben. |
+
+El asistente de `/products/plans` toma seats y MB estimados y muestra la menor cuota propuesta que alcanza para el volumen. Si Básico requiere más de tres seats, indica la cantidad adicional a cotizar. Por encima de 250 000 MB dirige a una consulta de capacidad. La estimación y las diferencias pasan al resumen descargable y al correo preparado. Se mantiene el QMS completo como producto común. Precios, niveles de servicio y capacidad operativa requieren definición y validación propias antes de publicarse como compromisos.

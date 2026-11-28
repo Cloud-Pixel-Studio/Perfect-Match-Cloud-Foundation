@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertTriangle, Building2, CalendarRange, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Building2, CalendarRange, ChartNoAxesCombined, ChevronDown, ClipboardCheck, ClipboardList, FileText, FolderKanban, HardDrive, KeyRound, LayoutDashboard, ListChecks, LogIn, LogOut, ScrollText, Settings2, ShieldCheck, UserRound, Workflow as WorkflowIcon, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ThemeToggle } from "./theme-toggle";
 import { OrganizationWorkspace } from "./organization-workspace";
+import { CompanyControl, PersonalProfile } from "./company-control";
 import { ProcessWorkspace } from "./process-workspace";
 import { QMSAccessWorkspace } from "./qms-access-workspace";
 import { WorkflowWorkspace } from "./workflow-workspace";
@@ -18,6 +19,8 @@ import { ActionCenterWorkspace } from "./action-center-workspace";
 import { AuditWorkspace } from "./audit-workspace";
 import { InternalAuditsWorkspace } from "./internal-audits-workspace";
 import { GuidedJourneyWorkspace } from "./guided-journey-workspace";
+import { EmployeesWorkspace } from "./employees-workspace";
+import { CompanyStorageWorkspace } from "./company-storage-workspace";
 import { type IdentityViewState, unauthenticatedState } from "../lib/identity-state";
 import { setWorkspaceTarget, workspaceFromHash, workspaceItems, workspaceSections, workspaceSectionsForContext, workspaceTargetFromSearch, type WorkspaceId, type WorkspaceTarget } from "../lib/workspace-navigation";
 
@@ -34,6 +37,7 @@ const apiUrl = "/api/identity";
 const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   overview: LayoutDashboard,
   actions: ClipboardList,
+  "my-profile": UserRound,
   "implementation-guide": ListChecks,
   processes: FolderKanban,
   documents: FileText,
@@ -43,6 +47,9 @@ const workspaceIcons: Record<WorkspaceId, LucideIcon> = {
   nonconformities: AlertTriangle,
   capa: ClipboardCheck,
   organization: Building2,
+  "company-control": Settings2,
+  employees: UserRound,
+  "company-storage": HardDrive,
   permissions: KeyRound,
   workflows: WorkflowIcon,
   audit: ScrollText,
@@ -288,7 +295,7 @@ export function IdentityShell() {
           <div className="qms-topbar-location"><p>{selectedSection?.label ?? "Workspace"} / Perfect Match QMS</p><strong>{selectedItem.label}</strong></div>
           <div className="qms-topbar-actions">
             {tenants.length > 0 && <label className="tenant-select qms-topbar-tenant"><span>Organization</span><div><select aria-label="Current organization" disabled={busy||guideDraft} onChange={(event) => void selectTenant(event.target.value)} value={identity.current_tenant_id ?? ""}><option disabled value="">Select organization</option>{tenants.map((tenant) => <option key={tenant.id} value={tenant.id}>{tenant.name} · {tenant.role}</option>)}</select><ChevronDown aria-hidden="true" size={18} /></div></label>}
-            <ThemeToggle />
+            {presentedModule !== "my-profile" && <ThemeToggle />}
             <div className="user-menu"><span className="avatar"><UserRound aria-hidden="true" size={18} /></span><span><strong>{identity.display_name}</strong><small>{identity.email ?? "Verified identity"}</small></span><button aria-label="Log out" disabled={busy} onClick={() => void logout()} title="Log out" type="button"><LogOut aria-hidden="true" size={18} /></button></div>
           </div>
         </header>
@@ -297,6 +304,10 @@ export function IdentityShell() {
           <legend className="sr-only">{selectedItem.label}</legend>
           {presentedModule === "overview" && <WorkspaceOverview key={`overview-${identity.id}-${current.id}-${current.role}`} tenantName={current.name} role={current.role} sections={visibleSections} onNavigate={navigateWorkspace} />}
           {presentedModule === "actions" && <ActionCenterWorkspace key={`actions-${identity.id}-${current.id}-${current.role}`} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "my-profile" && <PersonalProfile name={identity.display_name} email={identity.email} company={current.name} role={current.role} />}
+          {presentedModule === "company-control" && <CompanyControl name={current.name} role={current.role} onNavigate={navigateWorkspace} />}
+          {presentedModule === "employees" && <EmployeesWorkspace key={`employees-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} company={current.name} />}
+          {presentedModule === "company-storage" && <CompanyStorageWorkspace key={`storage-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} company={current.name} />}
           {presentedModule === "implementation-guide" && <GuidedJourneyWorkspace key={`guide-${identity.id}-${current.id}-${current.role}`} tenantId={current.id} userId={identity.id} preferredUnitId={preferredUnitId} onUnitChange={onUnitChange} onNavigate={navigateWorkspace} onDraftChange={onGuideDraftChange} />}
           {presentedModule === "organization" && <OrganizationWorkspace key={`organization-${current.id}-${current.role}`} role={current.role} />}
           {presentedModule === "permissions" && <QMSAccessWorkspace key={`qms-access-${current.id}-${current.role}`} role={current.role} userId={identity.id} tenantId={current.id} onAccessDenied={() => void loadIdentity()} />}

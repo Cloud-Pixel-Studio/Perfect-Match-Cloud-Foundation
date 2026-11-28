@@ -7,6 +7,7 @@ from sqlalchemy import (
     JSON,
     Boolean,
     CheckConstraint,
+    Computed,
     Date,
     DateTime,
     ForeignKey,
@@ -22,6 +23,26 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class Base(DeclarativeBase):
     pass
+
+
+class EmployeeProfile(Base):
+    __tablename__ = "employee_profiles"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    tenant_id: Mapped[UUID]
+    unit_id: Mapped[UUID]
+    full_name: Mapped[str]
+    job_title: Mapped[str]
+    status: Mapped[str]
+    row_version: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    portrait: Mapped[bytes | None] = mapped_column(LargeBinary, deferred=True)
+    portrait_bytes: Mapped[int | None] = mapped_column(Computed("octet_length(portrait)"))
+
+    @property
+    def has_portrait(self) -> bool:
+        return self.portrait_bytes is not None
 
 
 class QMSContextRecord(Base):

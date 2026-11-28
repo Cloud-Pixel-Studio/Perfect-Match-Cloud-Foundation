@@ -32,6 +32,8 @@ test("live document search and refresh preserve creation references", async ({ p
 
 const unitA = "11111111-1111-4111-8111-111111111111";
 const unitB = "22222222-2222-4222-8222-222222222222";
+const fixtureTenant = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const fixtureUser = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const caps = ["documents.read", "documents.author", "documents.obsolete", "processes.read"];
 const units = [
   { id: unitA, code: "UI-A", name: "UI fixture A", status: "active" },
@@ -81,7 +83,6 @@ function fixtureRevision(suffix: string, state: DocumentFixtureState) {
 }
 
 async function fixtureWorkspace(page: Page, options: { withRevisions?: boolean } = {}) {
-  await authenticate(page);
   const state: DocumentFixtureState = {
     denied: false, failReferences: false, holdReferences: false, paged: false,
     withRevisions: Boolean(options.withRevisions), revisionStatus: 200, uploadStatus: 503,
@@ -122,11 +123,14 @@ async function fixtureWorkspace(page: Page, options: { withRevisions?: boolean }
         if (commandPost && state.createRevisionStatus === 409) state.revisionVersions[path.split("/")[2]] = 2;
         return route.fulfill({ status: path === "/documents" ? state.createDocumentStatus : state.createRevisionStatus, json: { detail: "Synthetic command feedback" } });
       }
-      return route.fallback();
+      return route.fulfill({ status: 404, json: { detail: "Route outside document fixtures" } });
     }
     const unit = url.searchParams.get("unit_id") ?? unitA;
     let body: unknown;
-    if (path === "/organization/units") body = units;
+    if (path === "/auth/me") body = { id: fixtureUser, current_tenant_id: fixtureTenant, display_name: "Synthetic author" };
+    else if (path === "/auth/tenants") body = [{ id: fixtureTenant, name: "Synthetic document company", slug: "synthetic", role: "member" }];
+    else if (path === "/qms-access/active-capabilities") body = { capabilities: caps };
+    else if (path === "/organization/units") body = units;
     else if (path === "/qms-access/effective") body = { unit_id: unit, capabilities: state.denied ? [] : state.withRevisions ? [...caps, "documents.review", "documents.approve", "documents.release"] : caps };
     else if (path === "/documents") {
       body = state.paged
@@ -153,8 +157,8 @@ async function fixtureWorkspace(page: Page, options: { withRevisions?: boolean }
       if (state.revisionStatus !== 200) return route.fulfill({ status: state.revisionStatus, json: { detail: "Synthetic revision access failure" } });
       body = state.withRevisions ? [fixtureRevision(suffix, state)] : [];
     }
-    else return route.fallback();
-    return route.fulfill({ status: 200, json: body });
+    else return route.fulfill({ status: 404, json: { detail: "Route outside document fixtures" } });
+    return route.fulfill({ status: 200, json: body, headers: { "X-Tenant-ID": fixtureTenant } });
   });
   await page.goto("/#documents-heading", { waitUntil: "networkidle" });
   const panel = page.locator(".documents-workspace");
@@ -166,8 +170,6 @@ async function fixtureWorkspace(page: Page, options: { withRevisions?: boolean }
 }
 
 test.describe("document read-state fixtures (no backend mutations)", () => {
-  test.beforeEach(() => test.skip(!password, "Synthetic development credential was not provided"));
-
   test("an empty process search can be cancelled and creation reopened", async ({ page }) => {
     const { panel } = await fixtureWorkspace(page);
     await panel.getByRole("button", { name: "New document", exact: true }).click();
@@ -262,8 +264,6 @@ async function selectFixtureRevision(panel: Locator, suffix = "A2") {
 }
 
 test.describe("document command-feedback fixtures (all document writes intercepted)", () => {
-  test.beforeEach(() => test.skip(!password, "Synthetic development credential was not provided"));
-
   test("reselecting the current document preserves its loaded revision", async ({ page }) => {
     const { panel, state } = await fixtureWorkspace(page, { withRevisions: true });
     await selectFixtureRevision(panel, "A1");
@@ -375,6 +375,21 @@ test.describe("document command-feedback fixtures (all document writes intercept
     expect(state.revisionVersions["doc-A2"]).toBe(2);
     expect(state.mutations).toHaveLength(1);
     expect(state.mutations[0]).toMatchObject({ method: "PUT", path: "/documents/doc-A2/revisions/revision-A2/file", body: syntheticPDF.buffer.toString("utf8"), contentType: "application/pdf" });
+  });
+
+  test("upload507 explains the company storage limit and keeps the draft attachable", async ({ page }, info) => {
+    const { panel, state } = await fixtureWorkspace(page, { withRevisions: true });
+    await selectFixtureRevision(panel);
+    state.uploadStatus = 507;
+    const file = panel.locator('.upload-control input[type="file"]');
+    await file.setInputFiles(syntheticPDF);
+    await expect(panel.getByRole("alert")).toContainText("company’s remaining storage");
+    await expect(file).toBeEnabled();
+    await expect(panel.locator(".document-detail .detail-heading .eyebrow")).toHaveText("UI-DOC-A2");
+    await expect(panel.locator(".revision-actions").getByText("Revision R1", { exact: true })).toBeVisible();
+    expect(state.mutations).toHaveLength(1);
+    expect(state.revisionVersions["doc-A2"]).toBeUndefined();
+    await panel.getByRole("alert").screenshot({ path: info.outputPath("pdf-storage-limit.png") });
   });
 
   test("versioned command409 reconciles its target without repeating the command", async ({ page }) => {

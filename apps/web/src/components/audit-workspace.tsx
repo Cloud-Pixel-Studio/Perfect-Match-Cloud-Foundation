@@ -19,9 +19,18 @@ type AuditEvent = {
   changed_fields: string[];
   old_values: AuditValues;
   new_values: AuditValues;
+  metadata?: { profile_fields?: unknown };
 };
 
 type AuditPage = { items: AuditEvent[]; next_cursor: string | null };
+const employeeAuditFields = new Set(["full_name", "job_title", "unit_id", "status"]);
+
+function profileFields(event: AuditEvent): string[] {
+  const fields = event.metadata?.profile_fields;
+  return event.resource_type === "employee_profile" && Array.isArray(fields)
+    ? fields.filter((field): field is string => typeof field === "string" && employeeAuditFields.has(field))
+    : [];
+}
 
 export function AuditWorkspace() {
   const [events, setEvents] = useState<AuditEvent[]>([]);
@@ -83,6 +92,7 @@ export function AuditWorkspace() {
       event.request_id,
       event.resource_id ?? "",
       ...event.changed_fields,
+      ...profileFields(event).map(auditLabel),
     ].some((value) => value.toLowerCase().includes(normalized)));
   }, [events, query]);
   const actorCount = new Set(events.map((event) => event.actor_display_name)).size;
@@ -131,6 +141,7 @@ export function AuditWorkspace() {
       {visibleEvents.length > 0 && <div className="audit-list">
         {visibleEvents.map((event) => {
           const rows = buildAuditDiff(event.changed_fields, event.old_values, event.new_values);
+          const employeeFields = profileFields(event);
           return <details className="audit-event" key={event.id}>
             <summary>
               <span className="audit-event-icon"><ScrollText aria-hidden="true" size={17} /></span>
@@ -143,6 +154,7 @@ export function AuditWorkspace() {
                 <div><dt>Request ID</dt><dd>{event.request_id}</dd></div>
                 <div><dt>Schema</dt><dd>Version {event.schema_version}</dd></div>
               </dl>
+              {employeeFields.length > 0 && <p className="audit-no-diff">Profile changes recorded for {employeeFields.map(auditLabel).join(", ")}.</p>}
               {rows.length === 0 ? <p className="audit-no-diff">This event records an action without field-level values.</p> : <div className="audit-diff" role="table" aria-label={`Field changes for ${auditLabel(event.action)}`}>
                 <div className="audit-diff-header" role="row"><span role="columnheader">Field</span><span role="columnheader">Before</span><span role="columnheader">After</span></div>
                 {rows.map((row) => <div className={row.changed ? "audit-diff-row changed" : "audit-diff-row"} role="row" key={row.field}>

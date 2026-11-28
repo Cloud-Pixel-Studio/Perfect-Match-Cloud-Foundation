@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from typing import TYPE_CHECKING, BinaryIO, Protocol
 
@@ -9,7 +12,7 @@ from botocore.config import Config
 if TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
-from pmc_api.config import Settings, get_settings
+from pmc_api.config import get_settings
 
 
 class ObjectStorage(Protocol):
@@ -26,8 +29,29 @@ class ObjectStorage(Protocol):
     def healthcheck(self) -> bool: ...
 
 
+class S3ConnectionSettings(Protocol):
+    @property
+    def s3_endpoint(self) -> str: ...
+
+    @property
+    def s3_access_key(self) -> str: ...
+
+    @property
+    def s3_secret_key(self) -> str: ...
+
+    @property
+    def s3_region(self) -> str: ...
+
+
+@dataclass(frozen=True)
+class StoredObject:
+    key: str
+    size: int
+    modified_at: datetime
+
+
 class S3ObjectStorage:
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: S3ConnectionSettings) -> None:
         self._client: S3Client = boto3.client(
             "s3",
             endpoint_url=settings.s3_endpoint,
@@ -53,6 +77,12 @@ class S3ObjectStorage:
     def object_metadata(self, bucket: str, key: str) -> dict[str, object]:
         response = self._client.head_object(Bucket=bucket, Key=key)
         return {"content_length": response["ContentLength"], "metadata": response["Metadata"]}
+
+    def list_objects(self, bucket: str, prefix: str) -> Iterator[StoredObject]:
+        pages = self._client.get_paginator("list_objects_v2")
+        for page in pages.paginate(Bucket=bucket, Prefix=prefix):
+            for item in page.get("Contents", []):
+                yield StoredObject(item["Key"], item["Size"], item["LastModified"])
 
     def healthcheck(self) -> bool:
         try:
