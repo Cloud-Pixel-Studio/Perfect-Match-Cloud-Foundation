@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response
@@ -14,12 +14,34 @@ from pmc_api.tenant_access import require_selected_tenant_access
 
 router = APIRouter(prefix="/company-storage", tags=["company-storage"])
 DBSession = Annotated[Session, Depends(get_db)]
+UsageStatus = Literal["unconfigured", "normal", "notice", "warning", "at_limit", "over_limit"]
 
 
 class StorageUsage(BaseModel):
     tenant_id: UUID
     recorded_bytes: int
     document_file_count: int
+    allowance_bytes: int | None
+    available_bytes: int | None
+    usage_percent: int | None
+    usage_status: UsageStatus
+
+
+def _capacity_status(
+    used: int, allowance: int | None
+) -> tuple[int | None, int | None, UsageStatus]:
+    if allowance is None:
+        return None, None, "unconfigured"
+    percent = min(100, used * 100 // allowance)
+    if used > allowance:
+        return 0, percent, "over_limit"
+    if used == allowance:
+        return 0, percent, "at_limit"
+    if percent >= 90:
+        return allowance - used, percent, "warning"
+    if percent >= 80:
+        return allowance - used, percent, "notice"
+    return allowance - used, percent, "normal"
 
 
 @router.get("/{tenant_id}")
@@ -31,15 +53,27 @@ def get_storage_usage(
         raise HTTPException(403, "company storage requires owner or admin")
     usage = db.execute(
         text(
-            "SELECT recorded_bytes, file_count FROM public.company_document_storage "
-            "WHERE tenant_id = :tenant_id"
+            """
+            SELECT
+                COALESCE((SELECT recorded_bytes FROM public.company_document_storage
+                          WHERE tenant_id = :tenant_id), 0) AS recorded_bytes,
+                COALESCE((SELECT file_count FROM public.company_document_storage
+                          WHERE tenant_id = :tenant_id), 0) AS file_count,
+                (SELECT allowance_bytes FROM public.company_storage_allowances
+                 WHERE tenant_id = :tenant_id ORDER BY row_version DESC LIMIT 1) AS allowance_bytes
+            """
         ),
         {"tenant_id": actor.tenant_id},
-    ).one_or_none()
+    ).one()
+    available, percent, status = _capacity_status(usage.recorded_bytes, usage.allowance_bytes)
     response.headers["X-Tenant-ID"] = str(actor.tenant_id)
     response.headers["Cache-Control"] = "private, no-store"
     return StorageUsage(
         tenant_id=actor.tenant_id,
-        recorded_bytes=usage.recorded_bytes if usage else 0,
-        document_file_count=usage.file_count if usage else 0,
+        recorded_bytes=usage.recorded_bytes,
+        document_file_count=usage.file_count,
+        allowance_bytes=usage.allowance_bytes,
+        available_bytes=available,
+        usage_percent=percent,
+        usage_status=status,
     )

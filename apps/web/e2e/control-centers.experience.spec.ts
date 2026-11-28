@@ -61,7 +61,10 @@ test("company storage shows document totals and clears responses from another co
   let recordedBytes = 1_987_400;
   await page.route(`**/api/identity/company-storage/${tenant}`, route => route.fulfill({
     headers: { "X-Tenant-ID": tenant },
-    json: { tenant_id: mismatched ? foreignTenant : tenant, recorded_bytes: recordedBytes, document_file_count: recordedBytes ? 3 : 0 },
+    json: {
+      tenant_id: mismatched ? foreignTenant : tenant, recorded_bytes: recordedBytes, document_file_count: recordedBytes ? 3 : 0,
+      allowance_bytes: null, available_bytes: null, usage_percent: null, usage_status: "unconfigured",
+    },
   }));
   await page.goto("/#company-control-heading");
   await page.getByRole("button", { name: /Storage usage/ }).click();
@@ -88,6 +91,41 @@ test("company storage shows document totals and clears responses from another co
   const darkA11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(darkA11y.violations).toEqual([]);
   await panel.screenshot({ path: info.outputPath("company-storage-mobile.png") });
+});
+
+test("company storage shows contracted capacity and warns when usage exceeds it", async ({ page }, info) => {
+  await useCompany(page, "owner");
+  let overLimit = false;
+  await page.route(`**/api/identity/company-storage/${tenant}`, route => route.fulfill({
+    headers: { "X-Tenant-ID": tenant },
+    json: {
+      tenant_id: tenant, document_file_count: 4, allowance_bytes: 10_000_000,
+      recorded_bytes: overLimit ? 11_000_000 : 9_000_000, available_bytes: overLimit ? 0 : 1_000_000,
+      usage_percent: overLimit ? 100 : 90, usage_status: overLimit ? "over_limit" : "warning",
+    },
+  }));
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#company-storage-heading");
+  const panel = page.getByRole("region", { name: "Storage usage" });
+  const meter = panel.getByRole("meter", { name: "Percentage of allowance used by PDFs" });
+  await expect(meter).toHaveAttribute("value", "90");
+  await expect(panel.getByText("1 MB available based on recorded PDFs")).toBeVisible();
+  await expect(panel.getByText("You have reached 90% of your allowance.")).toBeVisible();
+  await panel.screenshot({ path: info.outputPath("contracted-storage-desktop.png") });
+  overLimit = true;
+  await panel.getByRole("button", { name: "Refresh usage" }).click();
+  await expect(meter).toHaveAttribute("value", "100");
+  await expect(panel.getByText("Over capacity", { exact: true })).toBeVisible();
+  await expect(panel.getByText("Recorded PDFs use 1 MB more", { exact: false })).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 760 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(321);
+  const a11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(a11y.violations).toEqual([]);
+  await page.getByRole("checkbox", { name: "Use dark theme" }).press("Space");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const darkA11y = await new AxeBuilder({ page }).include(".cc-workspace").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  expect(darkA11y.violations).toEqual([]);
+  await panel.screenshot({ path: info.outputPath("contracted-storage-mobile.png") });
 });
 
 test("company administration saves employee profiles and rejects an unexpected company response", async ({ page }, info) => {

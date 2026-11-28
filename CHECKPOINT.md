@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Cuota contratada y avisos de almacenamiento · 28 noviembre 2026
+- `0063_company_storage_allowance` registra cuotas aprobadas por empresa desde operaciones autorizadas. Conserva versiones, identidad de la conexión y referencia de aprobación. Los reintentos idénticos no duplican registros. El panel muestra lo contratado, los MB disponibles según PDFs y avisos al 80 %, 90 % y al agotar o superar la cuota. Las cargas todavía no se bloquean.
+- Pasaron 52 pruebas backend, incluidas 43 con PostgreSQL, y 21 recorridos con API simulada. Se verificaron simultaneidad, aislamiento, límites y rechazo de una reversión con historial. Respaldo cifrado `CP-STORAGE-ALLOWANCE-00-20261128T091747Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-ALLOWANCE-DB-20261128T091818Z` restaurado. Entrega en el PR #70.
+
 ## Prioridad permanente de seguridad · 28 noviembre 2026
 - El usuario estableció la integridad de los datos de clientes como prioridad. La regla queda en `AGENTS.md` y exige sostener el aislamiento entre empresas, los permisos, la trazabilidad y la recuperación verificable según el riesgo del cambio.
 - Respaldo incremental cifrado `CP-DATA-INTEGRITY-POLICY-00-20261128T083322Z` cotejado sobre el respaldo del medidor.

@@ -80,6 +80,15 @@
 .cc-storage-metrics dt { color: var(--pm-text-muted); font-size: .85rem; }
 .cc-storage-metrics dd { margin: .45rem 0 .6rem; font-size: clamp(1.25rem, 3vw, 1.85rem); font-weight: 690; overflow-wrap: anywhere; }
 .cc-storage-metrics dd span { display: block; margin-top: .4rem; color: var(--pm-text-muted); font-size: .85rem; font-weight: 400; line-height: 1.5; }
+.cc-capacity { --cc-capacity-accent: var(--pm-primary-strong); }
+.cc-capacity[data-status="notice"] { --cc-capacity-accent: var(--pm-info); }
+.cc-capacity[data-status="warning"] { --cc-capacity-accent: var(--pm-warning); }
+.cc-capacity:is([data-status="at_limit"], [data-status="over_limit"]) { --cc-capacity-accent: var(--pm-danger); }
+.cc-capacity header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+.cc-capacity meter { width: 100%; height: .8rem; margin-block: var(--pm-space-3); }
+.cc-capacity meter::-webkit-meter-bar { border: 0; background: var(--pm-surface-muted); }
+.cc-capacity meter::-webkit-meter-optimum-value { background: var(--cc-capacity-accent); }
+.cc-capacity meter::-moz-meter-bar { background: var(--cc-capacity-accent); }
 .cc-capitalized { text-transform: capitalize; }
 .cc-profile-grid .theme-switch { margin-top: var(--pm-space-3); }
 .cc-chip {

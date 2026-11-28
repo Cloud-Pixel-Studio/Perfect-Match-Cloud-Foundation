@@ -57,8 +57,16 @@ La comparación de capacidad propuesta está en `/products/plans`. Su asistente 
 
 ## Medición disponible en Control de empresa
 
-**Storage usage** muestra a propietarios y administradores los bytes registrados y el número de archivos PDF de su empresa. Incluye revisiones anteriores conservadas y archivos registrados como limpios aunque estén en borrador. Los archivos rechazados o en cuarentena quedan fuera de ese total. El panel muestra la capacidad contratada como pendiente de activación.
+**Storage usage** muestra a propietarios y administradores los bytes registrados y el número de archivos PDF de su empresa. Incluye revisiones anteriores conservadas y archivos registrados como limpios aunque estén en borrador. Los archivos rechazados o en cuarentena quedan fuera de ese total.
 
 La migración `0062_company_document_storage` calcula el total inicial a partir de las revisiones existentes. Las cargas posteriores actualizan los totales por empresa en la misma transacción que la revisión. El medidor usa metadatos confirmados en PostgreSQL. La reconciliación periódica con los objetos reales y el costo de copias técnicas quedan por implementar. El agregado no otorga permisos sobre documentos ni devuelve nombres o rutas de archivos.
 
-La cuota contratada, su aplicación en los cargadores, las ampliaciones facturables y las fotos privadas persistentes quedan pendientes de implementación.
+## Activación de la cuota aprobada
+
+La migración `0063_company_storage_allowance` permite registrar la capacidad aprobada por empresa en bytes. El sitio comercial conserva las cuotas propuestas. El panel muestra **pendiente de activación** hasta que exista un registro aprobado. Después muestra el espacio disponible según los PDFs registrados y distingue 80 %, 90 %, capacidad agotada y uso por encima de la cuota. Los avisos están en el panel.
+
+El registro se hace desde operaciones autorizadas con la identidad propietaria del esquema. La función SQL interna `public.record_company_storage_allowance(empresa, bytes, versión_esperada, aprobación)` recibe el UUID de empresa, los bytes acordados, la última versión conocida (cero para el alta) y un UUID que identifica la aprobación en el sistema de operaciones. La versión guarda la identidad de la conexión y la fecha de registro. Repetir la misma aprobación con los mismos datos devuelve la versión original. Cambios posteriores requieren la versión vigente y su propia aprobación. Las versiones anteriores se conservan.
+
+La cuenta de la aplicación y los administradores de las empresas carecen de permiso para registrar cuotas. El panel expone la capacidad vigente a las autoridades de la empresa seleccionada y conserva las referencias internas de aprobación fuera de la respuesta.
+
+La reserva y el bloqueo en los cargadores, el envío de avisos, la facturación de ampliaciones y las fotos privadas persistentes quedan pendientes. Superar el cupo u operar tras una reducción de capacidad no cambia la disponibilidad del contenido existente.
