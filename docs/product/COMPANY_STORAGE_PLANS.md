@@ -42,10 +42,11 @@ Completar una ficha por empresa al emitir la oferta. El resumen de demo muestra 
 | Capacidad total | MB incluidos y capacidad adicional autorizada, expresados también en bytes. Fecha de inicio y de renovación. |
 | Alcance del producto | QMS incluido, cantidad de seats y normas ISO con sus ediciones y disponibilidad. |
 | Precio recurrente | Importe, moneda, periodicidad y desglose de cualquier ampliación autorizada. Indicar que el almacenamiento contratado y los respaldos gestionados forman parte del precio. |
+| Servicios de implementación | Alcance y cargos únicos de configuración, formación o migración, si corresponden. Desglosar el total del primer año y el importe recurrente de renovación. |
 | Consumo y continuidad | Archivos que cuentan, retención de revisiones, avisos, qué ocurre al alcanzar la cuota y cómo solicitar más espacio. |
 | Cambios posteriores | Nueva capacidad, importe, fecha efectiva y constancia de aceptación del cliente. |
 
-La comparación de capacidad propuesta está en `/products/plans`. Al elegir un plan, el cliente puede preparar un correo o descargar su resumen de demo con el plan de interés y el alcance que falta confirmar.
+La comparación de capacidad propuesta está en `/products/plans`. Su asistente estima la cuota mínima según el almacenamiento previsto y cuantifica seats o espacio adicionales cuando existe una diferencia. El cliente puede preparar un correo o descargar su resumen de demo con su estimación editable y el alcance que falta confirmar.
 
 ## Implementación prevista
 

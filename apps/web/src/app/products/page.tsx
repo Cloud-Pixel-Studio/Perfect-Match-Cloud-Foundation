@@ -8,7 +8,8 @@ import { BrandMark } from "../../components/brand-mark";
 import { ProductTour } from "../../components/product-tour";
 import { ProductDemoRequest } from "../../components/product-demo-request";
 import { ProductHeader } from "../../components/product-header";
-import { findCompanyStoragePlan } from "../../lib/company-storage-plans";
+import { findCompanyStoragePlan, parseStorageMb } from "../../lib/company-storage-plans";
+import { parseRequestedSeats } from "../../lib/product-enquiry";
 import "./products.css";
 
 export const metadata: Metadata = {
@@ -37,10 +38,13 @@ const questions = [
 ];
 
 export default async function ProductsPage({ searchParams }: {
-  searchParams: Promise<{ plan?: string | string[] }>;
+  searchParams: Promise<{ plan?: string | string[]; seats?: string | string[]; storageMb?: string | string[] }>;
 }) {
   await connection();
-  const plan = findCompanyStoragePlan((await searchParams).plan)?.id;
+  const params = await searchParams;
+  const plan = findCompanyStoragePlan(params.plan)?.id;
+  const requestedSeats = plan ? parseRequestedSeats(params.seats) : undefined;
+  const estimatedStorageMb = plan ? parseStorageMb(params.storageMb) : undefined;
   return (
     <div className="market-page">
       <a className="skip-link" href="#market-main">Skip to product content</a>
@@ -74,7 +78,10 @@ export default async function ProductsPage({ searchParams }: {
 
         <section className="market-section market-container market-faq" aria-labelledby="faq-heading"><div><p className="market-eyebrow">BEFORE WE TALK</p><h2 id="faq-heading">Good questions.<br />Clear answers.</h2><p>Understand the product model and current availability before planning your next step.</p></div><div>{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
 
-        <section className="market-demo-section" id="demo" aria-labelledby="demo-heading"><div className="market-container market-demo-grid"><div><p className="market-eyebrow">LET’S LOOK AT YOUR QUALITY WORK</p><h2 id="demo-heading">Bring your questions.<br /><em>We’ll bring the product.</em></h2><p>Plan a focused demonstration around the work your company needs to control.</p><ol><li><span>01</span>Choose your team size and main priority.</li><li><span>02</span>Tell us which standards you want to discuss.</li><li><span>03</span>Review and send the prepared email.</li></ol><a className="market-demo-email" href="mailto:Demo@invperfectmatch.com"><Mail aria-hidden="true" size={17} />Demo@invperfectmatch.com</a><small>Product preview. Pricing and commercial rollout are in preparation.</small></div><ProductDemoRequest key={plan} initialPlan={plan} /></div></section>
+        <section className="market-demo-section" id="demo" aria-labelledby="demo-heading"><div className="market-container market-demo-grid"><div><p className="market-eyebrow">LET’S LOOK AT YOUR QUALITY WORK</p><h2 id="demo-heading">Bring your questions.<br /><em>We’ll bring the product.</em></h2><p>Plan a focused demonstration around the work your company needs to control.</p><ol><li><span>01</span>Choose your team size and main priority.</li><li><span>02</span>Tell us which standards you want to discuss.</li><li><span>03</span>Review and send the prepared email.</li></ol><a className="market-demo-email" href="mailto:Demo@invperfectmatch.com"><Mail aria-hidden="true" size={17} />Demo@invperfectmatch.com</a><small>Product preview. Pricing and commercial rollout are in preparation.</small></div>
+          <ProductDemoRequest key={`${plan}-${requestedSeats}-${estimatedStorageMb}`} initialPlan={plan}
+            initialSeats={requestedSeats} initialStorageMb={estimatedStorageMb} />
+        </div></section>
       </main>
 
       <footer className="market-footer market-container"><div><BrandMark /><span><strong>PERFECT MATCH QMS</strong><small>Quality work. Connected evidence.</small></span></div><nav aria-label="Product resources"><a href="#product-tour">Product tour</a><Link href="/design-studio">Explore the visual library</Link><a href="mailto:Demo@invperfectmatch.com">Contact</a><Link href="/">Client login</Link></nav><p>Independent QMS platform · Company workspaces · Seats · ISO editions</p></footer>

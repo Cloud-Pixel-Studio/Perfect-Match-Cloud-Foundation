@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { matchCompanyStoragePlan, parseStorageMb } from "./company-storage-plans";
 
 import {
   buildProductEnquiry,
@@ -89,17 +90,31 @@ describe("product demo enquiry", () => {
   });
 
   it("includes the proposed allowance and terms in both brief formats without changing seat demand", () => {
-    const result = buildProductEnquiry({ ...enquiry, seats: 6, storagePlan: "basic" });
+    const result = buildProductEnquiry({ ...enquiry, seats: 6, storagePlan: "basic", estimatedStorageMb: 6_000 });
     if (!result.ok) throw new Error("Expected valid plan interest");
     expect(result.brief).toContain("Proposed plan: Basic");
     expect(result.brief).toContain("5,000 MB per company, included in the recurring price");
     expect(result.brief).toContain("Team seats: 6");
+    expect(result.brief).toContain("Estimated retained storage: 6,000 MB per company.");
+    expect(result.brief).toContain("Additional seats to quote: 3.");
+    expect(result.brief).toContain("Additional storage to quote: 1,000 MB.");
     expect(result.brief).toContain("Managed backups");
     expect(result.brief).toContain("Proposed alerts at 80% and 90%");
     expect(result.brief).toContain("Proposed expansion blocks of 25,000 MB.");
     expect(result.brief).toContain("No automatic overage charges.");
     expect(result.brief).toContain("signed agreement");
     expect(new URL(result.mailto).searchParams.get("body")).toBe(result.brief);
+  });
+
+  it.each([
+    [0, "basic"], [5_000, "basic"], [5_001, "team"], [25_000, "team"], [25_001, "professional"],
+    [100_000, "professional"], [100_001, "enterprise"], [250_000, "enterprise"], [250_001, undefined],
+  ])("matches the smallest proposed allowance at %d MB", (amount, plan) => {
+    expect(matchCompanyStoragePlan(amount)?.id).toBe(plan);
+  });
+
+  it.each(["", "-1", "3.5", "1e5", "9007199254740992", ["99"]])("rejects invalid storage input %j", (value) => {
+    expect(parseStorageMb(value)).toBeUndefined();
   });
 
   it("handles malformed Unicode without breaking URI generation", () => {

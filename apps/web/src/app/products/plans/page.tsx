@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { ArrowLeft, ArrowRight, Building2 } from "lucide-react";
 
 import { ProductHeader } from "../../../components/product-header";
+import { CompanyPlanGuide } from "../../../components/company-plan-guide";
 import { companyStoragePlans, formatStorageCapacity, storageTerms } from "../../../lib/company-storage-plans";
 import "../products.css";
 
@@ -44,6 +45,7 @@ export default async function CompanyPlansPage() {
           </ul>
           <p className="market-quiet-note">Plans and capacities are proposed for discussion. Final terms will appear in your signed agreement.</p>
         </section>
+        <CompanyPlanGuide />
         <section className="market-plan-terms" aria-labelledby="storage-terms-heading">
           <h2 id="storage-terms-heading">How the allowance works</h2>
           <dl>
@@ -53,6 +55,13 @@ export default async function CompanyPlansPage() {
             <div><dt>Adding storage</dt><dd>Proposed expansion in blocks of {formatStorageCapacity(storageTerms.expansionMb)}. {storageTerms.expansion}</dd></div>
           </dl>
           <p className="market-quiet-note">Each workspace has its own allowance. One MB is 1,000,000 bytes.</p>
+        </section>
+        <section className="market-plan-terms" aria-labelledby="quote-scope-heading">
+          <h2 id="quote-scope-heading">What to expect in your quote</h2>
+          <dl>
+            <div><dt>Recurring subscription</dt><dd>One company workspace, core QMS, agreed seat count, storage allowance and confirmed ISO editions. The quote states the price, billing frequency and renewal terms.</dd></div>
+            <div><dt>Implementation and migration</dt><dd>If your rollout calls for setup, training or migration services, look for their scope and any one-time charges in the first-year total.</dd></div>
+          </dl>
         </section>
       </main>
     </div>

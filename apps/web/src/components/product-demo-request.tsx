@@ -4,7 +4,7 @@ import { Download, Mail } from "lucide-react";
 import { useId, useState } from "react";
 
 import {
-  companyStoragePlans, findCompanyStoragePlan, formatStorageCapacity, type CompanyStoragePlanId,
+  companyStoragePlans, findCompanyStoragePlan, formatStorageCapacity, parseStorageMb, type CompanyStoragePlanId,
 } from "../lib/company-storage-plans";
 import {
   buildProductEnquiry,
@@ -15,15 +15,21 @@ import {
   type ProductPriority,
 } from "../lib/product-enquiry";
 
-export function ProductDemoRequest({ initialPlan }: { initialPlan?: CompanyStoragePlanId }) {
+export function ProductDemoRequest({ initialPlan, initialSeats, initialStorageMb }: {
+  initialPlan?: CompanyStoragePlanId;
+  initialSeats?: number;
+  initialStorageMb?: number;
+}) {
   const id = useId();
   const [company, setCompany] = useState("");
-  const [seats, setSeats] = useState(initialPlan === "basic" ? "3" : "25");
+  const [seats, setSeats] = useState(String(initialSeats ?? findCompanyStoragePlan(initialPlan)?.includedSeats ?? 25));
   const [priority, setPriority] = useState<ProductPriority>("general-qms");
   const [isoInterests, setISOInterests] = useState<ISOInterest[]>([]);
   const [storagePlan, setStoragePlan] = useState<string>(initialPlan ?? "");
+  const [estimatedStorageMb, setEstimatedStorageMb] = useState(initialStorageMb === undefined ? "" : String(initialStorageMb));
+  const estimate = parseStorageMb(estimatedStorageMb);
   const plan = findCompanyStoragePlan(storagePlan);
-  const result = buildProductEnquiry({ company, seats, priority, isoInterests, storagePlan });
+  const result = buildProductEnquiry({ company, seats, priority, isoInterests, storagePlan, estimatedStorageMb });
   const errors = result.ok ? {} : result.errors;
 
   function updateISOInterest(value: ISOInterest, checked: boolean) {
@@ -91,6 +97,14 @@ export function ProductDemoRequest({ initialPlan }: { initialPlan?: CompanyStora
         </select>
         {errors.storagePlan && <span className="market-enquiry-error" id={`${id}-plan-error`} role="alert">{errors.storagePlan}</span>}
       </div>}
+      {initialStorageMb !== undefined && <div className="market-enquiry-field market-enquiry-plan">
+        <label htmlFor={`${id}-estimate`}>Estimated storage (MB)</label>
+        <input id={`${id}-estimate`} type="number" min={0} step={1} inputMode="numeric" value={estimatedStorageMb}
+          onChange={event => setEstimatedStorageMb(event.target.value)}
+          aria-invalid={Boolean(errors.estimatedStorageMb)}
+          aria-describedby={errors.estimatedStorageMb ? `${id}-estimate-error` : undefined} />
+        {errors.estimatedStorageMb && <span className="market-enquiry-error" id={`${id}-estimate-error`} role="alert">{errors.estimatedStorageMb}</span>}
+      </div>}
       <fieldset className="market-enquiry-options" aria-describedby={`${id}-iso-note`}>
         <legend>ISO interests <span>(optional)</span></legend>
         {isoInterestOptions.map((option) => (
@@ -107,6 +121,7 @@ export function ProductDemoRequest({ initialPlan }: { initialPlan?: CompanyStora
           <div><dt>Company workspace</dt><dd>1 independent workspace</dd></div>
           <div><dt>Team seats</dt><dd>{result.ok ? result.seats : "Enter a valid seat count"}</dd></div>
           {plan && <div><dt>Proposed storage per company</dt><dd>{plan.name} · {formatStorageCapacity(plan.capacityMb)}</dd></div>}
+          {estimate !== undefined && <div><dt>Estimated retained storage</dt><dd>{formatStorageCapacity(estimate)}</dd></div>}
           <div><dt>ISO interests</dt><dd>{isoInterestOptions.filter((option) => isoInterests.includes(option.value)).map((option) => option.label).join(", ") || "None selected"}</dd></div>
         </dl>
         <p className="market-enquiry-note">This is a demo brief, not a price quote, order or subscription.</p>

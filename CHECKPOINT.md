@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Asistente para elegir plan · 27 noviembre 2026
+- Comparados Qualio, Greenlight Guru, monday.com y Jira en sus fuentes oficiales. `/products/plans` estima la menor cuota propuesta usando los MB declarados, detecta seats adicionales en Básico y permite solicitar cotización por encima de 250 000 MB. El resumen editable conserva el cálculo y pide cotizar por separado los costos recurrentes y los servicios únicos. Las cuotas operativas y los precios comerciales siguen pendientes.
+- Respaldo incremental cifrado `CP-PLAN-GUIDE-00-20261128T032356Z` verificado sobre el respaldo `CP-STORAGE-DISCLOSURE-00-20261128T015114Z`. Pasaron 377 unitarias web, 6 recorridos de Productos, Axe con resultado visible a 320 px en ambos temas y dos comparaciones de escritorio. Entrega en la rama del PR #70.
+
 ## Transparencia de los planes · 27 noviembre 2026
 - Productos enlaza a `/products/plans`, con cuotas propuestas, reglas de uso, respaldo incluido y ampliación autorizada. El plan elegido pasa al resumen descargable y al correo preparado para revisión. La guía comercial tiene los campos del anexo por empresa. Cuotas operativas, medición y tarifas finales siguen pendientes.
 - Respaldo cifrado `CP-STORAGE-DISCLOSURE-00-20261128T015114Z` descifrado y cotejado. Pasaron lint, tipos, compilación, 362 unitarias y 5 recorridos de Productos, con Axe a 320 px en ambos temas. Escritorio claro/oscuro pasó. Las referencias visuales móvil y tablet ya fallaban en `96f2731`; el cotejo de píxeles confirmó que el nuevo cambio en la página existente se limita a la navegación. Entrega en el PR #70.
