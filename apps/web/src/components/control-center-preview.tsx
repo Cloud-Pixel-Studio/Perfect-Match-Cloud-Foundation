@@ -10,7 +10,7 @@ type Screen = "people" | "company" | "platform";
 const screens = [
   { id: "people", label: "People & training", Icon: UsersRound },
   { id: "company", label: "Company settings", Icon: Building2 },
-  { id: "platform", label: "SaaS operations", Icon: Layers3 },
+  { id: "platform", label: "Platform operations", Icon: Layers3 },
 ] as const;
 type Person = { id: string; name: string; title: string; unit: string; status: "Active" | "Archived"; photo?: string };
 type Course = { id: string; title: string };
@@ -269,7 +269,7 @@ function PlatformPreview() {
   const visible = tenants.filter(tenant => filter === "All" || tenant.status === filter);
   const current = visible.find(tenant => tenant.name === selected) ?? visible[0];
   return <section className="cc-preview-content" aria-labelledby="ops-preview-heading">
-    <div className="cc-page-heading"><div><h2 id="ops-preview-heading">SaaS operations</h2><p>Manage subscription lifecycle and service health across companies.</p></div><span className="cc-chip"><ShieldCheck size={16} aria-hidden="true" /> Platform operator</span></div>
+    <div className="cc-page-heading"><div><h2 id="ops-preview-heading">Platform operations</h2><p>Manage subscription lifecycle and service health across companies.</p></div><span className="cc-chip"><ShieldCheck size={16} aria-hidden="true" /> Platform operator</span></div>
     <dl className="cc-metrics">
       <div><dt>Active companies</dt><dd>{tenants.filter(tenant => tenant.status === "Active").length}</dd></div>
       <div><dt>Provisioning</dt><dd>{tenants.filter(tenant => tenant.status === "Provisioning").length}</dd></div>

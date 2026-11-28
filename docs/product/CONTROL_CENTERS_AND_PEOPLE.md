@@ -11,7 +11,7 @@ Se revisaron los modelos de persona y formación, los permisos y la navegación 
 | Mi perfil | Cada usuario autenticado | Identidad de su propia cuenta, empresa seleccionada, rol y preferencia de tema del navegador. |
 | Control de empresa | Propietario o administrador de la empresa | Sedes y departamentos, asignaciones, permisos, puesta en marcha del QMS y bitácora. En iteraciones siguientes se incorporan marca, idioma, zona horaria, plantillas y avisos. |
 | Personas y formación | Encargados con permisos de personas o formación por unidad | Empleados, foto privada, cursos, asignación por persona o rol, asistencia, resultados, evidencias, vencimientos y cualificaciones. Cada usuario accederá a su ficha propia según la política del tenant. |
-| Operación del SaaS | Personal interno con identidad y permisos de plataforma | Alta, suspensión y reactivación de empresas, planes, seats, addons ISO, facturas, soporte, salud, despliegues, restauraciones y bitácora de plataforma. |
+| Operación de plataforma | Personal interno con identidad y permisos de plataforma | Alta, suspensión y reactivación de empresas, planes, seats, addons ISO, facturas, soporte, salud, despliegues, restauraciones y bitácora de plataforma. |
 
 La ficha laboral y la cuenta de acceso tienen ciclos de vida independientes. Una persona puede figurar en el directorio y recibir formación sin consumir un seat. La vinculación a una cuenta, la invitación y los permisos de QMS son decisiones separadas. Las capacidades de administración de un cliente aplican a su empresa. El acceso de plataforma se gobierna con identidad, permisos y bitácora propios. Las pantallas de operación trabajan con metadatos comerciales y de servicio.
 

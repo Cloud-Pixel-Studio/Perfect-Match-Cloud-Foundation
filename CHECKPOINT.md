@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Nombres visibles de los paneles · 27 noviembre 2026
+- El usuario pidió quitar «SaaS» de la interfaz. Se aplicó en el panel de Operación de plataforma, la guía de implementación y el catálogo visual. La descarga de la presentación usa `product-overview.png` y conserva su dirección anterior.
+- Respaldo cifrado `CP-PLATFORM-LABELS-00-20261128T005546Z` descifrado y cotejado. Pasaron 361 unitarias web y 15 recorridos de paneles, guías y catálogo visual. Vista local actualizada. Entrega en la rama del PR #70.
+
 ## Paneles de empresa, plataforma y Personas · 27 noviembre 2026
 - Rama `codex/company-control-design` sobre `0884184` y base remota PR #69. Respaldo cifrado `CP-CONTROL-CENTERS-00-20261128T000021Z` descifrado y comparado, con bundle Git verificado.
 - Mi perfil y Control de empresa están integrados en el panel autenticado. Control de empresa aparece para propietarios y administradores y abre las áreas operativas existentes.

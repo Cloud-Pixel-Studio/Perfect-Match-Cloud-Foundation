@@ -93,13 +93,14 @@ test("the explicitly enabled design preview supports employee, training, brandin
   await expect(branding).toHaveAttribute("data-accent", "blue");
   await page.screenshot({ path: info.outputPath("company-settings-preview.png"), fullPage: true });
 
-  await nav.getByRole("button", { name: "SaaS operations" }).click();
+  await nav.getByRole("button", { name: "Platform operations" }).click();
+  await expect(page.getByRole("heading", { name: "Platform operations", exact: true })).toBeVisible();
   await page.getByLabel("Company status").selectOption("Suspended");
   const subscription = page.getByRole("region", { name: "Company subscription preview" });
   await expect(subscription.getByRole("heading", { name: "Pacific Materials" })).toBeVisible();
   await expect(subscription.getByText("2 / 3")).toBeVisible();
   await page.getByLabel("Company status").selectOption("All");
-  await page.screenshot({ path: info.outputPath("saas-operations-preview.png"), fullPage: true });
+  await page.screenshot({ path: info.outputPath("platform-operations-preview.png"), fullPage: true });
 
   await page.setViewportSize({ width: 375, height: 812 });
   await nav.getByRole("button", { name: "People & training" }).click();

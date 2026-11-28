@@ -55,8 +55,8 @@ export const designAssetCatalog: readonly DesignAssetSpec[] = [
   {
     slug: "saas-product-overview",
     kind: "product_overview",
-    title: "Presentación del producto SaaS",
-    purpose: "Explicar tenant privado, responsabilidades y evidencia",
+    title: "Presentación de Perfect Match QMS",
+    purpose: "Explicar el espacio privado de cada empresa, sus responsabilidades y evidencias",
     width: 1600,
     height: 900,
     source: "real-synthetic-screenshot",
