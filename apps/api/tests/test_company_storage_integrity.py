@@ -235,3 +235,63 @@ def test_concurrent_approvals_for_one_version_cannot_both_commit(
     with ThreadPoolExecutor(max_workers=2) as pool:
         assert sorted(pool.map(approve, (5_000_000, 6_000_000))) == [0, 1]
     assert boundary.call("GET", PATH)["allowance_bytes"] in {5_000_000, 6_000_000}
+
+
+def test_concurrent_pdf_uploads_stop_at_exact_quota_and_preserve_existing_content(
+    boundary: Boundary, operations: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    doc, first, storage = document(boundary, monkeypatch, combined_reviewer=True)
+    release(boundary, doc, first)
+    assert _approve(operations, A, 2 * len(PDF), 0, uuid4()) == 1
+    paths = [_file_path(boundary, doc["id"], code) for code in ("2", "3")]
+    member = boundary.clients["member"]
+
+    def upload(path: str) -> int:
+        return int(
+            member.put(path, content=PDF, headers={"Content-Type": "application/pdf"}).status_code
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        assert sorted(pool.map(upload, paths)) == [202, 507]
+    usage = boundary.call("GET", PATH)
+    assert (usage["recorded_bytes"], usage["usage_status"], usage["document_file_count"]) == (
+        2 * len(PDF),
+        "at_limit",
+        2,
+    )
+    assert len(storage.objects) == 2
+    revisions = boundary.call("GET", f"/documents/{doc['id']}/revisions", role="member")
+    pending = next(item for item in revisions if item["file_state"] == "missing")
+    assert pending["row_version"] == 1
+    assert _approve(operations, A, len(PDF) - 1, 1, uuid4()) == 2
+    assert upload(f"/documents/{doc['id']}/revisions/{pending['id']}/file") == 507
+    response = member.get(f"/documents/{doc['id']}/revisions/{first['id']}/file")
+    assert response.status_code == 200 and response.content == PDF
+    assert len(storage.objects) == 2
+
+
+def test_batched_document_records_cannot_exceed_company_allowance(
+    boundary: Boundary, operations: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    doc, _, storage = document(boundary, monkeypatch)
+    for code in ("2", "3"):
+        _file_path(boundary, doc["id"], code)
+    assert _approve(operations, A, 2 * len(PDF), 0, uuid4()) == 1
+    with boundary.runtime.begin() as db:
+        context(db, user=USERS["member"], tenant=A)
+        with (
+            pytest.raises(DBAPIError, match="company document storage allowance exceeded"),
+            db.begin_nested(),
+        ):
+            db.execute(
+                text(
+                    "UPDATE public.qms_document_revisions "
+                    "SET file_state='clean', file_object_key=id::text, file_sha256=repeat('a',64), "
+                    "file_size=:size, file_media_type='application/pdf', row_version=row_version+1 "
+                    "WHERE document_id=:document AND file_state='missing'"
+                ),
+                {"document": doc["id"], "size": len(PDF)},
+            )
+    usage = boundary.call("GET", PATH)
+    assert usage["recorded_bytes"] == len(PDF) and usage["document_file_count"] == 1
+    assert len(storage.objects) == 1

@@ -261,6 +261,9 @@ export function DocumentsWorkspace({ userId, onAccessDenied, preferredUnitId, on
         await loadScope(unitId, undefined, offset, appliedSearch, selection);
         throw new Error("This record changed or its state no longer permits this upload. Review the refreshed revision before trying again.");
       }
+      if (response.status === 507) {
+        throw new Error("This PDF does not fit in the company’s remaining storage. Ask a company administrator to review Storage usage.");
+      }
       if (!response.ok) throw new Error(response.status === 503 ? "The document file service is temporarily unavailable. No successful upload was confirmed." : response.status === 415 ? "Only a valid PDF file is accepted." : response.status === 413 ? "The PDF exceeds the 20 MiB limit." : "The PDF could not be uploaded.");
       const result = await response.json() as { file_state: string };
       if (!current()) return;

@@ -121,6 +121,7 @@ def _upload_context(
     rows = iter((revision, document))
     db = SimpleNamespace(
         scalar=lambda *_args: next(rows),
+        execute=lambda *_args: None,
         flush=lambda: None,
         commit=lambda: None,
         rollback=lambda: None,
@@ -137,8 +138,8 @@ def _upload_context(
     monkeypatch.setattr(
         documents, "get_settings", lambda: SimpleNamespace(s3_documents_bucket="private-documents")
     )
-    monkeypatch.setattr(documents, "_commit", lambda *_args: None)
-    return document_id, revision_id, revision, document, db, stored
+    monkeypatch.setattr(documents, "_audit", lambda *_args: None)
+    return document_id, revision_id, revision, storage, db, stored
 
 
 def _upload_request(body: bytes) -> Request:
@@ -170,7 +171,7 @@ def test_upload_persists_only_scanned_verdict(
     verdict: ScanVerdict,
     expected: str,
 ) -> None:
-    document_id, revision_id, revision, _document, db, stored = _upload_context(monkeypatch)
+    document_id, revision_id, revision, _storage, db, stored = _upload_context(monkeypatch)
     monkeypatch.setattr(documents, "scan", lambda _payload: verdict)
 
     result = asyncio.run(
@@ -191,7 +192,7 @@ def test_upload_persists_only_scanned_verdict(
 def test_upload_fails_closed_and_does_not_store_without_scanner(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    document_id, revision_id, revision, _document, db, stored = _upload_context(monkeypatch)
+    document_id, revision_id, revision, _storage, db, stored = _upload_context(monkeypatch)
 
     def unavailable(_payload: object) -> ScanVerdict:
         raise ScanUnavailable("scanner unavailable")
@@ -211,3 +212,57 @@ def test_upload_fails_closed_and_does_not_store_without_scanner(
     assert error.value.status_code == 503
     assert revision.file_state == "missing"
     assert not stored
+
+
+def test_upload_keeps_the_object_if_database_commit_outcome_is_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document_id, revision_id, _revision, storage, db, stored = _upload_context(monkeypatch)
+    monkeypatch.setattr(documents, "scan", lambda _payload: ScanVerdict.CLEAN)
+    deletes: list[str] = []
+    monkeypatch.setattr(storage, "delete_object", lambda _bucket, key: deletes.append(key))
+
+    def disconnected() -> None:
+        raise RuntimeError("Synthetic connection loss during commit")
+
+    db.commit = disconnected
+    with pytest.raises(RuntimeError, match="connection loss during commit"):
+        asyncio.run(
+            documents.quarantine_revision_file(
+                document_id,
+                revision_id,
+                _upload_request(b"%PDF-1.7\n%%EOF"),
+                cast(Session, db),
+                cast(AuthenticatedSession, object()),
+            )
+        )
+
+    assert stored and not deletes
+
+
+def test_upload_cleans_its_own_object_if_storage_write_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document_id, revision_id, revision, storage, db, written = _upload_context(monkeypatch)
+    monkeypatch.setattr(documents, "scan", lambda _payload: ScanVerdict.CLEAN)
+    removed: list[tuple[str, str]] = []
+
+    def failed_put(bucket: str, key: str, _payload: object) -> None:
+        written.append((bucket, key))
+        raise RuntimeError("Synthetic write response loss")
+
+    monkeypatch.setattr(storage, "put_object", failed_put)
+    monkeypatch.setattr(storage, "delete_object", lambda bucket, key: removed.append((bucket, key)))
+    with pytest.raises(HTTPException) as error:
+        asyncio.run(
+            documents.quarantine_revision_file(
+                document_id,
+                revision_id,
+                _upload_request(b"%PDF-1.7\n%%EOF"),
+                cast(Session, db),
+                cast(AuthenticatedSession, object()),
+            )
+        )
+    assert error.value.status_code == 503
+    assert removed == written and len(removed) == 1
+    assert revision.file_state == "missing"

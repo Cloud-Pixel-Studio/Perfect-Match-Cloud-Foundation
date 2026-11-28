@@ -17,7 +17,7 @@ Cada cuota pertenece al espacio de una empresa. Los planes superiores conservan 
 
 - La tarifa recurrente incluye la capacidad contratada, su operación y los respaldos gestionados por Perfect Match. Una ampliación de capacidad se incorpora al contrato con importe, vigencia y nueva cuota. La unidad inicial propuesta para ampliar es 25 000 MB. Las ampliaciones y los cambios de plan requieren autorización del cliente. Al alcanzar la cuota, no se factura un excedente automático.
 - Consumen espacio los archivos conservados para la empresa: revisiones de documentos, fotos de trabajadores, evidencias y anexos. Una versión anterior o archivada sigue contando mientras deba conservarse. Las copias técnicas de respaldo, miniaturas internas y archivos temporales no se suman a la cuota de cara al cliente. Su costo se contempla internamente. Una eliminación permitida libera espacio una vez confirmada.
-- Se avisa al 80 % y al 90 %. Una carga que superaría el 100 % se rechaza indicando el espacio disponible. La consulta, descarga y exportación autorizadas, la edición de datos sin nuevos archivos y el historial permanecen disponibles. Al bajar de plan con uso superior a la nueva cuota, el cliente conserva sus archivos y puede gestionar el espacio hasta volver a tener capacidad.
+- Se avisa al 80 % y al 90 %. Una carga que superaría el 100 % se rechaza. Los administradores autorizados pueden consultar el espacio disponible en el panel. La consulta, descarga y exportación autorizadas, la edición de datos sin nuevos archivos y el historial permanecen disponibles. Al bajar de plan con uso superior a la nueva cuota, el cliente conserva sus archivos y puede gestionar el espacio hasta volver a tener capacidad.
 
 ## Costo de referencia
 
@@ -69,4 +69,10 @@ El registro se hace desde operaciones autorizadas con la identidad propietaria d
 
 La cuenta de la aplicación y los administradores de las empresas carecen de permiso para registrar cuotas. El panel expone la capacidad vigente a las autoridades de la empresa seleccionada y conserva las referencias internas de aprobación fuera de la respuesta.
 
-La reserva y el bloqueo en los cargadores, el envío de avisos, la facturación de ampliaciones y las fotos privadas persistentes quedan pendientes. Superar el cupo u operar tras una reducción de capacidad no cambia la disponibilidad del contenido existente.
+## Aplicación en cargas de PDF
+
+La migración `0064_document_storage_quota` activa el límite para empresas con una cuota aprobada. El cargador compara los bytes reales del PDF tras el análisis de seguridad y antes de escribir el objeto privado. PostgreSQL serializa por empresa la comprobación, la escritura documental y los cambios de cupo. La proyección vuelve a comprobar cada aumento de bytes al registrar la revisión. Un aumento que excede la cuota se rechaza, incluso si un único comando agrupa varias revisiones.
+
+El rechazo conserva el borrador y los PDFs existentes. Si baja la cuota por debajo del consumo actual, permanecen disponibles las descargas autorizadas y el historial. Las empresas sin cuota aprobada conservan el comportamiento de carga anterior. El error informa que el PDF no cabe y remite al medidor. Los totales exactos siguen reservados a propietarios y administradores.
+
+Ante un fallo antes del intento de confirmar la transacción se intenta retirar exclusivamente el objeto de la carga fallida. Si se pierde la conexión durante la confirmación, se conserva el objeto privado para evitar borrar un PDF cuya revisión pudo quedar confirmada. La reconciliación periódica del almacén, los avisos fuera del panel, la facturación y las fotos privadas siguen pendientes.

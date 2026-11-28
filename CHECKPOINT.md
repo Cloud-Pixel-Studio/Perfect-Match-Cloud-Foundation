@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Aplicación del cupo en cargas de PDF · 28 noviembre 2026
+- `0064_document_storage_quota` exige que el PDF quepa en la cuota aprobada antes de guardar y verifica nuevamente al actualizar el total. La carga y los ajustes de cuota se coordinan por empresa. El rechazo conserva el borrador y las descargas autorizadas. Una confirmación de BD incierta conserva el objeto privado para evitar pérdida de un archivo registrado. Reconciliación y otros cargadores siguen pendientes.
+- Pasaron 62 pruebas backend, 377 unitarias web y 23 recorridos de navegador con API simulada. Se probó concurrencia, rechazo de un lote sobre cuota, reducción de capacidad y reversión sin alterar datos. Respaldo de código `CP-PDF-STORAGE-GUARD-00-20261128T101215Z` cotejado y respaldo independiente de BD sintética `CP-PDF-STORAGE-GUARD-DB-20261128T101240Z` restaurado. Entrega en el PR #70.
+
 ## Cuota contratada y avisos de almacenamiento · 28 noviembre 2026
 - `0063_company_storage_allowance` registra cuotas aprobadas por empresa desde operaciones autorizadas. Conserva versiones, identidad de la conexión y referencia de aprobación. Los reintentos idénticos no duplican registros. El panel muestra lo contratado, los MB disponibles según PDFs y avisos al 80 %, 90 % y al agotar o superar la cuota. Las cargas todavía no se bloquean.
 - Pasaron 52 pruebas backend, incluidas 43 con PostgreSQL, y 21 recorridos con API simulada. Se verificaron simultaneidad, aislamiento, límites y rechazo de una reversión con historial. Respaldo cifrado `CP-STORAGE-ALLOWANCE-00-20261128T091747Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-ALLOWANCE-DB-20261128T091818Z` restaurado. Entrega en el PR #70.
