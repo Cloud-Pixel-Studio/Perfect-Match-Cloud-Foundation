@@ -1,5 +1,9 @@
 # Perfect Match QMS — continuidad ·22 noviembre2026
 
+## Prioridad permanente de seguridad · 28 noviembre 2026
+- El usuario estableció la integridad de los datos de clientes como prioridad. La regla queda en `AGENTS.md` y exige sostener el aislamiento entre empresas, los permisos, la trazabilidad y la recuperación verificable según el riesgo del cambio.
+- Respaldo incremental cifrado `CP-DATA-INTEGRITY-POLICY-00-20261128T083322Z` cotejado sobre el respaldo del medidor.
+
 ## Medidor de almacenamiento documental · 28 noviembre 2026
 - **Control de empresa → Storage usage** muestra MB, bytes y número de PDFs limpios registrados, incluidas revisiones retenidas. Solo owner/admin de la empresa activa. El agregado con RLS forzado conserva los permisos documentales existentes. La capacidad contractual se muestra pendiente y todavía no limita cargas.
 - `0062_company_document_storage` pasó reversión y reconstrucción sobre tres revisiones existentes. Pasaron 41 integraciones PostgreSQL, 377 unitarias web y 20 recorridos de navegador con API simulada. Se verificaron 320 px en ambos temas, cargas concurrentes y rollback. Respaldo de código `CP-STORAGE-METER-00-20261128T082448Z` cotejado y respaldo independiente de BD sintética `CP-STORAGE-METER-DB-20261128T082449Z` restaurado. Entrega en el PR #70.
